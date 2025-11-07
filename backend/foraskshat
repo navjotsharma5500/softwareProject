@@ -1,0 +1,49 @@
+# Register a new user
+curl -X POST http://localhost:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d "{\"username\":\"testuser\",\"email\":\"test@example.com\",\"password\":\"password123\"}"
+
+# Login user
+curl -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"test@example.com\",\"password\":\"password123\"}"
+
+# Logout user (requires auth)
+curl -X POST http://localhost:5000/api/auth/logout \
+  -H "Cookie: token=YOUR_JWT_TOKEN_HERE"
+
+# Get current user profile (requires auth)
+curl -X GET http://localhost:5000/api/auth/me \
+  -H "Cookie: token=YOUR_JWT_TOKEN_HERE"
+
+  # Get all users (requires auth)
+curl -X GET http://localhost:5000/api/user \
+  -H "Cookie: token=YOUR_JWT_TOKEN_HERE"
+
+# Get single user by ID (requires auth)
+curl -X GET http://localhost:5000/api/user/USER_ID \
+  -H "Cookie: token=YOUR_JWT_TOKEN_HERE"
+
+# Update user (requires auth)
+curl -X PUT http://localhost:5000/api/user/USER_ID \
+  -H "Content-Type: application/json" \
+  -H "Cookie: token=YOUR_JWT_TOKEN_HERE" \
+  -d "{\"username\":\"newusername\",\"email\":\"newemail@example.com\"}"
+
+# Delete user (requires auth)
+curl -X DELETE http://localhost:5000/api/user/USER_ID \
+  -H "Cookie: token=YOUR_JWT_TOKEN_HERE"
+
+  # Get all users (admin only)
+curl -X GET http://localhost:5000/api/admin/users \
+  -H "Cookie: token=YOUR_ADMIN_JWT_TOKEN_HERE"
+
+# Delete user (admin only)
+curl -X DELETE http://localhost:5000/api/admin/users/USER_ID \
+  -H "Cookie: token=YOUR_ADMIN_JWT_TOKEN_HERE"
+
+# Update user role (admin only)
+curl -X PUT http://localhost:5000/api/admin/users/USER_ID/role \
+  -H "c Content-Type: application/json" \
+  -H "Cookie: token=YOUR_ADMIN_JWT_TOKEN_HERE" \
+  -d "{\"role\":\"admin\"}"
