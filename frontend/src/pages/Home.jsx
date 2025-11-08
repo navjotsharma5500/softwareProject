@@ -380,6 +380,17 @@ const Home = () => {
                     </div>
                   </div>
 
+                  {/* Show claimant info for claimed items to increase credibility */}
+                  {item.isClaimed && item.owner ? (
+                    <div className={`mb-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      <span className="font-medium">Claimed by:</span>{' '}
+                      <span className="font-semibold">{item.owner.name}</span>
+                      {item.owner.rollNo ? (
+                        <span className="ml-2 text-xs text-gray-500">(Roll: {item.owner.rollNo})</span>
+                      ) : null}
+                    </div>
+                  ) : null}
+
                   <button className="w-full bg-gradient-to-r from-blue-600 to-teal-600 text-white py-2.5 rounded-lg font-semibold hover:shadow-lg transition-all">
                     View Details
                   </button>
@@ -405,31 +416,27 @@ const Home = () => {
         {!loading && pagination.totalPages > 1 && (
           <div className="flex justify-center items-center gap-2 mt-8">
             <button
-              onClick={() => handlePageChange(filters.page - 1)}
+              onClick={() => handlePageChange(Math.max(1, filters.page - 1))}
               disabled={!pagination.hasPrev}
               className={`px-4 py-2 rounded-lg font-medium ${
                 pagination.hasPrev
-                  ? darkMode
-                    ? 'bg-slate-800 text-white hover:bg-slate-700'
-                    : 'bg-white text-gray-900 hover:bg-gray-50'
+                  ? (darkMode ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-white text-gray-900 hover:bg-gray-50')
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               } transition-all`}
             >
               Previous
             </button>
-            
+
             <span className={`px-4 py-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               Page {filters.page} of {pagination.totalPages}
             </span>
-            
+
             <button
               onClick={() => handlePageChange(filters.page + 1)}
               disabled={!pagination.hasNext}
               className={`px-4 py-2 rounded-lg font-medium ${
                 pagination.hasNext
-                  ? darkMode
-                    ? 'bg-slate-800 text-white hover:bg-slate-700'
-                    : 'bg-white text-gray-900 hover:bg-gray-50'
+                  ? (darkMode ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-white text-gray-900 hover:bg-gray-50')
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               } transition-all`}
             >
