@@ -9,6 +9,7 @@ import Signup from './pages/signup.jsx'
 import Profile from './pages/Profile.jsx'
 import Admin from './pages/Admin.jsx'
 import { ProtectedRoute } from './components/ProtectedRoute.jsx'
+import { PublicRoute } from './components/PublicRoute.jsx'
 
 const App = () => {
   return (
@@ -19,8 +20,18 @@ const App = () => {
         <Routes>    
           <Route path='/' element = {<Home/>} />
           <Route path='/item/:id' element = {<ItemDetail/>} />
-          <Route path='/login' element={<Login />} />
-          <Route path='/signup' element={<Signup />} />
+          
+          {/* Public Routes - redirect if already logged in */}
+          <Route path='/login' element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          } />
+          <Route path='/signup' element={
+            <PublicRoute>
+              <Signup />
+            </PublicRoute>
+          } />
           
           {/* Protected Routes */}
           <Route path='/profile' element={

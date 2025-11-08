@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { User, Mail, IdCard, Package, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
+import { useDarkMode } from '../context/DarkModeContext';
 import { userApi } from '../utils/api';
 import { CATEGORY_DISPLAY_NAMES } from '../utils/constants';
 
 const Profile = () => {
   const { user } = useAuth();
+  const { darkMode } = useDarkMode();
   const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -76,17 +78,17 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className={`min-h-screen py-8 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Profile Header */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+        <div className={`rounded-2xl shadow-lg p-8 mb-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
           <div className="flex items-center gap-6">
             <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-teal-600 rounded-full flex items-center justify-center">
               <User className="text-white" size={40} />
             </div>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{user?.name}</h1>
-              <div className="flex flex-wrap gap-4 text-gray-600">
+              <h1 className={`text-3xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{user?.name}</h1>
+              <div className={`flex flex-wrap gap-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                 <div className="flex items-center gap-2">
                   <Mail size={18} />
                   <span>{user?.email}</span>
@@ -106,20 +108,20 @@ const Profile = () => {
         </div>
 
         {/* My Claims Section */}
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className={`rounded-2xl shadow-lg p-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <Package className="text-indigo-600" size={28} />
-              <h2 className="text-2xl font-bold text-gray-900">My Claim Requests</h2>
+              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>My Claim Requests</h2>
             </div>
             
             {/* Refresh Button */}
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className={`p-2 rounded-lg font-semibold transition-all bg-gray-100 hover:bg-gray-200 text-gray-700 ${
-                refreshing ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+              className={`p-2 rounded-lg font-semibold transition-all ${
+                darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+              } ${refreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
               title="Refresh claims"
             >
               <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
@@ -142,67 +144,108 @@ const Profile = () => {
                 {claims.map((claim) => (
                   <div
                     key={claim._id}
-                    className="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow"
+                    className={`border rounded-lg p-6 hover:shadow-md transition-shadow ${
+                      darkMode ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-white'
+                    }`}
                   >
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1">
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                          {claim.item?.name || 'Item'}
-                        </h3>
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          <span className="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-sm font-medium">
-                            {CATEGORY_DISPLAY_NAMES[claim.item?.category] || claim.item?.category}
-                          </span>
+                        <div className="flex items-center gap-3 mb-3">
+                          <h3 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                            {claim.item?.name || 'Item'}
+                          </h3>
                           {getStatusBadge(claim.status)}
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                          <div>
+                            <span className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Item Details</span>
+                            <div className="mt-2 space-y-1">
+                              <p className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                                <span className="font-medium">Category:</span> {CATEGORY_DISPLAY_NAMES[claim.item?.category] || claim.item?.category}
+                              </p>
+                              <div className={`flex items-center gap-2 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <span>{claim.item?.foundLocation}</span>
+                              </div>
+                              <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                <span className="font-medium">Found:</span> {new Date(claim.item?.dateFound).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric'
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <span className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Claim Information</span>
+                            <div className="mt-2 space-y-1">
+                              <div className={`flex items-center gap-2 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                <Clock size={16} className="text-teal-600" />
+                                <span>
+                                  Requested: {new Date(claim.createdAt).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                  })}
+                                </span>
+                              </div>
+                              {claim.item?.itemId && (
+                                <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                  <span className="font-medium">Item ID:</span> {claim.item.itemId}
+                                </p>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        <span className="text-sm">{claim.item?.foundLocation}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <Clock size={18} className="text-teal-600" />
-                        <span className="text-sm">
-                          Requested: {new Date(claim.createdAt).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric'
-                          })}
-                        </span>
-                      </div>
-                    </div>
-
                     {claim.remarks && (
-                      <div className={`mt-4 p-4 rounded-lg ${
+                      <div className={`mb-4 p-4 rounded-lg border ${
                         claim.status === 'approved' 
-                          ? 'bg-green-50 border border-green-200' 
+                          ? darkMode ? 'bg-green-900/20 border-green-800' : 'bg-green-50 border-green-200'
                           : claim.status === 'rejected'
-                          ? 'bg-red-50 border border-red-200'
-                          : 'bg-blue-50 border border-blue-200'
+                          ? darkMode ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-200'
+                          : darkMode ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-50 border-blue-200'
                       }`}>
-                        <div className="font-semibold text-gray-900 mb-1">Admin Remarks:</div>
-                        <p className="text-gray-700">{claim.remarks}</p>
+                        <div className={`font-semibold text-sm mb-1 ${
+                          claim.status === 'approved'
+                            ? darkMode ? 'text-green-300' : 'text-green-800'
+                            : claim.status === 'rejected'
+                            ? darkMode ? 'text-red-300' : 'text-red-800'
+                            : darkMode ? 'text-blue-300' : 'text-blue-800'
+                        }`}>Admin Remarks:</div>
+                        <p className={`text-sm ${
+                          claim.status === 'approved'
+                            ? darkMode ? 'text-green-200' : 'text-green-700'
+                            : claim.status === 'rejected'
+                            ? darkMode ? 'text-red-200' : 'text-red-700'
+                            : darkMode ? 'text-blue-200' : 'text-blue-700'
+                        }`}>{claim.remarks}</p>
                       </div>
                     )}
 
                     {claim.status === 'pending' && (
-                      <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <p className="text-sm text-yellow-800">
+                      <div className={`p-4 rounded-lg border ${
+                        darkMode ? 'bg-yellow-900/20 border-yellow-800' : 'bg-yellow-50 border-yellow-200'
+                      }`}>
+                        <p className={`text-sm ${darkMode ? 'text-yellow-200' : 'text-yellow-800'}`}>
                           <strong>Next Steps:</strong> Visit the admin office during office hours for verification.
                         </p>
                       </div>
                     )}
 
-                    {claim.status === 'approved' && (
-                      <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                        <p className="text-sm text-green-800">
-                          <strong>Congratulations!</strong> Your claim has been approved. Please collect your item from the admin office.
+                    {claim.status === 'approved' && !claim.remarks && (
+                      <div className={`p-4 rounded-lg border ${
+                        darkMode ? 'bg-green-900/20 border-green-800' : 'bg-green-50 border-green-200'
+                      }`}>
+                        <p className={`text-sm ${darkMode ? 'text-green-200' : 'text-green-800'}`}>
+                          <strong>Approved!</strong> Your claim has been approved. Please visit the admin office to collect your item.
                         </p>
                       </div>
                     )}
@@ -212,34 +255,34 @@ const Profile = () => {
 
               {/* Pagination */}
               {pagination.totalPages > 1 && (
-                <div className="flex justify-center items-center gap-2 mt-8">
-                  <button
-                    onClick={() => setPage(page - 1)}
-                    disabled={!pagination.hasPrev}
-                    className={`px-4 py-2 rounded-lg font-medium ${
-                      pagination.hasPrev
-                        ? 'bg-white text-gray-900 hover:bg-gray-50 border border-gray-200'
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    } transition-all`}
-                  >
-                    Previous
-                  </button>
-                  
-                  <span className="px-4 py-2 text-gray-900">
+                <div className="mt-6 flex justify-between items-center">
+                  <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                     Page {page} of {pagination.totalPages}
-                  </span>
-                  
-                  <button
-                    onClick={() => setPage(page + 1)}
-                    disabled={!pagination.hasNext}
-                    className={`px-4 py-2 rounded-lg font-medium ${
-                      pagination.hasNext
-                        ? 'bg-white text-gray-900 hover:bg-gray-50 border border-gray-200'
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    } transition-all`}
-                  >
-                    Next
-                  </button>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setPage(page - 1)}
+                      disabled={!pagination.hasPrev}
+                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                        pagination.hasPrev
+                          ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                          : darkMode ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() => setPage(page + 1)}
+                      disabled={!pagination.hasNext}
+                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                        pagination.hasNext
+                          ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                          : darkMode ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      Next
+                    </button>
+                  </div>
                 </div>
               )}
             </>

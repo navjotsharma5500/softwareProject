@@ -43,9 +43,10 @@ export const AuthProvider = ({ children }) => {
       const profileResponse = await axios.get('http://localhost:3000/api/auth/profile', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setUser(profileResponse.data.user);
+      const userData = profileResponse.data.user;
+      setUser(userData);
       
-      return { success: true };
+      return { success: true, user: userData };
     } catch (error) {
       return { 
         success: false, 

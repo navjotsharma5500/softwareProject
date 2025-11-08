@@ -1,12 +1,14 @@
 import React, { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useDarkMode } from '../context/DarkModeContext'
 import { toast } from 'react-toastify'
 
 const Login = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { login } = useAuth()
+  const { darkMode } = useDarkMode()
   
   const [formData, setFormData] = useState({
     email: '',
@@ -61,7 +63,18 @@ const Login = () => {
       
       if (result.success) {
         toast.success('Login successful!')
-        navigate(from, { replace: true })
+        
+        // Redirect based on user role and intended destination
+        if (from && from !== '/') {
+          // If there was a specific page they were trying to access
+          navigate(from, { replace: true })
+        } else if (result.user?.isAdmin) {
+          // Admin users go to admin dashboard
+          navigate('/admin', { replace: true })
+        } else {
+          // Regular users go to home
+          navigate('/', { replace: true })
+        }
       } else {
         toast.error(result.message || 'Login failed')
         setErrors({ general: result.message })

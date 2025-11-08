@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useDarkMode } from '../context/DarkModeContext'
 import { toast } from 'react-toastify'
 
 const Signup = () => {
   const navigate = useNavigate()
   const { signup } = useAuth()
+  const { darkMode } = useDarkMode()
   
   const [formData, setFormData] = useState({
     name: '',
@@ -88,7 +90,13 @@ const Signup = () => {
       
       if (result.success) {
         toast.success('Account created successfully!')
-        navigate('/')
+        
+        // Redirect based on user role (admins go to admin, regular users go home)
+        if (result.user?.isAdmin) {
+          navigate('/admin', { replace: true })
+        } else {
+          navigate('/', { replace: true })
+        }
       } else {
         toast.error(result.message || 'Signup failed')
         setErrors({ general: result.message })

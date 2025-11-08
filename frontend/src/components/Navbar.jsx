@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { User, LogOut } from 'lucide-react'
+import { useDarkMode } from '../context/DarkModeContext'
+import { User, LogOut, LayoutDashboard, Moon, Sun } from 'lucide-react'
 
 const Navbar = () => {
   const [open, setOpen] = useState(false)
   const { user, logout, isAuthenticated } = useAuth()
+  const { darkMode, toggleDarkMode } = useDarkMode()
 
   const handleLogout = () => {
     logout()
@@ -21,7 +23,7 @@ const Navbar = () => {
               <svg className="h-6 w-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7l6 6-6 6M21 7l-6 6 6 6"></path>
               </svg>
-              Lost & Found
+              Thapar University - Lost & Found
             </Link>
           </div>
 
@@ -33,10 +35,23 @@ const Navbar = () => {
             
             {isAuthenticated ? (
               <>
+                {user?.isAdmin && (
+                  <Link to="/admin" className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 transition-colors flex items-center gap-1">
+                    <LayoutDashboard size={18} />
+                    Dashboard
+                  </Link>
+                )}
                 <Link to="/profile" className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 transition-colors flex items-center gap-1">
                   <User size={18} />
                   Profile
                 </Link>
+                <button
+                  onClick={toggleDarkMode}
+                  className="p-2 text-gray-700 dark:text-gray-300 hover:text-indigo-600 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                  title="Toggle dark mode"
+                >
+                  {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+                </button>
                 <button 
                   onClick={handleLogout}
                   className="text-gray-700 dark:text-gray-300 hover:text-red-600 transition-colors flex items-center gap-1"
@@ -90,9 +105,27 @@ const Navbar = () => {
             
             {isAuthenticated ? (
               <>
+                {user?.isAdmin && (
+                  <Link to="/admin" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <div className="flex items-center gap-2">
+                      <LayoutDashboard size={18} />
+                      Dashboard
+                    </div>
+                  </Link>
+                )}
                 <Link to="/profile" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
                   Profile
                 </Link>
+                <button
+                  onClick={() => {
+                    toggleDarkMode();
+                    setOpen(false);
+                  }}
+                  className="w-full text-left flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+                  {darkMode ? 'Light Mode' : 'Dark Mode'}
+                </button>
                 <button 
                   onClick={handleLogout}
                   className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-gray-50 dark:hover:bg-gray-800"
