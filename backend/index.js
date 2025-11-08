@@ -8,6 +8,11 @@ import connectDB from "./utils.js";
 import authRoutes from "./routes/auth.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import {
+  apiLimiter,
+  authLimiter,
+  adminLimiter,
+} from "./middlewares/rateLimiter.middleware.js";
 
 dotenv.config();
 
@@ -23,9 +28,10 @@ app.use(express.json());
 
 connectDB();
 
-app.use("/api/auth", authRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/user", userRoutes);
+// Apply rate limiters to routes
+app.use("/api/auth", authLimiter, authRoutes);
+app.use("/api/admin", adminLimiter, adminRoutes);
+app.use("/api/user", apiLimiter, userRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");

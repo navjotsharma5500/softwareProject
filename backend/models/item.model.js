@@ -2,8 +2,30 @@ import mongoose from "mongoose";
 const itemSchema = new mongoose.Schema(
   {
     itemId: { type: String, required: true, unique: true },
-    name: { type: String, required: true },
-    description: { type: String, required: true },
+    name: { type: String, required: true }, // Generic name like "Phone", "Water Bottle"
+    category: {
+      type: String,
+      enum: [
+        "bottle",
+        "earpods",
+        "watch",
+        "phone",
+        "wallet",
+        "id_card",
+        "keys",
+        "bag",
+        "laptop",
+        "charger",
+        "books",
+        "stationery",
+        "glasses",
+        "jewelry",
+        "clothing",
+        "electronics",
+        "other",
+      ],
+      required: true,
+    },
     foundLocation: {
       type: String,
       enum: [
@@ -24,7 +46,6 @@ const itemSchema = new mongoose.Schema(
       ],
       required: true,
     },
-    briefNotes: { type: String },
     dateFound: { type: Date, required: true },
     isClaimed: { type: Boolean, default: false },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
