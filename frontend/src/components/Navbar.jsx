@@ -65,6 +65,13 @@ const Navbar = () => {
               </>
             ) : (
               <>
+                <button
+                  onClick={toggleDarkMode}
+                  className="p-2 text-gray-700 dark:text-gray-300 hover:text-indigo-600 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                  title="Toggle dark mode"
+                >
+                  {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+                </button>
                 <Link to="/login" className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 transition-colors">
                   Login
                 </Link>
@@ -103,6 +110,17 @@ const Navbar = () => {
               Home
             </Link>
             
+            <button
+              onClick={() => {
+                toggleDarkMode();
+                setOpen(false);
+              }}
+              className="w-full text-left flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+            >
+              {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+              {darkMode ? 'Light Mode' : 'Dark Mode'}
+            </button>
+            
             {isAuthenticated ? (
               <>
                 {user?.isAdmin && (
@@ -116,16 +134,6 @@ const Navbar = () => {
                 <Link to="/profile" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
                   Profile
                 </Link>
-                <button
-                  onClick={() => {
-                    toggleDarkMode();
-                    setOpen(false);
-                  }}
-                  className="w-full text-left flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-                >
-                  {darkMode ? <Sun size={18} /> : <Moon size={18} />}
-                  {darkMode ? 'Light Mode' : 'Dark Mode'}
-                </button>
                 <button 
                   onClick={handleLogout}
                   className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-gray-50 dark:hover:bg-gray-800"
