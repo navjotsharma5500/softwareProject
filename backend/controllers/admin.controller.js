@@ -1,13 +1,98 @@
 import Item from "../models/item.model.js";
 import Claim from "../models/claim.model.js";
 
+// Valid categories (must match frontend constants.js and models)
+const VALID_CATEGORIES = [
+  "bottle",
+  "earpods",
+  "watch",
+  "phone",
+  "wallet",
+  "id_card",
+  "keys",
+  "bag",
+  "laptop",
+  "charger",
+  "books",
+  "stationery",
+  "glasses",
+  "jewelry",
+  "clothing",
+  "electronics",
+  "other",
+];
+
+const CATEGORY_DISPLAY_NAMES = {
+  bottle: "Water Bottle",
+  earpods: "Earpods",
+  watch: "Watch",
+  phone: "Phone",
+  wallet: "Wallet",
+  id_card: "ID Card",
+  keys: "Keys",
+  bag: "Bag",
+  laptop: "Laptop",
+  charger: "Charger",
+  books: "Books",
+  stationery: "Stationery",
+  glasses: "Glasses",
+  jewelry: "Jewelry",
+  clothing: "Clothing",
+  electronics: "Electronics",
+  other: "Other",
+};
+
+// Helper to sanitize category input
+const sanitizeCategory = (category) => {
+  let sanitized = category;
+
+  // Handle numeric indices
+  if (typeof sanitized === "number" || /^\d+$/.test(String(sanitized))) {
+    const idx = parseInt(String(sanitized), 10);
+    if (!isNaN(idx) && VALID_CATEGORIES[idx]) {
+      sanitized = VALID_CATEGORIES[idx];
+    } else {
+      return { valid: false, error: `Invalid category index: ${category}` };
+    }
+  }
+
+  // Handle display names
+  if (typeof sanitized === "string") {
+    const foundKey = Object.keys(CATEGORY_DISPLAY_NAMES).find(
+      (k) => CATEGORY_DISPLAY_NAMES[k].toLowerCase() === sanitized.toLowerCase()
+    );
+    if (foundKey) {
+      sanitized = foundKey;
+    }
+  }
+
+  // Final validation
+  if (!VALID_CATEGORIES.includes(sanitized)) {
+    return {
+      valid: false,
+      error: `Invalid category: "${category}". Must be one of: ${VALID_CATEGORIES.join(
+        ", "
+      )}`,
+    };
+  }
+
+  return { valid: true, category: sanitized };
+};
+
 // Create a new item
 export const createItem = async (req, res) => {
-  const { name, category, foundLocation, dateFound } = req.body;
+  let { name, category, foundLocation, dateFound } = req.body;
 
   if (!name || !category || !foundLocation || !dateFound) {
     return res.status(400).json({ message: "Missing required fields" });
   }
+
+  // Sanitize category
+  const categoryResult = sanitizeCategory(category);
+  if (!categoryResult.valid) {
+    return res.status(400).json({ message: categoryResult.error });
+  }
+  category = categoryResult.category;
 
   try {
     // Auto-generate Item ID
@@ -36,6 +121,15 @@ export const createItem = async (req, res) => {
 export const updateItem = async (req, res) => {
   const { id } = req.params;
   const updates = req.body;
+
+  // Sanitize category if present in updates
+  if (updates.category) {
+    const categoryResult = sanitizeCategory(updates.category);
+    if (!categoryResult.valid) {
+      return res.status(400).json({ message: categoryResult.error });
+    }
+    updates.category = categoryResult.category;
+  }
 
   try {
     const item = await Item.findByIdAndUpdate(id, updates, {

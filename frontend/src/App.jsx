@@ -5,9 +5,9 @@ import Footer from './components/Footer.jsx'
 import Home from './pages/Home.jsx'
 import ItemDetail from './pages/ItemDetail.jsx'
 import Login from './pages/login.jsx'
-import Signup from './pages/signup.jsx'
 import Profile from './pages/Profile.jsx'
 import Admin from './pages/admin.jsx'
+import ReportLostItem from './pages/ReportLostItem.jsx'
 import { ProtectedRoute } from './components/ProtectedRoute.jsx'
 import { PublicRoute } from './components/PublicRoute.jsx'
 
@@ -27,16 +27,17 @@ const App = () => {
               <Login />
             </PublicRoute>
           } />
-          <Route path='/signup' element={
-            <PublicRoute>
-              <Signup />
-            </PublicRoute>
-          } />
           
           {/* Protected Routes */}
           <Route path='/profile' element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          } />
+          
+          <Route path='/report-lost-item' element={
+            <ProtectedRoute>
+              <ReportLostItem />
             </ProtectedRoute>
           } />
           

@@ -1,5 +1,5 @@
 import express from "express";
-import { isAdmin } from "../middlewares/auth.middleware.js";
+import { isAuthenticated, adminOnly } from "../middlewares/auth.middleware.js";
 import {
   listPendingClaims,
   approveClaim,
@@ -15,15 +15,15 @@ import {
 const router = express.Router();
 
 // All admin routes protected
-router.get("/items", isAdmin, listAllItems);
-router.post("/items", isAdmin, createItem);
-router.get("/items/:id", isAdmin, getItemById);
-router.patch("/items/:id", isAdmin, updateItem);
-router.delete("/items/:id", isAdmin, deleteItem);
-router.get("/items/:id/claims", isAdmin, getItemClaims);
+router.get("/items", isAuthenticated, adminOnly, listAllItems);
+router.post("/items", isAuthenticated, adminOnly, createItem);
+router.get("/items/:id", isAuthenticated, adminOnly, getItemById);
+router.patch("/items/:id", isAuthenticated, adminOnly, updateItem);
+router.delete("/items/:id", isAuthenticated, adminOnly, deleteItem);
+router.get("/items/:id/claims", isAuthenticated, adminOnly, getItemClaims);
 
-router.get("/claims", isAdmin, listPendingClaims);
-router.patch("/claims/:id/approve", isAdmin, approveClaim);
-router.patch("/claims/:id/reject", isAdmin, rejectClaim);
+router.get("/claims", isAuthenticated, adminOnly, listPendingClaims);
+router.patch("/claims/:id/approve", isAuthenticated, adminOnly, approveClaim);
+router.patch("/claims/:id/reject", isAuthenticated, adminOnly, rejectClaim);
 
 export default router;

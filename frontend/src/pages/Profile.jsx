@@ -1,17 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, IdCard, Package, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { User, Mail, IdCard, Package, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw, Edit2, Save, X, Phone, FileText, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import { useDarkMode } from '../context/DarkModeContext';
-import { userApi } from '../utils/api';
-import { CATEGORY_DISPLAY_NAMES } from '../utils/constants';
+import { userApi, reportApi } from '../utils/api';
+import { CATEGORY_DISPLAY_NAMES, LOCATIONS } from '../utils/constants';
+import useFormPersistence from '../hooks/useFormPersistence.jsx';
 
 const Profile = () => {
   const { user } = useAuth();
   const { darkMode } = useDarkMode();
+  const [profileData, setProfileData] = useState(null);
   const [claims, setClaims] = useState([]);
+  const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [activeSection, setActiveSection] = useState('claims'); // 'claims' or 'reports'
+  const [formData, setFormData, formControls] = useFormPersistence('profile_form', {
+    name: '',
+    rollNo: '',
+    phone: '',
+  });
   const [pagination, setPagination] = useState({
     total: 0,
     totalPages: 0,
@@ -19,6 +30,21 @@ const Profile = () => {
     hasPrev: false
   });
   const [page, setPage] = useState(1);
+
+  const fetchProfile = async () => {
+    try {
+      const response = await userApi.getProfile();
+      setProfileData(response.data.user);
+      formControls.replaceIfEmpty({
+        name: response.data.user.name,
+        rollNo: response.data.user.rollNo,
+        phone: response.data.user.phone || '',
+      });
+    } catch (error) {
+      toast.error('Failed to load profile');
+      console.error(error);
+    }
+  };
 
   const fetchMyClaims = async () => {
     setLoading(true);
@@ -34,21 +60,89 @@ const Profile = () => {
     }
   };
 
+  const fetchMyReports = async () => {
+    setLoading(true);
+    try {
+      const response = await reportApi.getMyReports({ page, limit: 10 });
+      setReports(response.data.reports);
+      setPagination(response.data.pagination || {
+        total: response.data.reports.length,
+        totalPages: response.data.totalPages,
+        hasNext: response.data.hasNext,
+        hasPrev: response.data.hasPrev
+      });
+    } catch (error) {
+      toast.error('Failed to load reports');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetchMyClaims();
+    fetchProfile();
+    if (activeSection === 'claims') {
+      fetchMyClaims();
+    } else {
+      fetchMyReports();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [page, activeSection]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      await fetchMyClaims();
-      toast.success('Claims refreshed!');
+      await fetchProfile();
+      if (activeSection === 'claims') {
+        await fetchMyClaims();
+      } else {
+        await fetchMyReports();
+      }
+      toast.success('Refreshed successfully!');
     } catch {
-      toast.error('Failed to refresh claims');
+      toast.error('Failed to refresh');
     } finally {
       setRefreshing(false);
     }
+  };
+
+  const handleDeleteReport = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this report?')) return;
+    try {
+      await reportApi.deleteReport(id);
+      toast.success('Report deleted successfully');
+      fetchMyReports();
+    } catch (error) {
+      toast.error('Failed to delete report');
+    }
+  };
+
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await userApi.updateProfile(formData);
+      await fetchProfile();
+      setEditing(false);
+      formControls.clear();
+      toast.success('Profile updated successfully');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update profile');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setFormData({
+      name: profileData.name,
+      rollNo: profileData.rollNo,
+      phone: profileData.phone || '',
+    });
+    setEditing(false);
   };
 
   const getStatusBadge = (status) => {
@@ -82,38 +176,227 @@ const Profile = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Profile Header */}
         <div className={`rounded-2xl shadow-lg p-8 mb-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-          <div className="flex items-center gap-6">
-            <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-teal-600 rounded-full flex items-center justify-center">
-              <User className="text-white" size={40} />
-            </div>
-            <div className="flex-1">
-              <h1 className={`text-3xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{user?.name}</h1>
-              <div className={`flex flex-wrap gap-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                <div className="flex items-center gap-2">
-                  <Mail size={18} />
-                  <span>{user?.email}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <IdCard size={18} />
-                  <span>Roll No: {user?.rollNo}</span>
-                </div>
+          <div className="flex items-start gap-6 mb-6">
+            {profileData?.profilePicture ? (
+              <img
+                src={profileData.profilePicture}
+                alt={profileData.name}
+                className="w-24 h-24 rounded-full object-cover border-4 border-blue-500 shadow-lg"
+              />
+            ) : (
+              <div className="w-24 h-24 bg-gradient-to-r from-blue-600 to-teal-600 rounded-full flex items-center justify-center shadow-lg">
+                <User className="text-white" size={48} />
               </div>
+            )}
+            <div className="flex-1">
+              <h1 className={`text-3xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                {profileData?.name || user?.name}
+              </h1>
+              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                {profileData?.email || user?.email}
+              </p>
+              {user?.isAdmin && (
+                <span className="inline-block mt-2 px-3 py-1 bg-purple-100 text-purple-800 rounded-lg font-semibold text-sm">
+                  Admin
+                </span>
+              )}
             </div>
-            {user?.isAdmin && (
-              <div className="px-4 py-2 bg-purple-100 text-purple-800 rounded-lg font-semibold">
-                Admin
+            {!editing ? (
+              <button
+                onClick={() => setEditing(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Edit2 size={18} />
+                Edit Profile
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <button
+                  onClick={handleCancel}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                    darkMode
+                      ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                  }`}
+                >
+                  <X size={18} />
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                >
+                  <Save size={18} />
+                  {saving ? 'Saving...' : 'Save'}
+                </button>
               </div>
             )}
           </div>
+
+          {/* Editable Fields */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Name */}
+            <div>
+              <label className={`flex items-center gap-2 mb-2 font-medium ${
+                darkMode ? 'text-gray-200' : 'text-gray-700'
+              }`}>
+                <User size={18} />
+                Full Name
+              </label>
+              {editing ? (
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    darkMode
+                      ? 'bg-gray-700 border-gray-600 text-white'
+                      : 'bg-white border-gray-300 text-gray-900'
+                  }`}
+                />
+              ) : (
+                <p className={`px-4 py-2 rounded-lg ${
+                  darkMode ? 'bg-gray-700 text-white' : 'bg-gray-50 text-gray-900'
+                }`}>
+                  {profileData?.name || user?.name}
+                </p>
+              )}
+            </div>
+
+            {/* Email (Read-only) */}
+            <div>
+              <label className={`flex items-center gap-2 mb-2 font-medium ${
+                darkMode ? 'text-gray-200' : 'text-gray-700'
+              }`}>
+                <Mail size={18} />
+                Email Address
+              </label>
+              <p className={`px-4 py-2 rounded-lg ${
+                darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-50 text-gray-600'
+              }`}>
+                {profileData?.email || user?.email}
+                <span className="ml-2 text-xs">(Cannot be changed)</span>
+              </p>
+            </div>
+
+            {/* Roll Number */}
+            <div>
+              <label className={`flex items-center gap-2 mb-2 font-medium ${
+                darkMode ? 'text-gray-200' : 'text-gray-700'
+              }`}>
+                <IdCard size={18} />
+                Roll Number
+              </label>
+              {editing ? (
+                <input
+                  type="text"
+                  name="rollNo"
+                  value={formData.rollNo}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    setFormData({...formData, rollNo: value});
+                  }}
+                  placeholder="e.g., 102203456"
+                  maxLength="12"
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    darkMode
+                      ? 'bg-gray-700 border-gray-600 text-white'
+                      : 'bg-white border-gray-300 text-gray-900'
+                  }`}
+                />
+              ) : (
+                <p className={`px-4 py-2 rounded-lg ${
+                  darkMode ? 'bg-gray-700 text-white' : 'bg-gray-50 text-gray-900'
+                }`}>
+                  {profileData?.rollNo || user?.rollNo}
+                </p>
+              )}
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label className={`flex items-center gap-2 mb-2 font-medium ${
+                darkMode ? 'text-gray-200' : 'text-gray-700'
+              }`}>
+                <Phone size={18} />
+                Phone Number (Optional)
+              </label>
+              {editing ? (
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    setFormData({...formData, phone: value});
+                  }}
+                  placeholder="9876543210"
+                  maxLength="10"
+                  className={`w-full px-4 py-2 rounded-lg border ${
+                    darkMode
+                      ? 'bg-gray-700 border-gray-600 text-white'
+                      : 'bg-white border-gray-300 text-gray-900'
+                  }`}
+                />
+              ) : (
+                <p className={`px-4 py-2 rounded-lg ${
+                  darkMode ? 'bg-gray-700 text-white' : 'bg-gray-50 text-gray-900'
+                }`}>
+                  {profileData?.phone || 'Not provided'}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* My Claims Section */}
+        {/* Claims and Reports Section */}
         <div className={`rounded-2xl shadow-lg p-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+          {/* Tab Selector */}
+          <div className="flex gap-4 mb-6 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}">
+            <button
+              onClick={() => {
+                setActiveSection('claims');
+                setPage(1);
+              }}
+              className={`px-4 py-3 font-semibold transition-all border-b-2 ${
+                activeSection === 'claims'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : darkMode
+                  ? 'border-transparent text-gray-400 hover:text-gray-300'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Package size={20} />
+                My Claims
+              </div>
+            </button>
+            <button
+              onClick={() => {
+                setActiveSection('reports');
+                setPage(1);
+              }}
+              className={`px-4 py-3 font-semibold transition-all border-b-2 ${
+                activeSection === 'reports'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : darkMode
+                  ? 'border-transparent text-gray-400 hover:text-gray-300'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <FileText size={20} />
+                My Reports
+              </div>
+            </button>
+          </div>
+
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <Package className="text-indigo-600" size={28} />
-              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>My Claim Requests</h2>
-            </div>
+            <h3 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              {activeSection === 'claims' ? 'Claim Requests' : 'Lost Item Reports'} ({pagination.total || 0})
+            </h3>
             
             {/* Refresh Button */}
             <button
@@ -122,26 +405,28 @@ const Profile = () => {
               className={`p-2 rounded-lg font-semibold transition-all ${
                 darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
               } ${refreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
-              title="Refresh claims"
+              title="Refresh"
             >
               <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
             </button>
           </div>
 
-          {loading ? (
-            <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-            </div>
-          ) : claims.length === 0 ? (
-            <div className="text-center py-12">
-              <Package className="mx-auto text-gray-400 mb-4" size={48} />
-              <p className="text-xl text-gray-500 mb-2">No claim requests yet</p>
-              <p className="text-gray-400">Browse items and submit a claim request</p>
-            </div>
-          ) : (
+          {/* Claims Section */}
+          {activeSection === 'claims' && (
             <>
-              <div className="space-y-4">
-                {claims.map((claim) => (
+              {loading ? (
+                <div className="flex justify-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                </div>
+              ) : claims.length === 0 ? (
+                <div className="text-center py-12">
+                  <Package className="mx-auto text-gray-400 mb-4" size={48} />
+                  <p className="text-xl text-gray-500 mb-2">No claim requests yet</p>
+                  <p className="text-gray-400">Browse items and submit a claim request</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {claims.map((claim) => (
                   <div
                     key={claim._id}
                     className={`border rounded-lg p-6 hover:shadow-md transition-shadow ${
@@ -251,7 +536,120 @@ const Profile = () => {
                     )}
                   </div>
                 ))}
-              </div>
+                </div>
+              )}
+
+              {/* Pagination */}
+              {pagination.totalPages > 1 && (
+                <div className="mt-6 flex justify-between items-center">
+                  <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Page {page} of {pagination.totalPages}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setPage(page - 1)}
+                      disabled={!pagination.hasPrev}
+                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                        pagination.hasPrev
+                          ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                          : darkMode ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() => setPage(page + 1)}
+                      disabled={!pagination.hasNext}
+                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                        pagination.hasNext
+                          ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                          : darkMode ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Reports Section */}
+          {activeSection === 'reports' && (
+            <>
+              {loading ? (
+                <div className="flex justify-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                </div>
+              ) : reports.length === 0 ? (
+                <div className="text-center py-12">
+                  <FileText className="mx-auto text-gray-400 mb-4" size={48} />
+                  <p className="text-xl text-gray-500 mb-2">No reports found</p>
+                  <p className="text-gray-400">Report a lost item to get started</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {reports.map((report) => (
+                    <div
+                      key={report._id}
+                      className={`border rounded-lg p-6 hover:shadow-md transition-shadow ${
+                        darkMode ? 'border-gray-700' : 'border-gray-200'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-3">
+                            <h3 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                              {report.itemDescription}
+                            </h3>
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              report.status === 'active' ? 'bg-green-100 text-green-800' :
+                              report.status === 'resolved' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {report.status}
+                            </span>
+                          </div>
+
+                          <div className={`space-y-2 mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                            <p><strong>Category:</strong> {CATEGORY_DISPLAY_NAMES[report.category]}</p>
+                            <p><strong>Location:</strong> {LOCATIONS[report.location] || report.location}</p>
+                            <p><strong>Lost on:</strong> {new Date(report.dateLost).toLocaleDateString()}</p>
+                            {report.additionalDetails && (
+                              <p className="text-sm"><strong>Details:</strong> {report.additionalDetails}</p>
+                            )}
+                          </div>
+
+                          {report.photos && report.photos.length > 0 && (
+                            <div className="flex gap-2 mb-4">
+                              {report.photos.map((photo, index) => (
+                                <img
+                                  key={index}
+                                  src={photo}
+                                  alt={`Photo ${index + 1}`}
+                                  className="w-20 h-20 object-cover rounded-lg"
+                                />
+                              ))}
+                            </div>
+                          )}
+
+                          <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                            Reported on: {new Date(report.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+
+                        <button
+                          onClick={() => handleDeleteReport(report._id)}
+                          className="p-2 rounded-lg bg-red-600 hover:bg-red-700 text-white"
+                          title="Delete Report"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Pagination */}
               {pagination.totalPages > 1 && (

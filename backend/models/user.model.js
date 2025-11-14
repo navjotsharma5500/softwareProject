@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -10,21 +11,28 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    password: {
+    googleId: {
       type: String,
       required: true,
+      unique: true,
     },
     isAdmin: {
       type: Boolean,
       default: false,
-      //this will be update manually in the DB
     },
     rollNo: {
-      type: Number,
+      type: String,
       required: true,
+    },
+    phone: {
+      type: String,
+    },
+    profilePicture: {
+      type: String, // Google profile picture URL
     },
   },
   { timestamps: true }
 );
+
 const User = mongoose.model("User", userSchema);
 export default User;

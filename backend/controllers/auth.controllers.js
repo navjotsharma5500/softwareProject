@@ -1,87 +1,37 @@
 import User from "../models/user.model.js";
-import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-export const signUp = async (req, res) => {
-  const { email, password, name, rollNo } = req.body;
-
-  if (!email || !password || !name || !rollNo) {
-    return res.status(400).json({ message: "Missing required fields" });
-  }
-
-  if (!email.endsWith("@thapar.edu")) {
-    return res
-      .status(400)
-      .json({ message: "Invalid email domain. Please use your Thapar email." });
-  }
-
+// Google OAuth callback handler
+export const googleCallback = async (req, res) => {
   try {
-    const existingRollNo = await User.findOne({ rollNo });
-    if (existingRollNo) {
-      return res
-        .status(400)
-        .json({ message: "Roll number already registered" });
-    }
-    const existing = await User.findOne({ email });
-    if (existing) {
-      return res.status(400).json({ message: "Email already registered" });
+    if (!req.user) {
+      return res.redirect(
+        `${process.env.FRONTEND_URL}/login?error=authentication_failed`
+      );
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const isAdmin = req.user.isAdmin;
+    const token = jwt.sign(
+      { id: req.user._id, isAdmin },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" } // 7 days for OAuth
+    );
 
-    const newUser = new User({
-      email,
-      password: hashedPassword,
-      name,
-      rollNo,
-      isAdmin: false,
-    });
-
-    await newUser.save();
-
-    // Exclude password from the returned user object
-    const { password: _pwd, ...userWithoutPassword } = newUser.toObject();
-    //is there a simpler way to do that
-
-    return res
-      .status(201)
-      .json({ user: userWithoutPassword, message: "User created" });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-export const login = async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: "Invalid email or password" });
-    }
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid email or password" });
-    }
-    const isAdmin = user.isAdmin;
-    // token must contain isAdmin for the middleware to work
-    const token = jwt.sign({ id: user._id, isAdmin }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "Lax",
-      maxAge: 3600000, // 1 hour
+      maxAge: 7 * 24 * 3600000, // 7 days
     });
-    res.status(200).json({ token, message: "Login successful" });
+
+    // Redirect to frontend login page with token
+    res.redirect(`${process.env.FRONTEND_URL}/login?token=${token}`);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Internal server error" });
+    res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
   }
 };
 
@@ -104,7 +54,7 @@ export const getProfile = async (req, res) => {
   if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
   try {
-    const user = await User.findById(userId).select("-password");
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

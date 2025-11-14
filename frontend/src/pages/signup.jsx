@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import useFormPersistence from '../hooks/useFormPersistence.jsx'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useDarkMode } from '../context/DarkModeContext'
@@ -9,7 +10,7 @@ const Signup = () => {
   const { signup } = useAuth()
   const { darkMode } = useDarkMode()
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData, formControls] = useFormPersistence('signup_form', {
     name: '',
     email: '',
     password: '',
@@ -97,6 +98,8 @@ const Signup = () => {
         } else {
           navigate('/', { replace: true })
         }
+        // clear persisted signup draft
+        formControls.clear();
       } else {
         toast.error(result.message || 'Signup failed')
         setErrors({ general: result.message })
