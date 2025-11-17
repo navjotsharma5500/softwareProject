@@ -15,8 +15,9 @@ export const ProtectedRoute = ({ children, adminOnly = false }) => {
   }
 
   if (!user) {
-    // Redirect to login but save the attempted location
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    // Redirect to login with the current path as redirect parameter
+    const redirectPath = encodeURIComponent(location.pathname + location.search);
+    return <Navigate to={`/login?redirect=${redirectPath}`} replace />;
   }
 
   if (adminOnly && !isAdmin) {

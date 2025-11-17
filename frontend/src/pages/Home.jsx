@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { publicApi } from '../utils/api';
 import { CATEGORIES, LOCATIONS, TIME_PERIODS, CATEGORY_DISPLAY_NAMES } from '../utils/constants';
 import { useDarkMode } from '../context/DarkModeContext';
+import useFormPersistence from '../hooks/useFormPersistence';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -14,13 +15,13 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
-  
-  // Tab state
-  const [activeTab, setActiveTab] = useState('available'); // 'available' or 'claimed'
-  
-  // Filters
-  const [filters, setFilters] = useState({
+  const [viewMode, setViewMode] = useFormPersistence('home_view', 'grid'); // 'grid' or 'list'
+
+  // Tab state (persisted)
+  const [activeTab, setActiveTab] = useFormPersistence('home_activeTab', 'available'); // 'available' or 'claimed'
+
+  // Filters (persisted)
+  const [filters, setFilters, filtersControls] = useFormPersistence('home_filters', {
     category: '',
     location: '',
     timePeriod: '',
@@ -90,7 +91,9 @@ const Home = () => {
   };
 
   const clearFilters = () => {
-    setFilters({
+    // Clear persisted filters as well
+    if (filtersControls && typeof filtersControls.clear === 'function') filtersControls.clear();
+    else setFilters({
       category: '',
       location: '',
       timePeriod: '',

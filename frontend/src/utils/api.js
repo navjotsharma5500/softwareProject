@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
 
 // Create axios instance
 const api = axios.create({
@@ -53,6 +54,47 @@ export const userApi = {
 
   // Get my claims
   getMyClaims: (params) => api.get("/user/my-claims", { params }),
+
+  // Get user profile
+  getProfile: () => api.get("/user/profile"),
+
+  // Update user profile
+  updateProfile: (data) => api.patch("/user/profile", data),
+
+  // Get user history (admin only)
+  getUserHistory: (userId) => api.get(`/user/history/${userId}`),
+};
+
+// Report API calls (auth required)
+export const reportApi = {
+  // Get upload URLs for photos
+  getUploadUrls: (count, fileTypes) =>
+    api.post("/reports/upload-urls", { count, fileTypes }),
+
+  // Create a report
+  createReport: (data) => api.post("/reports", data),
+
+  // Get my reports
+  getMyReports: (params) => api.get("/reports/my-reports", { params }),
+
+  // Get all reports (admin only)
+  getAllReports: (params) => api.get("/reports/all", { params }),
+
+  // Get report by ID
+  getReport: (id) => api.get(`/reports/${id}`),
+
+  // Update report
+  updateReport: (id, data) => api.patch(`/reports/${id}`, data),
+
+  // Delete report
+  deleteReport: (id) => api.delete(`/reports/${id}`),
+
+  // Update report status (admin only)
+  updateReportStatus: (id, status) =>
+    api.patch(`/reports/${id}/status`, { status }),
+
+  // Get reports by user ID (admin only)
+  getReportsByUserId: (userId) => api.get(`/reports/user/${userId}`),
 };
 
 // Admin API calls (admin only)

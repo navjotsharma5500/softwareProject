@@ -63,7 +63,8 @@ const ItemDetail = () => {
   const handleClaim = async () => {
     if (!isAuthenticated) {
       toast.info('Please login to claim this item');
-      navigate('/login', { state: { from: { pathname: `/item/${id}` } } });
+      const currentPath = `/item/${id}`;
+      navigate(`/login?redirect=${encodeURIComponent(currentPath)}`);
       return;
     }
 

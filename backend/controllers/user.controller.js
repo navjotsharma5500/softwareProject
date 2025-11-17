@@ -1,6 +1,7 @@
 import Item from "../models/item.model.js";
 import User from "../models/user.model.js";
 import Claim from "../models/claim.model.js";
+import Report from "../models/report.model.js";
 
 // User claims an item: creates a new claim record
 export const claimItem = async (req, res) => {
@@ -67,7 +68,10 @@ export const myClaims = async (req, res) => {
 
     const [claims, total] = await Promise.all([
       Claim.find(query)
-        .populate("item")
+        .populate(
+          "item",
+          "itemId name category foundLocation dateFound isClaimed"
+        )
         .skip(skip)
         .limit(limit)
         .sort({ createdAt: -1 }),
@@ -194,6 +198,81 @@ export const getItemById = async (req, res) => {
       return res.status(404).json({ message: "Item not found" });
     }
     return res.status(200).json({ item });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get user's history (claims and reports) - Admin only
+export const getUserHistory = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const [user, claims, reports] = await Promise.all([
+      User.findById(userId).select("name email rollNo createdAt"),
+      Claim.find({ claimant: userId })
+        .populate("item", "itemId name category foundLocation dateFound")
+        .sort({ createdAt: -1 })
+        .limit(20),
+      Report.find({ user: userId }).sort({ createdAt: -1 }).limit(20),
+    ]);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({
+      user,
+      claims,
+      reports,
+      totalClaims: claims.length,
+      totalReports: reports.length,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get and update user profile
+export const getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({ user });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updateProfile = async (req, res) => {
+  try {
+    const { name, rollNo, phone } = req.body;
+
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (name) user.name = name;
+    if (rollNo) user.rollNo = rollNo;
+    if (phone !== undefined) user.phone = phone;
+
+    await user.save();
+
+    const updatedUser = await User.findById(req.user.id);
+
+    return res.status(200).json({
+      user: updatedUser,
+      message: "Profile updated successfully",
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
