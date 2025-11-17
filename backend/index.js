@@ -22,16 +22,20 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Trust proxy - required for Render and other cloud platforms
+app.set("trust proxy", 1);
+
+app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(
   cors({
-    // Add AWS S3 bucket URL to allowed origins
-    origin: [
-      process.env.NODE_ENV === "production"
+    // Use FRONTEND_URL from environment, fallback to production/dev defaults
+    origin:
+      process.env.FRONTEND_URL ||
+      (process.env.NODE_ENV === "production"
         ? "https://lost-and-found-portal-six.vercel.app"
-        : "http://localhost:5173",
-    ],
+        : "http://localhost:5173"),
     credentials: true,
   })
 );
