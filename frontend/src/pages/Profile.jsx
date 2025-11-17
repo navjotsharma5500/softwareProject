@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, IdCard, Package, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw, Edit2, Save, X, Phone, FileText, Trash2 } from 'lucide-react';
+import { User, Mail, IdCard, Package, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw, Edit2, Save, X, Phone, FileText } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import { useDarkMode } from '../context/DarkModeContext';
@@ -103,17 +103,6 @@ const Profile = () => {
       toast.error('Failed to refresh');
     } finally {
       setRefreshing(false);
-    }
-  };
-
-  const handleDeleteReport = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this report?')) return;
-    try {
-      await reportApi.deleteReport(id);
-      toast.success('Report deleted successfully');
-      fetchMyReports();
-    } catch (error) {
-      toast.error('Failed to delete report');
     }
   };
 
@@ -463,6 +452,11 @@ const Profile = () => {
                                   year: 'numeric'
                                 })}
                               </p>
+                              {claim.item?.itemId && (
+                                <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                  <span className="font-medium">Item ID:</span> {claim.item.itemId}
+                                </p>
+                              )}
                             </div>
                           </div>
                           
@@ -479,11 +473,6 @@ const Profile = () => {
                                   })}
                                 </span>
                               </div>
-                              {claim.item?.itemId && (
-                                <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                  <span className="font-medium">Item ID:</span> {claim.item.itemId}
-                                </p>
-                              )}
                             </div>
                           </div>
                         </div>
@@ -637,14 +626,6 @@ const Profile = () => {
                             Reported on: {new Date(report.createdAt).toLocaleString()}
                           </p>
                         </div>
-
-                        <button
-                          onClick={() => handleDeleteReport(report._id)}
-                          className="p-2 rounded-lg bg-red-600 hover:bg-red-700 text-white"
-                          title="Delete Report"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
                       </div>
                     </div>
                   ))}

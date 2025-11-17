@@ -1,25 +1,52 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useDarkMode } from '../context/DarkModeContext';
-import { LogIn } from 'lucide-react';
+import { LogIn, AlertCircle } from 'lucide-react';
 
 const Login = () => {
   const { darkMode } = useDarkMode();
   const [searchParams] = useSearchParams();
+  const [error, setError] = useState('');
   const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
   useEffect(() => {
+    // Check for error in URL
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      switch (errorParam) {
+        case 'invalid_email':
+          setError('Only @thapar.edu email addresses are allowed. Please use your Thapar University email.');
+          break;
+        case 'authentication_failed':
+          setError('Authentication failed. Please try again.');
+          break;
+        case 'server_error':
+          setError('Server error occurred. Please try again later.');
+          break;
+        default:
+          setError('An error occurred during login. Please try again.');
+      }
+      
+      // Clear error after 5 seconds
+      const timer = setTimeout(() => setError(''), 5000);
+      return () => clearTimeout(timer);
+    }
+
     // Check if token is in URL (from OAuth callback)
     const token = searchParams.get('token');
     if (token) {
       localStorage.setItem('token', token);
+      // Get redirect URL if present
+      const redirect = searchParams.get('redirect') || '/';
       // Force a full page reload to trigger AuthContext
-      window.location.href = '/';
+      window.location.href = decodeURIComponent(redirect);
     }
   }, [searchParams]);
 
   const handleGoogleLogin = () => {
-    window.location.href = `${API_URL}/auth/google`;
+    const redirect = searchParams.get('redirect');
+    const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : '';
+    window.location.href = `${API_URL}/auth/google${redirectParam}`;
   };
 
   return (
@@ -50,6 +77,23 @@ const Login = () => {
             Sign in to Thapar Lost & Found Portal
           </p>
         </div>
+
+        {/* Error Alert */}
+        {error && (
+          <div className={`p-4 rounded-lg border ${
+            darkMode 
+              ? 'bg-red-900/20 border-red-800 text-red-300' 
+              : 'bg-red-50 border-red-200 text-red-800'
+          }`}>
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">Authentication Error</p>
+                <p className="text-sm mt-1">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="mt-8">
           <button

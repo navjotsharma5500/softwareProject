@@ -68,7 +68,10 @@ export const myClaims = async (req, res) => {
 
     const [claims, total] = await Promise.all([
       Claim.find(query)
-        .populate("item")
+        .populate(
+          "item",
+          "itemId name category foundLocation dateFound isClaimed"
+        )
         .skip(skip)
         .limit(limit)
         .sort({ createdAt: -1 }),
@@ -209,7 +212,7 @@ export const getUserHistory = async (req, res) => {
     const [user, claims, reports] = await Promise.all([
       User.findById(userId).select("name email rollNo createdAt"),
       Claim.find({ claimant: userId })
-        .populate("item", "name category foundLocation dateFound")
+        .populate("item", "itemId name category foundLocation dateFound")
         .sort({ createdAt: -1 })
         .limit(20),
       Report.find({ user: userId }).sort({ createdAt: -1 }).limit(20),

@@ -602,6 +602,7 @@ const Admin = () => {
                           </div>
                           <div>
                             <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Item Details:</span>
+                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>Item ID: {claim.item?.itemId}</p>
                             <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>Category: {CATEGORY_DISPLAY_NAMES[claim.item?.category]}</p>
                             <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>Location: {claim.item?.foundLocation}</p>
                             <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>
@@ -754,6 +755,7 @@ const Admin = () => {
                           </div>
                           <div>
                             <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Item Details:</span>
+                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>Item ID: {claim.item?.itemId}</p>
                             <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>Category: {CATEGORY_DISPLAY_NAMES[claim.item?.category]}</p>
                             <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>Location: {claim.item?.foundLocation}</p>
                             <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>
@@ -890,6 +892,7 @@ const Admin = () => {
                           </div>
                           <div>
                             <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Item Details:</span>
+                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>Item ID: {claim.item?.itemId}</p>
                             <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>Category: {CATEGORY_DISPLAY_NAMES[claim.item?.category]}</p>
                             <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>Location: {claim.item?.foundLocation}</p>
                             <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>

@@ -117,11 +117,20 @@ const ReportLostItem = () => {
 
       await reportApi.createReport(payload);
       
-      toast.success('Report submitted successfully');
+      toast.success('Report submitted successfully! View it in your profile.');
       // clear persisted draft after successful submit
       formControls.clear();
       photosControls.clear();
-      navigate('/profile');
+      
+      // Reset form to initial state instead of navigating away
+      setFormData({
+        itemDescription: '',
+        category: '',
+        location: '',
+        dateLost: '',
+        additionalDetails: '',
+      });
+      setPhotos([]);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to submit report');
     } finally {

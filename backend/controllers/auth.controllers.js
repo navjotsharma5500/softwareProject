@@ -27,8 +27,28 @@ export const googleCallback = async (req, res) => {
       maxAge: 7 * 24 * 3600000, // 7 days
     });
 
-    // Redirect to frontend login page with token
-    res.redirect(`${process.env.FRONTEND_URL}/login?token=${token}`);
+    // Extract redirect from state parameter if present
+    let redirectUrl = `${process.env.FRONTEND_URL}/login?token=${token}`;
+    try {
+      if (req.query.state) {
+        const state = JSON.parse(
+          Buffer.from(req.query.state, "base64").toString()
+        );
+        if (state.redirect) {
+          redirectUrl = `${
+            process.env.FRONTEND_URL
+          }/login?token=${token}&redirect=${encodeURIComponent(
+            state.redirect
+          )}`;
+        }
+      }
+    } catch (err) {
+      // If state parsing fails, just use default redirect
+      console.error("Failed to parse state:", err);
+    }
+
+    // Redirect to frontend login page with token and optional redirect
+    res.redirect(redirectUrl);
   } catch (error) {
     console.error(error);
     res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
