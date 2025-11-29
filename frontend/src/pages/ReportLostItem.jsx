@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useDarkMode } from '../context/DarkModeContext';
 import { toast } from 'react-toastify';
@@ -9,6 +10,7 @@ import useFormPersistence from '../hooks/useFormPersistence.jsx';
 
 const ReportLostItem = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { darkMode } = useDarkMode();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -71,7 +73,13 @@ const ReportLostItem = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    // If not logged in, redirect to login with redirect back to this page
+    if (!user) {
+      navigate(`/login?redirect=/report-lost-item`);
+      return;
+    }
+
     if (!formData.itemDescription || !formData.category || !formData.location || !formData.dateLost) {
       toast.error('Please fill all required fields');
       return;

@@ -32,7 +32,10 @@ const Navbar = () => {
             <Link to="/" className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 transition-colors">
               Home
             </Link>
-            
+            <Link to="/report-lost-item" className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 transition-colors flex items-center gap-1">
+              <AlertCircle size={18} />
+              Report Lost Item
+            </Link>
             {isAuthenticated ? (
               <>
                 {user?.isAdmin && (
@@ -41,10 +44,6 @@ const Navbar = () => {
                     Dashboard
                   </Link>
                 )}
-                <Link to="/report-lost-item" className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 transition-colors flex items-center gap-1">
-                  <AlertCircle size={18} />
-                  Report Lost Item
-                </Link>
                 <Link to="/profile" className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 transition-colors flex items-center gap-1">
                   <User size={18} />
                   Profile
@@ -122,6 +121,12 @@ const Navbar = () => {
               {darkMode ? 'Light Mode' : 'Dark Mode'}
             </button>
             
+            <Link to="/report-lost-item" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
+              <div className="flex items-center gap-2">
+                <AlertCircle size={18} />
+                Report Lost Item
+              </div>
+            </Link>
             {isAuthenticated ? (
               <>
                 {user?.isAdmin && (
@@ -132,12 +137,6 @@ const Navbar = () => {
                     </div>
                   </Link>
                 )}
-                <Link to="/report-lost-item" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle size={18} />
-                    Report Lost Item
-                  </div>
-                </Link>
                 <Link to="/profile" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
                   Profile
                 </Link>

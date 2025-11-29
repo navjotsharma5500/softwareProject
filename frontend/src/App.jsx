@@ -35,11 +35,7 @@ const App = () => {
             </ProtectedRoute>
           } />
           
-          <Route path='/report-lost-item' element={
-            <ProtectedRoute>
-              <ReportLostItem />
-            </ProtectedRoute>
-          } />
+          <Route path='/report-lost-item' element={<ReportLostItem />} />
           
           {/* Admin Routes */}
           <Route path='/admin' element={
