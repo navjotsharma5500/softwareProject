@@ -48,7 +48,7 @@ const Footer = () => {
               © {currentYear} Lost & Found. All rights reserved.
             </p>
             <div className="flex items-center text-gray-400 text-sm">
-              <span className="mr-2">Crafted with care by Surya</span>
+              <span className="mr-2">Crafted by Surya</span>
               <a 
                 href="https://github.com/SuryaKTiwari11/" 
                 target="_blank" 

@@ -11,8 +11,8 @@ import authRoutes from "./routes/auth.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import reportRoutes from "./routes/report.routes.js";
-import mongoSanitize from "express-mongo-sanitize";
-import xssClean from "xss-clean";
+
+
 import {
   apiLimiter,
   authLimiter,
@@ -26,12 +26,9 @@ const port = process.env.PORT || 3000;
 
 // Trust proxy - required for Render and other cloud platforms
 app.set("trust proxy", 1);
-
 app.use(express.urlencoded({ extended: true }));
 app.use(helmet()); 
 if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
-app.use(mongoSanitize()); // Prevent NoSQL injection
-app.use(xssClean()); // Prevent XSS attacks
 app.use(
   cors({
     // Use FRONTEND_URL from environment, fallback to production/dev defaults
