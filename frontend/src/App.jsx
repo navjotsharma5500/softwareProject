@@ -8,6 +8,7 @@ import Login from './pages/login.jsx'
 import Profile from './pages/Profile.jsx'
 import Admin from './pages/admin.jsx'
 import ReportLostItem from './pages/ReportLostItem.jsx'
+import HowItWorks from './pages/HowItWorks.jsx'
 import { ProtectedRoute } from './components/ProtectedRoute.jsx'
 import { PublicRoute } from './components/PublicRoute.jsx'
 
@@ -36,6 +37,7 @@ const App = () => {
           } />
           
           <Route path='/report-lost-item' element={<ReportLostItem />} />
+          <Route path='/how-it-works' element={<HowItWorks />} />
           
           {/* Admin Routes */}
           <Route path='/admin' element={
