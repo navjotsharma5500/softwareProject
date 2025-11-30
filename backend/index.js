@@ -23,11 +23,24 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Log every request during Jest tests for debugging
+if (process.env.JEST_WORKER_ID !== undefined) {
+  app.use((req, res, next) => {
+    console.log(`[TEST] ${req.method} ${req.url}`);
+    next();
+  });
+}
+
 // Trust proxy - required for Render and other cloud platforms
 app.set("trust proxy", 1);
 app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
-if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
+if (
+  process.env.NODE_ENV === "development" ||
+  process.env.JEST_WORKER_ID !== undefined
+) {
+  app.use(morgan("dev"));
+}
 app.use(
   cors({
     // Use FRONTEND_URL from environment, fallback to production/dev defaults
@@ -67,8 +80,20 @@ app.use("/api/admin", adminLimiter, adminRoutes);
 app.use("/api/user", apiLimiter, userRoutes);
 app.use("/api/reports", apiLimiter, reportRoutes);
 
+app.get("/health", (req, res) => {
+  res.status(200).send("Server is healthy");
+});
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.status(200).send("API root");
 });
 
-app.listen(port);
+if (
+  process.env.JEST_WORKER_ID === undefined &&
+  process.env.NODE_ENV === "development"
+) {
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
+}
+
+export default app;

@@ -11,7 +11,8 @@
     "create-admin-interactive": "node createAdminInteractive.js",
     "seed": "node seedData.js",
     "add-items": "node addMoreItems.js",
-    "db-status": "node dbStatus.js"
+    "db-status": "node dbStatus.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand"
   },
   "author": "",
   "license": "ISC",
@@ -29,6 +30,7 @@
     "express-session": "^1.18.2",
     "helmet": "^8.1.0",
     "install": "^0.13.0",
+    "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.3",
     "morgan": "^1.10.1",
@@ -40,6 +42,8 @@
   },
   "devDependencies": {
     "@babel/core": "^7.23.0",
-    "@babel/preset-env": "^7.23.0"
+    "@babel/preset-env": "^7.23.0",
+    "jest": "^30.2.0",
+    "supertest": "^7.1.4"
   }
 }

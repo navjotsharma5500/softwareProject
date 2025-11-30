@@ -122,9 +122,20 @@ export const createItem = async (req, res) => {
 
 // Update an existing item
 export const updateItem = async (req, res) => {
+  // Joi validation
+  const Joi = (await import("joi")).default;
+  const schema = Joi.object({
+    name: Joi.string().min(2).max(100),
+    category: Joi.string().min(2).max(50),
+    foundLocation: Joi.string().min(2).max(100),
+    dateFound: Joi.date().iso(),
+    isClaimed: Joi.boolean(),
+    owner: Joi.string().hex().length(24),
+  });
+  const { error } = schema.validate(req.body);
+  if (error) return res.status(400).json({ message: error.details[0].message });
   const { id } = req.params;
   const updates = req.body;
-
   // Sanitize category if present in updates
   if (updates.category) {
     const categoryResult = sanitizeCategory(updates.category);
@@ -133,7 +144,6 @@ export const updateItem = async (req, res) => {
     }
     updates.category = categoryResult.category;
   }
-
   try {
     const item = await Item.findByIdAndUpdate(id, updates, {
       new: true,
@@ -270,19 +280,23 @@ export const listPendingClaims = async (req, res) => {
 
 // Approve a claim
 export const approveClaim = async (req, res) => {
+  // Joi validation
+  const Joi = (await import("joi")).default;
+  const schema = Joi.object({
+    remarks: Joi.string().allow("", null),
+  });
+  const { error } = schema.validate(req.body);
+  if (error) return res.status(400).json({ message: error.details[0].message });
   const { id } = req.params; // claim ID
   const { remarks } = req.body;
-
   try {
     const claim = await Claim.findById(id)
       .populate("claimant")
       .populate("item");
     if (!claim) return res.status(404).json({ message: "Claim not found" });
-
     claim.status = "approved";
     if (remarks) claim.remarks = remarks;
     await claim.save();
-
     // Update the item to set isClaimed = true and owner
     const item = await Item.findById(claim.item._id);
     if (item) {
@@ -290,20 +304,17 @@ export const approveClaim = async (req, res) => {
       item.owner = claim.claimant._id;
       await item.save();
     }
-
     // Reject all other pending claims for this item
     await Claim.updateMany(
       { item: claim.item._id, _id: { $ne: id }, status: "pending" },
       { status: "rejected", remarks: "Another claim was approved" }
     );
-
     // Send email notification to claimant
     if (claim.claimant && claim.claimant.email) {
       const subject = "Your claim has been approved";
       const html = getClaimStatusEmailBody(claim, "approved");
       sendEmail(claim.claimant.email, subject, html).catch(console.error);
     }
-
     return res.status(200).json({ message: "Claim approved", claim });
   } catch (error) {
     console.error(error);
@@ -313,26 +324,29 @@ export const approveClaim = async (req, res) => {
 
 // Reject a claim
 export const rejectClaim = async (req, res) => {
+  // Joi validation
+  const Joi = (await import("joi")).default;
+  const schema = Joi.object({
+    remarks: Joi.string().allow("", null),
+  });
+  const { error } = schema.validate(req.body);
+  if (error) return res.status(400).json({ message: error.details[0].message });
   const { id } = req.params; // claim ID
   const { remarks } = req.body;
-
   try {
     const claim = await Claim.findById(id)
       .populate("claimant")
       .populate("item");
     if (!claim) return res.status(404).json({ message: "Claim not found" });
-
     claim.status = "rejected";
     if (remarks) claim.remarks = remarks;
     await claim.save();
-
     // Send email notification to claimant
     if (claim.claimant && claim.claimant.email) {
       const subject = "Your claim has been rejected";
       const html = getClaimStatusEmailBody(claim, "rejected");
       sendEmail(claim.claimant.email, subject, html).catch(console.error);
     }
-
     return res.status(200).json({ message: "Claim rejected", claim });
   } catch (error) {
     console.error(error);
