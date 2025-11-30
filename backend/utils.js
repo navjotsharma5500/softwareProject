@@ -7,7 +7,11 @@ const connectDB = async () => {
     // console.log("mongoDB connected successfully", res.connection.host);
   } catch (error) {
     console.log(error);
-    process.exit(1);
+    if (process.env.JEST_WORKER_ID !== undefined) {
+      throw error; // Let Jest handle DB errors in tests
+    } else {
+      process.exit(1);
+    }
   }
 };
 export default connectDB;

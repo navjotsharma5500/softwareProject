@@ -252,23 +252,28 @@ export const getProfile = async (req, res) => {
 };
 
 export const updateProfile = async (req, res) => {
+  // Joi validation
+  const Joi = (await import("joi")).default;
+  const schema = Joi.object({
+    name: Joi.string().min(2).max(50),
+    rollNo: Joi.string().alphanum().min(2).max(20),
+    phone: Joi.string()
+      .pattern(/^\d{10,15}$/)
+      .allow(null, ""),
+  });
+  const { error } = schema.validate(req.body);
+  if (error) return res.status(400).json({ message: error.details[0].message });
   try {
     const { name, rollNo, phone } = req.body;
-
     const user = await User.findById(req.user.id);
-
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
     if (name) user.name = name;
     if (rollNo) user.rollNo = rollNo;
     if (phone !== undefined) user.phone = phone;
-
     await user.save();
-
     const updatedUser = await User.findById(req.user.id);
-
     return res.status(200).json({
       user: updatedUser,
       message: "Profile updated successfully",

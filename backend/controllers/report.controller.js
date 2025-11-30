@@ -238,18 +238,27 @@ export const getReportById = async (req, res) => {
 
 // Update a report
 export const updateReport = async (req, res) => {
+  // Joi validation
+  const Joi = (await import("joi")).default;
+  const schema = Joi.object({
+    itemDescription: Joi.string().min(2).max(200),
+    category: Joi.string().min(2).max(50),
+    location: Joi.string().min(2).max(100),
+    dateLost: Joi.date().iso(),
+    additionalDetails: Joi.string().allow("", null),
+    photos: Joi.array().items(Joi.string().uri()).max(3),
+  });
+  const { error } = schema.validate(req.body);
+  if (error) return res.status(400).json({ message: error.details[0].message });
   try {
     const report = await Report.findById(req.params.id);
-
     if (!report) {
       return res.status(404).json({ message: "Report not found" });
     }
-
     // Only owner can update
     if (report.user.toString() !== req.user.id) {
       return res.status(403).json({ message: "Access denied" });
     }
-
     const {
       itemDescription,
       category,
@@ -258,28 +267,10 @@ export const updateReport = async (req, res) => {
       additionalDetails,
       photos,
     } = req.body;
-
     if (photos && photos.length > 3) {
       return res.status(400).json({ message: "Maximum 3 photos allowed" });
     }
-
-    // Delete old photos that are not in the new list
-    if (photos) {
-      const oldPhotos = report.photos.filter(
-        (photo) => !photos.includes(photo)
-      );
-      for (const photo of oldPhotos) {
-        const key = extractKeyFromUrl(photo);
-        if (key) {
-          try {
-            await deleteFile(key);
-          } catch (err) {
-            console.error("Error deleting old photo:", err);
-          }
-        }
-      }
-    }
-
+    // ...existing code for updating fields...
     if (itemDescription) report.itemDescription = itemDescription;
     if (category) {
       // Sanitize category on update too
@@ -315,10 +306,8 @@ export const updateReport = async (req, res) => {
     if (additionalDetails !== undefined)
       report.additionalDetails = additionalDetails;
     if (photos) report.photos = photos;
-
     await report.save();
     await report.populate("user", "name email rollNo");
-
     res.status(200).json({ report, message: "Report updated successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -361,23 +350,23 @@ export const deleteReport = async (req, res) => {
 
 // Update report status (admin only)
 export const updateReportStatus = async (req, res) => {
+  // Joi validation
+  const Joi = (await import("joi")).default;
+  const schema = Joi.object({
+    status: Joi.string().valid("active", "resolved", "closed").required(),
+  });
+  const { error } = schema.validate(req.body);
+  if (error) return res.status(400).json({ message: error.details[0].message });
   try {
     const { status } = req.body;
-
-    if (!["active", "resolved", "closed"].includes(status)) {
-      return res.status(400).json({ message: "Invalid status" });
-    }
-
     const report = await Report.findByIdAndUpdate(
       req.params.id,
       { status },
       { new: true }
     ).populate("user", "name email rollNo");
-
     if (!report) {
       return res.status(404).json({ message: "Report not found" });
     }
-
     res
       .status(200)
       .json({ report, message: "Report status updated successfully" });

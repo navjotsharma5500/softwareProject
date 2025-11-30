@@ -1,0 +1,41 @@
+name: Run Backend Tests
+
+on:
+  push:
+    branches: [main, thapar]
+  pull_request:
+    branches: [main, thapar]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:6
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd="mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./backend
+
+      - name: Copy .env.example to .env
+        run: cp .env.example .env || true
+        working-directory: ./backend
+
+      - name: Run tests
+        run: npm test
+        working-directory: ./backend

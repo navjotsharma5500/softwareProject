@@ -184,3 +184,6 @@ dump/
 
 # API documentation (if auto-generated)
 # backend/API_DOCUMENTATION.md
+
+
+backend/scripts/
