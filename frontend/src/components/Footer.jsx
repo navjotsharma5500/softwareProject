@@ -21,22 +21,28 @@ const Footer = () => {
             </p>
           </div>
 
-          {/* Quick Links */}
+          {/* Quick Links - 2 columns */}
           <div>
             <h3 className="text-white font-semibold mb-4">Quick Links</h3>
-            <ul className="space-y-2">
-              <li><Link to="/" className="hover:text-white transition-colors">Home</Link></li>
-              <li><Link to="/profile" className="hover:text-white transition-colors">Profile</Link></li>
-              <li><Link to="/admin" className="hover:text-white transition-colors">Admin Dashboard</Link></li>
-            </ul>
+            <div className="grid grid-cols-2 gap-2">
+              <ul className="space-y-2">
+                <li><Link to="/" className="hover:text-white transition-colors">Home</Link></li>
+                <li><Link to="/report-lost-item" className="hover:text-white transition-colors">Report Lost Item</Link></li>
+                <li><Link to="/how-it-works" className="hover:text-white transition-colors">How It Works</Link></li>
+              </ul>
+              <ul className="space-y-2">
+                <li><Link to="/profile" className="hover:text-white transition-colors">Profile</Link></li>
+                <li><Link to="/admin" className="hover:text-white transition-colors">Admin Dashboard</Link></li>
+                <li><Link to="/login" className="hover:text-white transition-colors">Login</Link></li>
+              </ul>
+            </div>
           </div>
 
           {/* Account & Support */}
           <div>
-            <h3 className="text-white font-semibold mb-4">Account</h3>
+            <h3 className="text-white font-semibold mb-4">Support</h3>
             <ul className="space-y-2">
-              <li><Link to="/login" className="hover:text-white transition-colors">Login</Link></li>
-              <li><Link to="/signup" className="hover:text-white transition-colors">Sign Up</Link></li>
+              <li><Link to="/how-it-works" className="hover:text-white transition-colors">How It Works</Link></li>
             </ul>
           </div>
         </div>

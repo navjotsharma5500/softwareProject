@@ -36,6 +36,9 @@ const Navbar = () => {
               <AlertCircle size={18} />
               Report Lost Item
             </Link>
+            <Link to="/how-it-works" className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 transition-colors flex items-center gap-1">
+              How It Works
+            </Link>
             {isAuthenticated ? (
               <>
                 {user?.isAdmin && (
@@ -126,6 +129,9 @@ const Navbar = () => {
                 <AlertCircle size={18} />
                 Report Lost Item
               </div>
+            </Link>
+            <Link to="/how-it-works" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
+              How It Works
             </Link>
             {isAuthenticated ? (
               <>
