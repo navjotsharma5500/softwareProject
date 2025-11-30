@@ -12,7 +12,6 @@ import adminRoutes from "./routes/admin.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import reportRoutes from "./routes/report.routes.js";
 
-
 import {
   apiLimiter,
   authLimiter,
@@ -27,7 +26,7 @@ const port = process.env.PORT || 3000;
 // Trust proxy - required for Render and other cloud platforms
 app.set("trust proxy", 1);
 app.use(express.urlencoded({ extended: true }));
-app.use(helmet()); 
+app.use(helmet());
 if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 app.use(
   cors({

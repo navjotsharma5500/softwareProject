@@ -1,6 +1,9 @@
 import Item from "../models/item.model.js";
 import Claim from "../models/claim.model.js";
 
+import { sendEmail, getClaimStatusEmailBody } from "../utils/email.utils.js";
+import User from "../models/user.model.js";
+
 // Valid categories (must match frontend constants.js and models)
 const VALID_CATEGORIES = [
   "bottle",
@@ -271,7 +274,9 @@ export const approveClaim = async (req, res) => {
   const { remarks } = req.body;
 
   try {
-    const claim = await Claim.findById(id);
+    const claim = await Claim.findById(id)
+      .populate("claimant")
+      .populate("item");
     if (!claim) return res.status(404).json({ message: "Claim not found" });
 
     claim.status = "approved";
@@ -279,18 +284,25 @@ export const approveClaim = async (req, res) => {
     await claim.save();
 
     // Update the item to set isClaimed = true and owner
-    const item = await Item.findById(claim.item);
+    const item = await Item.findById(claim.item._id);
     if (item) {
       item.isClaimed = true;
-      item.owner = claim.claimant;
+      item.owner = claim.claimant._id;
       await item.save();
     }
 
     // Reject all other pending claims for this item
     await Claim.updateMany(
-      { item: claim.item, _id: { $ne: id }, status: "pending" },
+      { item: claim.item._id, _id: { $ne: id }, status: "pending" },
       { status: "rejected", remarks: "Another claim was approved" }
     );
+
+    // Send email notification to claimant
+    if (claim.claimant && claim.claimant.email) {
+      const subject = "Your claim has been approved";
+      const html = getClaimStatusEmailBody(claim, "approved");
+      sendEmail(claim.claimant.email, subject, html).catch(console.error);
+    }
 
     return res.status(200).json({ message: "Claim approved", claim });
   } catch (error) {
@@ -305,12 +317,21 @@ export const rejectClaim = async (req, res) => {
   const { remarks } = req.body;
 
   try {
-    const claim = await Claim.findById(id);
+    const claim = await Claim.findById(id)
+      .populate("claimant")
+      .populate("item");
     if (!claim) return res.status(404).json({ message: "Claim not found" });
 
     claim.status = "rejected";
     if (remarks) claim.remarks = remarks;
     await claim.save();
+
+    // Send email notification to claimant
+    if (claim.claimant && claim.claimant.email) {
+      const subject = "Your claim has been rejected";
+      const html = getClaimStatusEmailBody(claim, "rejected");
+      sendEmail(claim.claimant.email, subject, html).catch(console.error);
+    }
 
     return res.status(200).json({ message: "Claim rejected", claim });
   } catch (error) {

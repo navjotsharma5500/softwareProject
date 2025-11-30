@@ -5,6 +5,11 @@ import {
   extractKeyFromUrl,
 } from "../utils/s3.utils.js";
 
+import {
+  sendEmail,
+  getReportSubmissionEmailBody,
+} from "../utils/email.utils.js";
+
 // Generate presigned URLs for photo uploads
 export const getUploadUrls = async (req, res) => {
   try {
@@ -140,6 +145,13 @@ export const createReport = async (req, res) => {
     });
 
     await report.populate("user", "name email rollNo");
+
+    // Send email notification to user
+    if (report.user && report.user.email) {
+      const subject = "Your lost item report has been submitted";
+      const html = getReportSubmissionEmailBody(report);
+      sendEmail(report.user.email, subject, html).catch(console.error);
+    }
 
     res.status(201).json({ report, message: "Report created successfully" });
   } catch (error) {
