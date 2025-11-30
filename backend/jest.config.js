@@ -3,4 +3,5 @@ export default {
   testEnvironment: "node",
   transform: {}, // disables Babel, use if you don't need transpilation
   moduleNameMapper: {},
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
 };
