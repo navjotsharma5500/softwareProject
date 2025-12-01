@@ -90,10 +90,8 @@ app.get("/", (req, res) => {
   res.status(200).send("API root");
 });
 
-if (
-  process.env.JEST_WORKER_ID === undefined &&
-  process.env.NODE_ENV === "development"
-) {
+// Start server (skip only during tests)
+if (process.env.JEST_WORKER_ID === undefined) {
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
   });
