@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, CheckCircle, XCircle, Package, Users, RefreshCw, Search, Filter, FileText, AlertCircle, MapPin, Clock, Calendar } from 'lucide-react';
+import { Plus, Edit2, Trash2, CheckCircle, XCircle, Package, Users, RefreshCw, Search, Filter, FileText, AlertCircle, MapPin, Clock, Calendar, MessageSquare, Star } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { adminApi, userApi } from '../utils/api';
 import { CATEGORIES, LOCATIONS, CATEGORY_DISPLAY_NAMES } from '../utils/constants';
@@ -8,9 +8,11 @@ import { useDarkMode } from '../context/DarkModeContext';
 
 const Admin = () => {
   const { darkMode } = useDarkMode();
-  const [activeTab, setActiveTab] = useState('items'); // items, claims, approved-claims, rejected-claims
+  const [activeTab, setActiveTab] = useState('items'); // items, claims, approved-claims, rejected-claims, feedback
   const [items, setItems] = useState([]);
   const [claims, setClaims] = useState([]);
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [feedbackStats, setFeedbackStats] = useState(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -23,12 +25,15 @@ const Admin = () => {
   // Pagination state
   const [itemsPage, setItemsPage] = useFormPersistence('admin_items_page', 1);
   const [claimsPage, setClaimsPage] = useFormPersistence('admin_claims_page', 1);
+  const [feedbackPage, setFeedbackPage] = useFormPersistence('admin_feedback_page', 1);
   const [itemsPagination, setItemsPagination] = useState({});
   const [claimsPagination, setClaimsPagination] = useState({});
+  const [feedbackPagination, setFeedbackPagination] = useState({});
 
   // Persisted visibility for filter panels
   const [showItemFilters, setShowItemFilters] = useFormPersistence('admin_show_item_filters', true);
   const [showClaimFilters, setShowClaimFilters] = useFormPersistence('admin_show_claim_filters', true);
+  const [showFeedbackFilters, setShowFeedbackFilters] = useFormPersistence('admin_show_feedback_filters', true);
   
   // Persisted filter state for items
   const [itemFilters, setItemFilters] = useFormPersistence('admin_item_filters', {
@@ -42,6 +47,13 @@ const Admin = () => {
   const [claimFilters, setClaimFilters] = useFormPersistence('admin_claim_filters', {
     search: '',
     status: 'all' // pending, approved, rejected, all
+  });
+  
+  // Persisted filter state for feedback
+  const [feedbackFilters, setFeedbackFilters] = useFormPersistence('admin_feedback_filters', {
+    search: '',
+    status: 'pending', // pending, approved, rejected, all
+    rating: '' // 1-5 or empty
   });
   
   // Form state for create/edit
@@ -61,9 +73,11 @@ const Admin = () => {
       fetchItems();
     } else if (activeTab === 'claims' || activeTab === 'approved-claims' || activeTab === 'rejected-claims') {
       fetchClaims();
+    } else if (activeTab === 'feedback') {
+      fetchFeedback();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, itemsPage, claimsPage, itemFilters, claimFilters]);
+  }, [activeTab, itemsPage, claimsPage, feedbackPage, itemFilters, claimFilters, feedbackFilters]);
 
   const fetchItems = async () => {
     setLoading(true);
@@ -109,6 +123,28 @@ const Admin = () => {
       setClaimsPagination(response.data.pagination || {});
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to load claims');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchFeedback = async () => {
+    setLoading(true);
+    try {
+      const params = {
+        page: feedbackPage,
+        limit: 10,
+        ...(feedbackFilters.search && { search: feedbackFilters.search }),
+        ...(feedbackFilters.status !== 'all' && { status: feedbackFilters.status }),
+        ...(feedbackFilters.rating && { rating: feedbackFilters.rating })
+      };
+      
+      const response = await adminApi.getAllFeedback(params);
+      setFeedbacks(response.data.feedbacks || []);
+      setFeedbackStats(response.data.stats || null);
+      setFeedbackPagination(response.data.pagination || {});
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to load feedback');
     } finally {
       setLoading(false);
     }
@@ -198,6 +234,26 @@ const Admin = () => {
       await fetchClaims();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to reject claim');
+    }
+  };
+
+  const handleApproveFeedback = async (feedbackId) => {
+    try {
+      await adminApi.approveFeedback(feedbackId);
+      toast.success('Feedback approved and published to public feed!');
+      await fetchFeedback();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to approve feedback');
+    }
+  };
+
+  const handleUpdateFeedbackStatus = async (feedbackId, status) => {
+    try {
+      await adminApi.updateFeedbackStatus(feedbackId, status);
+      toast.success(`Feedback status updated to ${status}!`);
+      await fetchFeedback();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update feedback status');
     }
   };
 
@@ -317,6 +373,17 @@ const Admin = () => {
             >
               <XCircle size={20} />
               Rejected Claims
+            </button>
+            <button
+              onClick={() => { setActiveTab('feedback'); setClaimsPage(1); }}
+              className={`flex items-center gap-2 px-6 py-4 font-semibold transition-colors whitespace-nowrap ${
+                activeTab === 'feedback'
+                  ? 'text-indigo-600 border-b-2 border-indigo-600'
+                  : darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <MessageSquare size={20} />
+              Feedback
             </button>
           </div>
         </div>
@@ -940,6 +1007,233 @@ const Admin = () => {
                     Next
                   </button>
                 </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Feedback Tab */}
+        {activeTab === 'feedback' && (
+          <div className={`rounded-xl shadow-md p-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            {/* Filters for Feedback */}
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Filters</h3>
+              <button
+                onClick={() => setShowFeedbackFilters(prev => !prev)}
+                className="text-sm text-indigo-600 hover:underline"
+              >
+                {showFeedbackFilters ? 'Hide Filters' : 'Show Filters'}
+              </button>
+            </div>
+
+            {showFeedbackFilters && (
+              <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="relative">
+                  <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} size={18} />
+                  <input
+                    type="text"
+                    placeholder="Search feedback..."
+                    value={feedbackFilters.search}
+                    onChange={(e) => setFeedbackFilters({...feedbackFilters, search: e.target.value})}
+                    className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                      darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'
+                    }`}
+                  />
+                </div>
+
+                <select
+                  value={feedbackFilters.status}
+                  onChange={(e) => setFeedbackFilters({...feedbackFilters, status: e.target.value})}
+                  className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                    darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                  }`}
+                >
+                  <option value="pending">Pending Review</option>
+                  <option value="approved">Approved</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="all">All Status</option>
+                </select>
+
+                <select
+                  value={feedbackFilters.rating}
+                  onChange={(e) => setFeedbackFilters({...feedbackFilters, rating: e.target.value})}
+                  className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                    darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                  }`}
+                >
+                  <option value="">All Ratings</option>
+                  <option value="5">5 Stars</option>
+                  <option value="4">4 Stars</option>
+                  <option value="3">3 Stars</option>
+                  <option value="2">2 Stars</option>
+                  <option value="1">1 Star</option>
+                </select>
+              </div>
+            )}
+
+            {/* Feedback Stats */}
+            {feedbackStats && (
+              <div className="mb-6 grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className={`p-4 rounded-lg text-center ${darkMode ? 'bg-blue-900/20' : 'bg-blue-50'}`}>
+                  <p className={`text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                    {feedbackStats.avgRating?.toFixed(1) || '0.0'}
+                  </p>
+                  <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Avg Rating</p>
+                </div>
+                <div className={`p-4 rounded-lg text-center ${darkMode ? 'text-yellow-400' : 'bg-yellow-50'}`}>
+                  <p className={`text-2xl font-bold ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
+                    {feedbackStats.totalFeedback || 0}
+                  </p>
+                  <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total</p>
+                </div>
+                <div className={`p-4 rounded-lg text-center ${darkMode ? 'bg-orange-900/20' : 'bg-orange-50'}`}>
+                  <p className={`text-2xl font-bold ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
+                    {feedbackStats.pendingCount || 0}
+                  </p>
+                  <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Pending</p>
+                </div>
+                <div className={`p-4 rounded-lg text-center ${darkMode ? 'bg-green-900/20' : 'bg-green-50'}`}>
+                  <p className={`text-2xl font-bold ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
+                    {feedbackStats.approvedCount || 0}
+                  </p>
+                  <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Approved</p>
+                </div>
+                <div className={`p-4 rounded-lg text-center ${darkMode ? 'bg-red-900/20' : 'bg-red-50'}`}>
+                  <p className={`text-2xl font-bold ${darkMode ? 'text-red-400' : 'text-red-600'}`}>
+                    {feedbackStats.rejectedCount || 0}
+                  </p>
+                  <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Rejected</p>
+                </div>
+              </div>
+            )}
+
+            {/* Feedback List */}
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${darkMode ? 'border-indigo-400' : 'border-indigo-600'}`}></div>
+              </div>
+            ) : feedbacks.length === 0 ? (
+              <div className="text-center py-12">
+                <MessageSquare className={`mx-auto mb-3 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} size={48} />
+                <p className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>No feedback found</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {feedbacks.map((feedback) => (
+                  <div
+                    key={feedback._id}
+                    className={`p-6 rounded-lg border ${
+                      darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h4 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                            {feedback.name}
+                          </h4>
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            feedback.status === 'approved'
+                              ? 'bg-green-100 text-green-700'
+                              : feedback.status === 'rejected'
+                              ? 'bg-red-100 text-red-700'
+                              : 'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            {feedback.status}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mb-2">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              size={16}
+                              className={i < feedback.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
+                            />
+                          ))}
+                          <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                            ({feedback.rating}/5)
+                          </span>
+                        </div>
+                        <p className={`text-xs mb-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          {feedback.email} • {new Date(feedback.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mb-4">
+                      <h5 className={`font-medium mb-1 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                        {feedback.subject}
+                      </h5>
+                      <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {feedback.message}
+                      </p>
+                      <p className={`text-xs mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                        Category: <span className="capitalize">{feedback.category.replace('_', ' ')}</span>
+                      </p>
+                    </div>
+
+                    {/* Action Buttons */}
+                    {feedback.status === 'pending' && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleApproveFeedback(feedback._id)}
+                          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                          <CheckCircle size={18} />
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleUpdateFeedbackStatus(feedback._id, 'rejected')}
+                          className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                        >
+                          <XCircle size={18} />
+                          Reject
+                        </button>
+                      </div>
+                    )}
+                    {feedback.status !== 'pending' && (
+                      <button
+                        onClick={() => handleUpdateFeedbackStatus(feedback._id, 'pending')}
+                        className={`text-sm px-4 py-2 rounded-lg ${
+                          darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-200 hover:bg-gray-300'
+                        }`}
+                      >
+                        Mark as Pending
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Pagination */}
+            {!loading && feedbackPagination.totalPages > 1 && (
+              <div className="flex justify-center items-center gap-4 mt-6">
+                <button
+                  onClick={() => setFeedbackPage(Math.max(1, feedbackPage - 1))}
+                  disabled={!feedbackPagination.hasPrev}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                    feedbackPagination.hasPrev
+                      ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  Previous
+                </button>
+                <span className={darkMode ? 'text-white' : 'text-gray-900'}>
+                  Page {feedbackPage} of {feedbackPagination.totalPages}
+                </span>
+                <button
+                  onClick={() => setFeedbackPage(feedbackPage + 1)}
+                  disabled={!feedbackPagination.hasNext}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                    feedbackPagination.hasNext
+                      ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  Next
+                </button>
               </div>
             )}
           </div>

@@ -9,6 +9,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true, // Send cookies with requests
 });
 
 // Add token to requests
@@ -127,6 +128,14 @@ export const adminApi = {
   // Reject claim
   rejectClaim: (claimId, remarks) =>
     api.patch(`/admin/claims/${claimId}/reject`, { remarks }),
+
+  // Feedback management
+  getAllFeedback: (params) => api.get("/feedback/admin/all", { params }),
+  approveFeedback: (id) => api.patch(`/feedback/${id}/approve`),
+  updateFeedbackStatus: (id, status) =>
+    api.patch(`/feedback/${id}/status`, { status }),
+  respondToFeedback: (id, response) =>
+    api.post(`/feedback/${id}/respond`, { response }),
 };
 
 export default api;

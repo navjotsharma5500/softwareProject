@@ -11,16 +11,22 @@ import authRoutes from "./routes/auth.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import reportRoutes from "./routes/report.routes.js";
+import feedbackRoutes from "./routes/feedback.routes.js";
 
 import {
   apiLimiter,
   authLimiter,
   adminLimiter,
 } from "./middlewares/rateLimiter.middleware.js";
+import securityMiddleware from "./security.js";
 
 dotenv.config();
 
 const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+securityMiddleware(app);
 const port = process.env.PORT || 3000;
 
 // Log every request during Jest tests for debugging
@@ -33,8 +39,6 @@ if (process.env.JEST_WORKER_ID !== undefined) {
 
 // Trust proxy - required for Render and other cloud platforms
 app.set("trust proxy", 1);
-app.use(express.urlencoded({ extended: true }));
-app.use(helmet());
 if (
   process.env.NODE_ENV === "development" ||
   process.env.JEST_WORKER_ID !== undefined
@@ -52,8 +56,6 @@ app.use(
     credentials: true,
   })
 );
-app.use(cookieParser());
-app.use(express.json());
 
 // Session configuration for passport
 app.use(
@@ -79,6 +81,7 @@ app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/admin", adminLimiter, adminRoutes);
 app.use("/api/user", apiLimiter, userRoutes);
 app.use("/api/reports", apiLimiter, reportRoutes);
+app.use("/api/feedback", apiLimiter, feedbackRoutes);
 
 app.get("/health", (req, res) => {
   res.status(200).send("Server is healthy");

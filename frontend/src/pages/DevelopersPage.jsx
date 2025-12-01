@@ -195,17 +195,16 @@ const DevelopersPage = () => {
                   </div>
 
                   {/* GitHub Link */}
-                  <div className="flex items-end h-16 mt-6">
+                  <div className="mt-6">
                     <a
                       href={dev.githubUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`flex-1 flex justify-center items-center py-3 rounded-lg font-semibold transition-all duration-200 ${
+                      className={`w-full flex justify-center items-center py-3 rounded-lg font-semibold transition-all duration-200 ${
                         darkMode
                           ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
                           : 'bg-gray-900 hover:bg-gray-800 text-white'
                       }`}
-                      style={{ minHeight: '3rem' }}
                     >
                       <span className="inline-flex items-center">
                         <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
@@ -232,7 +231,7 @@ const DevelopersPage = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="https://github.com/SuryaKTiwari11/"
+              href="https://github.com/SuryaKTiwari11/softwareProject"
               target="_blank"
               rel="noopener noreferrer"
               className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
@@ -241,7 +240,7 @@ const DevelopersPage = () => {
                   : 'bg-indigo-600 hover:bg-indigo-700 text-white'
               }`}
             >
-              View on GitHub
+              View Repository on GitHub
             </a>
             <a
               href="mailto:admin@thapar.edu"
