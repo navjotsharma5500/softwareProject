@@ -13,6 +13,9 @@ import { ProtectedRoute } from './components/ProtectedRoute.jsx'
 import { PublicRoute } from './components/PublicRoute.jsx'
 import NotFound from './pages/NotFound.jsx'
 import DevelopersPage from './pages/DevelopersPage.jsx'
+import Feedback from './pages/Feedback.jsx'
+import FeedbackFeed from './pages/FeedbackFeed.jsx'
+
 const App = () => {
   return (
     <div className="flex flex-col min-h-screen">
@@ -36,6 +39,13 @@ const App = () => {
           } />
           <Route path='/report-lost-item' element={<ReportLostItem />} />
           <Route path='/how-it-works' element={<HowItWorks />} />
+          {/* Feedback Routes */}
+          <Route path='/feedback' element={
+            <ProtectedRoute>
+              <Feedback />
+            </ProtectedRoute>
+          } />
+          <Route path='/feedback-feed' element={<FeedbackFeed />} />
           {/* Admin Routes */}
           <Route path='/admin' element={
             <ProtectedRoute adminOnly={true}>

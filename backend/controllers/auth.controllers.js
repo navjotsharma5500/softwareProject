@@ -15,7 +15,7 @@ export const googleCallback = async (req, res) => {
 
     const isAdmin = req.user.isAdmin;
     const token = jwt.sign(
-      { id: req.user._id, isAdmin },
+      { _id: req.user._id, isAdmin },
       process.env.JWT_SECRET,
       { expiresIn: "7d" } // 7 days for OAuth
     );
@@ -70,7 +70,7 @@ export const logout = async (req, res) => {
 };
 
 export const getProfile = async (req, res) => {
-  const userId = req.user?.id;
+  const userId = req.user?._id || req.user?.id;
   if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
   try {

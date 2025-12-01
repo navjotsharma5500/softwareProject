@@ -43,7 +43,7 @@ coverage/
 # TypeScript
 *.tsbuildinfo
 
-# Environment variables (CONTAINS SENSITIVE DATA - MONGODB URI, JWT SECRET)
+# Environment variables (CONTAINS SENSITIVE DATA - MONGODB URI, JWT SECRET, AWS KEYS)
 .env
 .env.*.local
 .env.local
@@ -53,6 +53,13 @@ coverage/
 !.env.example
 backend/.env
 frontend/.env
+
+# Database connection and credentials
+**/MONGODB_URI*
+**/DATABASE_URL*
+**/DB_CONNECTION*
+**/*connection-string*
+**/*db-credentials*
 
 # IDEs / Editors
 .vscode/
@@ -172,10 +179,39 @@ frontend/FRONTEND_COMPLETE.md
 *.sqlite
 *.sqlite3
 
-# MongoDB dump files
+# MongoDB dump files and exports
 dump/
 *.bson
 *.json.gz
+mongo-dump/
+mongodb-backup/
+db-backup/
+database-backup/
+
+# Database migration files (if sensitive)
+**/migrations/*.sql
+**/seeds/*.sql
+
+# Database admin scripts with hardcoded credentials
+backend/createSpecificAdmin.js
+**/makeAdminWithCredentials.js
+**/directDbAccess.js
+
+# Database utility and seeding scripts
+backend/seedData.js
+backend/seedFeedback.js
+backend/addMoreItems.js
+backend/dbStatus.js
+backend/makeAdmin.js
+backend/createAdminInteractive.js
+backend/createSpecificAdmin.js
+
+# Test and utility scripts
+backend/test.js
+backend/manualTest.js
+backend/scripts/manualTest.js
+**/testDb.js
+**/quickTest.js
 
 # Backup files
 *.backup
@@ -185,5 +221,13 @@ dump/
 # API documentation (if auto-generated)
 # backend/API_DOCUMENTATION.md
 
+# Remove absolute paths
+# backend/scripts/
+D:\softwareProject\backend\makeAdmin.js
+D:\softwareProject\backend\security.js
+D:\softwareProject\backend\seedData.js
+D:\softwareProject\backend\makeAdmin.js
+D:\softwareProject\backend\createAdminInteractive.js
+D:\softwareProject\backend\addMoreItems.js
 
-backend/scripts/
+COST_REDUCTION_TIPS.md

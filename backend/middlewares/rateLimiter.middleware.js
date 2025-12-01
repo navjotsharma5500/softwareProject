@@ -36,3 +36,11 @@ export const adminLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+export const feedbackLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000, // 24 hours
+  max: 100, // Limit each IP to 100 per day (increased for development)
+  message: "Too many feedback submissions, please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});

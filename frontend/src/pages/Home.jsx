@@ -7,6 +7,7 @@ import { publicApi } from '../utils/api';
 import { CATEGORIES, LOCATIONS, TIME_PERIODS, CATEGORY_DISPLAY_NAMES } from '../utils/constants';
 import { useDarkMode } from '../context/DarkModeContext';
 import useFormPersistence from '../hooks/useFormPersistence';
+import FeedbackCarousel from '../components/FeedbackCarousel';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -588,6 +589,11 @@ const Home = () => {
             </button>
           </div>
         )}
+
+        {/* Feedback Carousel */}
+        <div className="mt-16">
+          <FeedbackCarousel />
+        </div>
       </div>
     </div>
   );
