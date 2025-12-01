@@ -92,7 +92,7 @@ app.get("/", (req, res) => {
 
 // Start server (skip only during tests)
 if (process.env.JEST_WORKER_ID === undefined) {
-  app.listen(port, () => {
+  app.listen(port, "0.0.0.0", () => {
     console.log(`Server is running on port ${port}`);
   });
 }
