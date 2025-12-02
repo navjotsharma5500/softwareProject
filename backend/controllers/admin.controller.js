@@ -419,10 +419,14 @@ export const listAllItems = async (req, res) => {
 
     const [items, total] = await Promise.all([
       Item.find(query)
+        .select(
+          "itemId name category foundLocation dateFound isClaimed owner createdAt"
+        )
         .populate("owner", "name email rollNo")
         .skip(skip)
         .limit(limit)
-        .sort({ createdAt: -1 }),
+        .sort({ createdAt: -1 })
+        .lean(),
       Item.countDocuments(query),
     ]);
 

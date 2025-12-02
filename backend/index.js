@@ -65,7 +65,8 @@ app.use(
     saveUninitialized: false,
     cookie: {
       secure: process.env.NODE_ENV === "production",
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      httpOnly: true,
+      maxAge: 14 * 24 * 60 * 60 * 1000, // 2 weeks (14 days)
     },
   })
 );
@@ -73,6 +74,9 @@ app.use(
 // Initialize passport
 app.use(passportConfig.initialize());
 app.use(passportConfig.session());
+
+// Enable ETag for conditional requests (browser caching)
+app.set("etag", "strong");
 
 connectDB();
 
@@ -92,9 +96,8 @@ app.get("/", (req, res) => {
 
 // Start server (skip only during tests)
 if (process.env.JEST_WORKER_ID === undefined) {
-  app.listen(port, "0.0.0.0", () => {
-    console.log(`Server is running on port ${port}`);
-  });
+  app.listen(port, "0.0.0.0");
 }
 //0/0/0/0 does not mean localhost. It means to listen on all available interfaces.
 export default app;
+1;

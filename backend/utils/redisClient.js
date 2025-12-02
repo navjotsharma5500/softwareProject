@@ -41,7 +41,8 @@ export const clearCachePattern = async (pattern) => {
   try {
     const keys = await redis.keys(pattern);
     if (keys.length > 0) {
-      await redis.del(...keys);
+      // Use UNLINK instead of DEL - non-blocking, faster for large deletes
+      await redis.unlink(...keys);
       if (process.env.NODE_ENV !== "production") {
         console.log(
           `🗑️  Cleared ${keys.length} cache keys matching: ${pattern}`
