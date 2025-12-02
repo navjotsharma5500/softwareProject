@@ -2,6 +2,7 @@ import Item from "../models/item.model.js";
 import User from "../models/user.model.js";
 import Claim from "../models/claim.model.js";
 import Report from "../models/report.model.js";
+import { getCache, setCache } from "../utils/redisClient.js";
 
 // User claims an item: creates a new claim record
 export const claimItem = async (req, res) => {
@@ -41,6 +42,13 @@ export const claimItem = async (req, res) => {
 
     await newClaim.save();
 
+    // Clear user's claims cache
+    await clearCachePattern(`user:${userId}:claims:*`);
+    // Clear item cache since claim count changed
+    await clearCachePattern(`item:${id}`);
+    // Clear items list cache
+    await clearCachePattern("items:list:*");
+
     const populatedClaim = await Claim.findById(newClaim._id)
       .populate("claimant", "name email rollNo")
       .populate("item");
@@ -61,8 +69,16 @@ export const myClaims = async (req, res) => {
 
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = Math.min(parseInt(req.query.limit) || 10, 100); // Max 100
     const skip = (page - 1) * limit;
+
+    const cacheKey = `user:${userId}:claims:page=${page}:limit=${limit}`;
+
+    // Try cache first
+    const cachedData = await getCache(cacheKey);
+    if (cachedData) {
+      return res.status(200).json(cachedData);
+    }
 
     const query = { claimant: userId };
 
@@ -74,13 +90,14 @@ export const myClaims = async (req, res) => {
         )
         .skip(skip)
         .limit(limit)
-        .sort({ createdAt: -1 }),
+        .sort({ createdAt: -1 })
+        .lean(), // Faster read-only queries
       Claim.countDocuments(query),
     ]);
 
     const totalPages = Math.ceil(total / limit);
 
-    return res.status(200).json({
+    const responseData = {
       claims,
       pagination: {
         page,
@@ -90,7 +107,12 @@ export const myClaims = async (req, res) => {
         hasNext: page < totalPages,
         hasPrev: page > 1,
       },
-    });
+    };
+
+    // Cache for 10 minutes (600 seconds) - claims change less frequently
+    await setCache(cacheKey, responseData, 600);
+
+    return res.status(200).json(responseData);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
@@ -101,8 +123,26 @@ export const myClaims = async (req, res) => {
 export const listItems = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = Math.min(parseInt(req.query.limit) || 10, 100); // Max 100
     const skip = (page - 1) * limit;
+
+    // Build cache key based on all query parameters
+    const cacheKey = `items:list:${JSON.stringify({
+      page,
+      limit,
+      category: req.query.category,
+      location: req.query.location,
+      claimed: req.query.claimed,
+      isClaimed: req.query.isClaimed,
+      timePeriod: req.query.timePeriod,
+      search: req.query.search,
+    })}`;
+
+    // Try to get from cache (1 hour = 3600 seconds)
+    const cachedData = await getCache(cacheKey);
+    if (cachedData) {
+      return res.status(200).json(cachedData);
+    }
 
     // Build filter query
     const query = {};
@@ -164,12 +204,13 @@ export const listItems = async (req, res) => {
       .populate("owner", "name rollNo") // Don't show email to public
       .skip(skip)
       .limit(limit)
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean(); // Faster read-only queries
 
     const total = await Item.countDocuments(query);
     const totalPages = Math.ceil(total / limit);
 
-    return res.status(200).json({
+    const responseData = {
       items,
       pagination: {
         page,
@@ -179,7 +220,12 @@ export const listItems = async (req, res) => {
         hasNext: page < totalPages,
         hasPrev: page > 1,
       },
-    });
+    };
+
+    // Cache for 1 hour (3600 seconds)
+    await setCache(cacheKey, responseData, 3600);
+
+    return res.status(200).json(responseData);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
@@ -190,14 +236,27 @@ export const listItems = async (req, res) => {
 // Shows minimal info only
 export const getItemById = async (req, res) => {
   const { id } = req.params;
+  const cacheKey = `item:${id}`;
 
   try {
+    // Try cache first
+    const cachedItem = await getCache(cacheKey);
+    if (cachedItem) {
+      return res.status(200).json(cachedItem);
+    }
+
     const item = await Item.findById(id).populate("owner", "name rollNo"); // Don't show email to public
 
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
     }
-    return res.status(200).json({ item });
+
+    const responseData = { item };
+
+    // Cache for 1 hour
+    await setCache(cacheKey, responseData, 3600);
+
+    return res.status(200).json(responseData);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });

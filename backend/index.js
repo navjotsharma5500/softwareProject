@@ -96,5 +96,5 @@ if (process.env.JEST_WORKER_ID === undefined) {
     console.log(`Server is running on port ${port}`);
   });
 }
-
+//0/0/0/0 does not mean localhost. It means to listen on all available interfaces.
 export default app;
