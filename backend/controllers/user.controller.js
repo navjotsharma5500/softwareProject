@@ -84,6 +84,7 @@ export const myClaims = async (req, res) => {
 
     const [claims, total] = await Promise.all([
       Claim.find(query)
+        .select("item claimant status remarks createdAt")
         .populate(
           "item",
           "itemId name category foundLocation dateFound isClaimed"
@@ -201,6 +202,7 @@ export const listItems = async (req, res) => {
     }
 
     const items = await Item.find(query)
+      .select("itemId name category foundLocation dateFound isClaimed owner")
       .populate("owner", "name rollNo") // Don't show email to public
       .skip(skip)
       .limit(limit)
@@ -245,7 +247,10 @@ export const getItemById = async (req, res) => {
       return res.status(200).json(cachedItem);
     }
 
-    const item = await Item.findById(id).populate("owner", "name rollNo"); // Don't show email to public
+    const item = await Item.findById(id)
+      .select("itemId name category foundLocation dateFound isClaimed owner")
+      .populate("owner", "name rollNo") // Don't show email to public
+      .lean(); // Faster read-only queries
 
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
@@ -296,14 +301,30 @@ export const getUserHistory = async (req, res) => {
 
 // Get and update user profile
 export const getProfile = async (req, res) => {
+  const userId = req.user.id;
+  const cacheKey = `user:profile:${userId}`;
+
   try {
-    const user = await User.findById(req.user.id);
+    // Try cache first
+    const cachedProfile = await getCache(cacheKey);
+    if (cachedProfile) {
+      return res.status(200).json(cachedProfile);
+    }
+
+    const user = await User.findById(userId)
+      .select("name email rollNo phone profilePicture isAdmin createdAt")
+      .lean();
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    return res.status(200).json({ user });
+    const responseData = { user };
+
+    // Cache for 15 minutes
+    await setCache(cacheKey, responseData, 900);
+
+    return res.status(200).json(responseData);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
@@ -332,6 +353,10 @@ export const updateProfile = async (req, res) => {
     if (rollNo) user.rollNo = rollNo;
     if (phone !== undefined) user.phone = phone;
     await user.save();
+
+    // Clear user profile cache after update
+    await clearCachePattern(`user:profile:${req.user.id}`);
+
     const updatedUser = await User.findById(req.user.id);
     return res.status(200).json({
       user: updatedUser,
