@@ -3,6 +3,7 @@ import Claim from "../models/claim.model.js";
 
 import { sendEmail, getClaimStatusEmailBody } from "../utils/email.utils.js";
 import User from "../models/user.model.js";
+import { clearCachePattern } from "../utils/redisClient.js";
 
 // Valid categories (must match frontend constants.js and models)
 const VALID_CATEGORIES = [
@@ -111,6 +112,12 @@ export const createItem = async (req, res) => {
     });
 
     await newItem.save();
+
+    // Clear items cache after creating a new item
+    await clearCachePattern("items:list:*");
+    // Clear all item detail caches to be safe
+    await clearCachePattern("item:*");
+
     return res
       .status(201)
       .json({ message: "Item created successfully", item: newItem });
@@ -152,6 +159,12 @@ export const updateItem = async (req, res) => {
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
     }
+
+    // Clear items cache after updating an item
+    await clearCachePattern("items:list:*");
+    // Clear this specific item's cache
+    await clearCachePattern(`item:${id}`);
+
     return res.status(200).json({ message: "Item updated successfully", item });
   } catch (error) {
     console.error(error);
@@ -170,6 +183,12 @@ export const deleteItem = async (req, res) => {
     }
     // Also delete all claims associated with this item
     await Claim.deleteMany({ item: id });
+
+    // Clear items cache after deleting an item
+    await clearCachePattern("items:list:*");
+    // Clear this specific item's cache
+    await clearCachePattern(`item:${id}`);
+
     return res.status(200).json({ message: "Item deleted successfully" });
   } catch (error) {
     console.error(error);
@@ -182,7 +201,9 @@ export const getItemById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const item = await Item.findById(id).populate("owner", "name email rollNo");
+    const item = await Item.findById(id)
+      .populate("owner", "name email rollNo")
+      .lean();
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
     }
@@ -200,7 +221,8 @@ export const getItemClaims = async (req, res) => {
   try {
     const claims = await Claim.find({ item: id })
       .populate("claimant", "name email rollNo")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
     return res.status(200).json({ claims });
   } catch (error) {
     console.error(error);
@@ -315,6 +337,14 @@ export const approveClaim = async (req, res) => {
       const html = getClaimStatusEmailBody(claim, "approved");
       sendEmail(claim.claimant.email, subject, html).catch(console.error);
     }
+
+    // Clear items cache since item claimed status changed
+    await clearCachePattern("items:list:*");
+    // Clear specific item cache
+    await clearCachePattern(`item:${claim.item._id}`);
+    // Clear claimant's claims cache
+    await clearCachePattern(`user:${claim.claimant._id}:claims:*`);
+
     return res.status(200).json({ message: "Claim approved", claim });
   } catch (error) {
     console.error(error);
