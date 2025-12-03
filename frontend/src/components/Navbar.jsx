@@ -29,9 +29,6 @@ const Navbar = () => {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link to="/" className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 transition-colors">
-              Home
-            </Link>
             <Link to="/report-lost-item" className="text-gray-700 dark:text-gray-300 hover:text-indigo-600 transition-colors flex items-center gap-1">
               <AlertCircle size={18} />
               Report Lost Item
