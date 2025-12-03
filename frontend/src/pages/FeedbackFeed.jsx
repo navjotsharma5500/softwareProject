@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDarkMode } from '../context/DarkModeContext';
 import { Link } from 'react-router-dom';
 import api from '../utils/api';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const FeedbackFeed = () => {
   const { darkMode } = useDarkMode();
   const [feedbacks, setFeedbacks] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const isInitialLoad = useRef(true);
 
   useEffect(() => {
     const fetchFeedback = async () => {
@@ -20,6 +22,7 @@ const FeedbackFeed = () => {
         console.error('Error fetching feedback:', error);
       } finally {
         setLoading(false);
+        isInitialLoad.current = false;
       }
     };
 
@@ -126,9 +129,10 @@ const FeedbackFeed = () => {
 
         {/* Feedback Grid */}
         {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className={`animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 ${darkMode ? 'border-indigo-400' : 'border-indigo-600'}`}></div>
-          </div>
+          <LoadingSpinner 
+            showColdStartMessage={isInitialLoad.current}
+            message="Loading feedback..."
+          />
         ) : feedbacks.length === 0 ? (
           <div className={`text-center py-20 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
             <p className="text-xl">No feedback found. Be the first to share your thoughts!</p>

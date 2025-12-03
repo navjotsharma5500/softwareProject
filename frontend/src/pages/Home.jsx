@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, X, RefreshCw, Grid, List } from 'lucide-react';
@@ -8,6 +8,7 @@ import { CATEGORIES, LOCATIONS, TIME_PERIODS, CATEGORY_DISPLAY_NAMES } from '../
 import { useDarkMode } from '../context/DarkModeContext';
 import useFormPersistence from '../hooks/useFormPersistence';
 import FeedbackCarousel from '../components/FeedbackCarousel';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const Home = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useFormPersistence('home_view', 'grid'); // 'grid' or 'list'
+  const isInitialLoad = useRef(true);
 
   // Tab state (persisted)
   const [activeTab, setActiveTab] = useFormPersistence('home_activeTab', 'available'); // 'available' or 'claimed'
@@ -58,6 +60,7 @@ const Home = () => {
       console.error(error);
     } finally {
       setLoading(false);
+      isInitialLoad.current = false;
     }
   };
 
@@ -362,9 +365,10 @@ const Home = () => {
 
         {/* Loading State */}
         {loading && (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          </div>
+          <LoadingSpinner 
+            showColdStartMessage={isInitialLoad.current}
+            message={isInitialLoad.current ? "Loading items..." : "Loading..."}
+          />
         )}
 
         {/* Items Grid/List */}

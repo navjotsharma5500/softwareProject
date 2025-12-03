@@ -52,10 +52,11 @@ const HowItWorks = () => {
               If not logged in, you'll be asked to log in before submitting.
             </li>
             <li className="pl-2">
-              Your report will be visible to you and administrators only.
+              Your report will be visible to you and administrators only. 
+              
             </li>
             <li className="pl-2">
-              If your item is found and deposited with the admin, it will appear in the portal's found items list and you may be contacted.
+              If your item is found and deposited with the admin, it will appear in the portal's found items list and you can submit a claim.
             </li>
           </ol>
         </section>
@@ -66,7 +67,7 @@ const HowItWorks = () => {
           </h2>
           <ol className={`list-decimal list-inside ${darkMode ? 'text-gray-300' : 'text-gray-700'} space-y-3 pl-2`}>
             <li className="pl-2">
-              <span className="font-semibold">You cannot list found items yourself.</span> Only the admin can add found items to the portal.
+              <span className="font-bold ">You cannot list found items yourself.</span> Only the admin can add found items to the portal.
             </li>
             <li className="pl-2">
               If you find an item, immediately hand it over to the campus guard or admin.

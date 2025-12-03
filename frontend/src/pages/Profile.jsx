@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { User, Mail, IdCard, Package, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw, Edit2, Save, X, Phone, FileText } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
@@ -6,6 +6,7 @@ import { useDarkMode } from '../context/DarkModeContext';
 import { userApi, reportApi } from '../utils/api';
 import { CATEGORY_DISPLAY_NAMES, LOCATIONS } from '../utils/constants';
 import useFormPersistence from '../hooks/useFormPersistence.jsx';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -18,6 +19,7 @@ const Profile = () => {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeSection, setActiveSection] = useState('claims'); // 'claims' or 'reports'
+  const isInitialLoad = useRef(true);
   const [formData, setFormData, formControls] = useFormPersistence('profile_form', {
     name: '',
     rollNo: '',
@@ -57,6 +59,7 @@ const Profile = () => {
       console.error(error);
     } finally {
       setLoading(false);
+      isInitialLoad.current = false;
     }
   };
 
@@ -76,6 +79,7 @@ const Profile = () => {
       console.error(error);
     } finally {
       setLoading(false);
+      isInitialLoad.current = false;
     }
   };
 
@@ -404,9 +408,10 @@ const Profile = () => {
           {activeSection === 'claims' && (
             <>
               {loading ? (
-                <div className="flex justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-                </div>
+                <LoadingSpinner 
+                  showColdStartMessage={isInitialLoad.current}
+                  message="Loading claims..."
+                />
               ) : claims.length === 0 ? (
                 <div className="text-center py-12">
                   <Package className="mx-auto text-gray-400 mb-4" size={48} />
@@ -567,9 +572,10 @@ const Profile = () => {
           {activeSection === 'reports' && (
             <>
               {loading ? (
-                <div className="flex justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-                </div>
+                <LoadingSpinner 
+                  showColdStartMessage={isInitialLoad.current}
+                  message="Loading reports..."
+                />
               ) : reports.length === 0 ? (
                 <div className="text-center py-12">
                   <FileText className="mx-auto text-gray-400 mb-4" size={48} />
