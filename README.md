@@ -30,6 +30,23 @@ A full-stack web application for managing lost and found items at **Thapar Insti
 - 📊 Paginated data management
 - 🚫 Automatic rejection of competing claims when one is approved
 
+### 🔒 Security & Performance Features
+
+- 🛡️ **Rate Limiting** - Protection against brute force & DDoS attacks
+  - Auth endpoints: 50 requests/15 min
+  - Claim endpoints: 10 requests/hour
+  - Admin endpoints: 200 requests/15 min
+  - Feedback: 100 requests/day
+- 🔄 **Idempotency Middleware** - Prevents duplicate requests with `Idempotency-Key` header
+- ⚡ **Redis Caching** - Fast data retrieval with automatic cache invalidation
+  - Item listings cached
+  - User claims cached
+  - Admin queries optimized
+- 🔐 **Security Headers** - Helmet.js for production-grade security
+- 🧹 **Input Sanitization** - XSS & MongoDB injection protection
+- 📧 **Email Notifications** - Automated status updates for claims
+- 📦 **Image Storage** - AWS S3 integration for secure image uploads
+
 ## 🛠️ Tech Stack
 
 ### Frontend
@@ -49,16 +66,23 @@ A full-stack web application for managing lost and found items at **Thapar Insti
 - **Express 5.1.0** - Web framework
 - **MongoDB** - NoSQL database
 - **Mongoose 8.19.3** - ODM for MongoDB
+- **Redis (ioredis 5.8.2)** - Caching & session management
 - **JWT** - Authentication
 - **bcryptjs** - Password hashing
 - **Helmet** - Security headers
 - **CORS** - Cross-origin resource sharing
 - **Morgan** - HTTP request logger
+- **Express Rate Limit** - API rate limiting
+- **AWS S3** - Image storage
+- **Nodemailer** - Email notifications
+- **Joi** - Schema validation
 
 ## 📋 Prerequisites
 
 - Node.js (v14 or higher)
 - MongoDB (local or Atlas)
+- Redis (optional - for caching, falls back gracefully if not available)
+- AWS S3 account (optional - for image uploads)
 - npm or yarn
 
 ## 🚀 Installation & Setup
@@ -84,6 +108,22 @@ PORT=3000
 MONGODB_URI=mongodb://localhost:27017/lostfound
 JWT_SECRET=your_super_secret_jwt_key_here
 NODE_ENV=development
+
+# Redis (Optional - for caching & rate limiting)
+REDIS_URL=redis://localhost:6379
+
+# AWS S3 (Optional - for image uploads)
+AWS_REGION=your-region
+AWS_ACCESS_KEY_ID=your-access-key
+AWS_SECRET_ACCESS_KEY=your-secret-key
+AWS_S3_BUCKET_NAME=your-bucket-name
+
+# Email (Optional - for notifications)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-password
+EMAIL_FROM=noreply@thapar.edu
 ```
 
 ### 3. Frontend Setup
@@ -146,17 +186,32 @@ softwareProject/
 │   ├── controllers/        # Request handlers
 │   │   ├── admin.controller.js
 │   │   ├── auth.controllers.js
+│   │   ├── feedback.controller.js
+│   │   ├── report.controller.js
 │   │   └── user.controller.js
-│   ├── middlewares/        # Auth & validation
-│   │   └── auth.middleware.js
+│   ├── middlewares/        # Auth, validation & security
+│   │   ├── auth.middleware.js
+│   │   ├── rateLimiter.middleware.js
+│   │   └── idempotency.middleware.js
 │   ├── models/            # Database schemas
 │   │   ├── claim.model.js
 │   │   ├── item.model.js
-│   │   └── user.model.js
+│   │   ├── user.model.js
+│   │   ├── feedback.model.js
+│   │   └── report.model.js
 │   ├── routes/            # API routes
 │   │   ├── admin.routes.js
 │   │   ├── auth.routes.js
-│   │   └── user.routes.js
+│   │   ├── user.routes.js
+│   │   ├── feedback.routes.js
+│   │   └── report.routes.js
+│   ├── utils/             # Helper utilities
+│   │   ├── redisClient.js
+│   │   ├── email.utils.js
+│   │   └── s3.utils.js
+│   ├── config/            # Configuration
+│   │   ├── email.config.js
+│   │   └── passport.config.js
 │   ├── index.js           # Entry point
 │   ├── utils.js           # Helper functions
 │   └── package.json
@@ -265,9 +320,16 @@ COS, Library, LT, near HOSTEL O C D M, near HOSTEL A B J H, near HOSTEL Q PG, ne
 - HTTP-only cookies
 - Helmet.js for security headers
 - CORS protection
-- Input validation
+- Input validation & sanitization
+- XSS protection with xss-clean
+- MongoDB injection prevention with express-mongo-sanitize
+- HPP (HTTP Parameter Pollution) protection
 - Admin-only routes
 - No future dates for "Date Found"
+- Rate limiting on all endpoints
+- Idempotency support for critical operations
+- Redis-backed session management
+- CSRF protection
 
 ## 📖 API Documentation
 
@@ -275,13 +337,14 @@ Detailed API documentation is available in `backend/API_DOCUMENTATION.md`
 
 **Key Endpoints:**
 
-- `GET /api/user/items` - Browse items (public)
-- `POST /api/auth/signup` - Create account
-- `POST /api/auth/login` - Login
-- `POST /api/user/items/:id/claim` - Claim item
-- `GET /api/user/my-claims` - View my claims
-- `POST /api/admin/items` - Create item (admin)
-- `PATCH /api/admin/claims/:id/approve` - Approve claim (admin)
+- `GET /api/user/items` - Browse items (public, cached)
+- `POST /api/auth/signup` - Create account (rate limited: 50/15min)
+- `POST /api/auth/login` - Login (rate limited: 50/15min)
+- `POST /api/user/items/:id/claim` - Claim item (rate limited: 10/hour, idempotent)
+- `GET /api/user/my-claims` - View my claims (cached)
+- `POST /api/admin/items` - Create item (admin, cache invalidation)
+- `PATCH /api/admin/claims/:id/approve` - Approve claim (admin, idempotent)
+- `POST /api/feedback` - Submit feedback (rate limited: 100/day)
 
 ## 🧪 Testing
 
@@ -335,6 +398,54 @@ db.users.updateOne(
 
 **Issue**: Admin filters not working  
 **Solution**: Backend now properly parses search, category, location, and status filters.
+
+**Issue**: Redis connection errors  
+**Solution**: Redis is optional. If REDIS_URL is not provided, the app works without caching. For production, ensure Redis is running or use a managed service like Redis Cloud.
+
+**Issue**: Rate limit errors during testing  
+**Solution**: Rate limits are configured per IP. For development, limits are relaxed. Use different IPs or wait for the time window to reset.
+
+**Issue**: Duplicate claim submissions  
+**Solution**: Use `Idempotency-Key` header with a unique UUID to prevent duplicate requests.
+
+## 🚀 Performance Optimizations
+
+### Caching Strategy
+
+- **Item listings**: Cached for 5 minutes, auto-invalidated on create/update/delete
+- **User claims**: Cached per user, invalidated when claim status changes
+- **Admin queries**: Optimized with Redis caching
+
+### Database Indexes
+
+- User email index (unique)
+- Item category, location, and date indexes
+- Claim status and item indexes
+- Compound indexes for common query patterns
+
+### Rate Limiting
+
+All endpoints are protected with appropriate rate limits to prevent abuse:
+
+- Authentication: 50 requests per 15 minutes
+- Claims: 10 requests per hour
+- Feedback: 100 requests per day
+- Admin operations: 200 requests per 15 minutes
+
+## 🔄 Idempotency
+
+Critical endpoints support idempotency to prevent duplicate operations:
+
+```javascript
+// Frontend example
+const response = await axios.post("/api/user/items/:id/claim", claimData, {
+  headers: {
+    "Idempotency-Key": "unique-uuid-for-this-request",
+  },
+});
+```
+
+Idempotent endpoints cache responses for 24 hours. Retry with the same key returns the cached response.
 
 ## 📝 License
 

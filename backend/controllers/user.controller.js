@@ -2,7 +2,7 @@ import Item from "../models/item.model.js";
 import User from "../models/user.model.js";
 import Claim from "../models/claim.model.js";
 import Report from "../models/report.model.js";
-import { getCache, setCache } from "../utils/redisClient.js";
+import { getCache, setCache, clearCachePattern } from "../utils/redisClient.js";
 
 // User claims an item: creates a new claim record
 export const claimItem = async (req, res) => {

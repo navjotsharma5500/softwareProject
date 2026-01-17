@@ -223,17 +223,20 @@ backend/scripts/manualTest.js
 
 # Remove absolute paths
 # backend/scripts/
-D:\softwareProject\backend\makeAdmin.js
-D:\softwareProject\backend\security.js
-D:\softwareProject\backend\seedData.js
-D:\softwareProject\backend\makeAdmin.js
-D:\softwareProject\backend\createAdminInteractive.js
-D:\softwareProject\backend\addMoreItems.js
+backend/makeAdmin.js
+backend/security.js
+backend/seedData.js
+backend/makeAdmin.js
+backend/createAdminInteractive.js
+backend/addMoreItems.js
 
 COST_REDUCTION_TIPS.md
 THAPAR_DEVELOPMENT_NOTES.md
 THAPAR_DEPLOYMENT_QUOTATION.md
-D:\softwareProject\SECURITY_CHECKLIST.md
+SECURITY_CHECKLIST.md
 
 redis.md
-D:\softwareProject\PRODUCTION_CLEANUP.md
+PRODUCTION_CLEANUP.md
+fampay_cover_letter.txt
+readmeml.md
+resume.tex
