@@ -11,6 +11,7 @@ import {
   deleteItem,
   getItemById,
   getItemClaims,
+  downloadDataAsCSV,
 } from "../controllers/admin.controller.js";
 
 const router = express.Router();
@@ -22,7 +23,7 @@ router.post(
   isAuthenticated,
   adminOnly,
   idempotencyMiddleware(86400),
-  createItem
+  createItem,
 );
 router.get("/items/:id", isAuthenticated, adminOnly, getItemById);
 router.patch(
@@ -30,14 +31,14 @@ router.patch(
   isAuthenticated,
   adminOnly,
   idempotencyMiddleware(3600),
-  updateItem
+  updateItem,
 );
 router.delete(
   "/items/:id",
   isAuthenticated,
   adminOnly,
   idempotencyMiddleware(3600),
-  deleteItem
+  deleteItem,
 );
 router.get("/items/:id/claims", isAuthenticated, adminOnly, getItemClaims);
 
@@ -47,14 +48,17 @@ router.patch(
   isAuthenticated,
   adminOnly,
   idempotencyMiddleware(86400),
-  approveClaim
+  approveClaim,
 );
 router.patch(
   "/claims/:id/reject",
   isAuthenticated,
   adminOnly,
   idempotencyMiddleware(86400),
-  rejectClaim
+  rejectClaim,
 );
+
+// CSV download route
+router.get("/download-csv", isAuthenticated, adminOnly, downloadDataAsCSV);
 
 export default router;

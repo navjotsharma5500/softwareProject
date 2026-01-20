@@ -1,5 +1,6 @@
 import Item from "../models/item.model.js";
 import Claim from "../models/claim.model.js";
+import Report from "../models/report.model.js";
 
 import { sendEmail, getClaimStatusEmailBody } from "../utils/email.utils.js";
 import User from "../models/user.model.js";
@@ -63,7 +64,8 @@ const sanitizeCategory = (category) => {
   // Handle display names
   if (typeof sanitized === "string") {
     const foundKey = Object.keys(CATEGORY_DISPLAY_NAMES).find(
-      (k) => CATEGORY_DISPLAY_NAMES[k].toLowerCase() === sanitized.toLowerCase()
+      (k) =>
+        CATEGORY_DISPLAY_NAMES[k].toLowerCase() === sanitized.toLowerCase(),
     );
     if (foundKey) {
       sanitized = foundKey;
@@ -75,7 +77,7 @@ const sanitizeCategory = (category) => {
     return {
       valid: false,
       error: `Invalid category: "${category}". Must be one of: ${VALID_CATEGORIES.join(
-        ", "
+        ", ",
       )}`,
     };
   }
@@ -264,7 +266,7 @@ export const listPendingClaims = async (req, res) => {
           claim.claimant?.name?.toLowerCase().includes(searchLower) ||
           claim.claimant?.email?.toLowerCase().includes(searchLower) ||
           claim.item?.name?.toLowerCase().includes(searchLower) ||
-          claim.item?.itemId?.toLowerCase().includes(searchLower)
+          claim.item?.itemId?.toLowerCase().includes(searchLower),
       );
 
       total = filteredClaims.length;
@@ -329,7 +331,7 @@ export const approveClaim = async (req, res) => {
     // Reject all other pending claims for this item
     await Claim.updateMany(
       { item: claim.item._id, _id: { $ne: id }, status: "pending" },
-      { status: "rejected", remarks: "Another claim was approved" }
+      { status: "rejected", remarks: "Another claim was approved" },
     );
     // Send email notification to claimant
     if (claim.claimant && claim.claimant.email) {
@@ -420,7 +422,7 @@ export const listAllItems = async (req, res) => {
     const [items, total] = await Promise.all([
       Item.find(query)
         .select(
-          "itemId name category foundLocation dateFound isClaimed owner createdAt"
+          "itemId name category foundLocation dateFound isClaimed owner createdAt",
         )
         .populate("owner", "name email rollNo")
         .skip(skip)
@@ -446,5 +448,133 @@ export const listAllItems = async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Download all data as CSV
+export const downloadDataAsCSV = async (req, res) => {
+  try {
+    // Get all data from the database
+    const [items, claims, users, reports] = await Promise.all([
+      Item.find({}).populate("owner", "name email rollNo").lean(),
+      Claim.find({})
+        .populate("claimant", "name email rollNo")
+        .populate("item", "itemId name category foundLocation dateFound")
+        .lean(),
+      User.find({}).lean(),
+      Report.find({}).populate("user", "name email rollNo").lean(),
+    ]);
+
+    // Set response headers for CSV download
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="lost_found_data_${timestamp}.csv"`,
+    );
+
+    // Helper function to escape CSV values
+    const escapeCSV = (value) => {
+      if (value === null || value === undefined) return "";
+      const str = String(value);
+      if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    // Start with items data
+    res.write("==== ITEMS ====\n");
+    res.write(
+      "Item ID,Name,Category,Found Location,Date Found,Is Claimed,Owner Name,Owner Email,Owner Roll No,Created At\n",
+    );
+
+    items.forEach((item) => {
+      const row = [
+        escapeCSV(item.itemId),
+        escapeCSV(item.name),
+        escapeCSV(item.category),
+        escapeCSV(item.foundLocation),
+        escapeCSV(
+          item.dateFound ? new Date(item.dateFound).toLocaleDateString() : "",
+        ),
+        escapeCSV(item.isClaimed),
+        escapeCSV(item.owner?.name || ""),
+        escapeCSV(item.owner?.email || ""),
+        escapeCSV(item.owner?.rollNo || ""),
+        escapeCSV(new Date(item.createdAt).toLocaleString()),
+      ].join(",");
+      res.write(row + "\n");
+    });
+
+    res.write("\n==== CLAIMS ====\n");
+    res.write(
+      "Claim ID,Item ID,Item Name,Item Category,Claimant Name,Claimant Email,Claimant Roll No,Status,Remarks,Created At,Updated At\n",
+    );
+
+    claims.forEach((claim) => {
+      const row = [
+        escapeCSV(claim._id),
+        escapeCSV(claim.item?.itemId || ""),
+        escapeCSV(claim.item?.name || ""),
+        escapeCSV(claim.item?.category || ""),
+        escapeCSV(claim.claimant?.name || ""),
+        escapeCSV(claim.claimant?.email || ""),
+        escapeCSV(claim.claimant?.rollNo || ""),
+        escapeCSV(claim.status),
+        escapeCSV(claim.remarks || ""),
+        escapeCSV(new Date(claim.createdAt).toLocaleString()),
+        escapeCSV(new Date(claim.updatedAt).toLocaleString()),
+      ].join(",");
+      res.write(row + "\n");
+    });
+
+    res.write("\n==== USERS ====\n");
+    res.write(
+      "User ID,Name,Email,Roll No,Phone,Is Admin,Google ID,Created At\n",
+    );
+
+    users.forEach((user) => {
+      const row = [
+        escapeCSV(user._id),
+        escapeCSV(user.name),
+        escapeCSV(user.email),
+        escapeCSV(user.rollNo),
+        escapeCSV(user.phone || ""),
+        escapeCSV(user.isAdmin),
+        escapeCSV(user.googleId),
+        escapeCSV(new Date(user.createdAt).toLocaleString()),
+      ].join(",");
+      res.write(row + "\n");
+    });
+
+    res.write("\n==== REPORTS ====\n");
+    res.write(
+      "Report ID,Reporter Name,Reporter Email,Reporter Roll No,Item Description,Category,Location,Date Lost,Additional Details,Status,Created At\n",
+    );
+
+    reports.forEach((report) => {
+      const row = [
+        escapeCSV(report._id),
+        escapeCSV(report.user?.name || ""),
+        escapeCSV(report.user?.email || ""),
+        escapeCSV(report.user?.rollNo || ""),
+        escapeCSV(report.itemDescription),
+        escapeCSV(report.category),
+        escapeCSV(report.location),
+        escapeCSV(
+          report.dateLost ? new Date(report.dateLost).toLocaleDateString() : "",
+        ),
+        escapeCSV(report.additionalDetails || ""),
+        escapeCSV(report.status),
+        escapeCSV(new Date(report.createdAt).toLocaleString()),
+      ].join(",");
+      res.write(row + "\n");
+    });
+
+    res.end();
+  } catch (error) {
+    console.error("CSV download error:", error.message);
+    res.status(500).json({ message: "Failed to generate CSV download" });
   }
 };
