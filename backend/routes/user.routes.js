@@ -10,6 +10,8 @@ import {
   getUserHistory,
   getProfile,
   updateProfile,
+  deleteClaim,
+  deleteReport,
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
@@ -24,15 +26,16 @@ router.post(
   isAuthenticated,
   claimLimiter,
   idempotencyMiddleware(86400),
-  claimItem
+  claimItem,
 );
 router.get("/my-claims", isAuthenticated, myClaims);
+router.delete("/my-claims/:claimId", isAuthenticated, deleteClaim);
 router.get("/profile", isAuthenticated, getProfile);
 router.patch(
   "/profile",
   isAuthenticated,
   idempotencyMiddleware(3600),
-  updateProfile
+  updateProfile,
 );
 
 // Admin only routes

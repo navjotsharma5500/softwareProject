@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, CheckCircle, XCircle, Package, Users, RefreshCw, Search, Filter, FileText, AlertCircle, MapPin, Clock, Calendar, MessageSquare, Star } from 'lucide-react';
+import { Plus, Edit2, Trash2, CheckCircle, XCircle, Package, Users, RefreshCw, Search, Filter, FileText, AlertCircle, MapPin, Clock, Calendar, MessageSquare, Star, Download } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { adminApi, userApi } from '../utils/api';
 import { CATEGORIES, LOCATIONS, CATEGORY_DISPLAY_NAMES } from '../utils/constants';
@@ -15,6 +15,7 @@ const Admin = () => {
   const [feedbackStats, setFeedbackStats] = useState(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [downloadingCsv, setDownloadingCsv] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState(''); // create, edit, delete, viewClaims, approveClaim, userHistory
@@ -164,6 +165,28 @@ const Admin = () => {
       toast.error('Failed to refresh data');
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const handleDownloadCsv = async () => {
+    setDownloadingCsv(true);
+    try {
+      const response = await adminApi.downloadCsv();
+      const blob = new Blob([response.data], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      a.download = `lost_found_data_${timestamp}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success('CSV file downloaded successfully');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to download CSV');
+    } finally {
+      setDownloadingCsv(false);
     }
   };
 
@@ -463,6 +486,17 @@ const Admin = () => {
                 All Items {itemsPagination.total ? `(${itemsPagination.total})` : ''}
               </h2>
               <div className="flex items-center gap-3">
+                <button
+                  onClick={handleDownloadCsv}
+                  disabled={downloadingCsv}
+                  className={`flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold ${
+                    downloadingCsv ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  title="Download all data as CSV"
+                >
+                  <Download size={20} className={downloadingCsv ? 'animate-spin' : ''} />
+                  {downloadingCsv ? 'Downloading...' : 'Download CSV'}
+                </button>
                 <button
                   onClick={handleRefresh}
                   disabled={refreshing}

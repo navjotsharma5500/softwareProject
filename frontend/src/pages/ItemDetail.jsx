@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Calendar, ArrowLeft, User } from 'lucide-react';
+import { MapPin, Calendar, ArrowLeft, User, Trash2 } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -18,7 +18,9 @@ const ItemDetail = () => {
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
+  const [deletingClaim, setDeletingClaim] = useState(false);
   const [userHasClaimed, setUserHasClaimed] = useState(false);
+  const [userClaimId, setUserClaimId] = useState(null);
   const [checkingClaim, setCheckingClaim] = useState(false);
 
   const fetchItemDetails = async () => {
@@ -46,10 +48,11 @@ const ItemDetail = () => {
       setCheckingClaim(true);
       try {
         const response = await userApi.getMyClaims({ page: 1, limit: 100 });
-        const hasClaimed = response.data.claims.some(
+        const userClaim = response.data.claims.find(
           claim => claim.item?._id === item._id && claim.status !== 'rejected'
         );
-        setUserHasClaimed(hasClaimed);
+        setUserHasClaimed(!!userClaim);
+        setUserClaimId(userClaim?._id || null);
       } catch (error) {
         console.error('Failed to check claim status:', error);
       } finally {
@@ -91,6 +94,25 @@ const ItemDetail = () => {
       setUserHasClaimed(false);
     } finally {
       setClaiming(false);
+    }
+  };
+
+  const handleRemoveClaim = async () => {
+    if (!userClaimId) return;
+
+    setDeletingClaim(true);
+    try {
+      await userApi.deleteClaim(userClaimId);
+      toast.success('Claim removed successfully!');
+      setUserHasClaimed(false);
+      setUserClaimId(null);
+      // Don't call fetchItemDetails() here to avoid duplicate toasts
+      // fetchItemDetails(); // Refresh item details
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to remove claim';
+      toast.error(message);
+    } finally {
+      setDeletingClaim(false);
     }
   };
 
@@ -278,7 +300,7 @@ const ItemDetail = () => {
               <div className={`mt-4 border rounded-lg p-4 ${
                 darkMode ? 'bg-yellow-900/20 border-yellow-800' : 'bg-yellow-50 border-yellow-200'
               }`}>
-                <p className={`text-sm text-center ${darkMode ? 'text-yellow-200' : 'text-yellow-800'}`}>
+                <p className={`text-sm text-center mb-3 ${darkMode ? 'text-yellow-200' : 'text-yellow-800'}`}>
                   You have already submitted a claim request for this item. Check your{' '}
                   <button 
                     onClick={() => navigate('/profile')}
@@ -288,6 +310,18 @@ const ItemDetail = () => {
                   </button>
                   {' '}for the status.
                 </p>
+                <div className="flex justify-center">
+                  <button
+                    onClick={handleRemoveClaim}
+                    disabled={deletingClaim}
+                    className={`flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold ${
+                      deletingClaim ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    <Trash2 size={16} />
+                    {deletingClaim ? 'Removing...' : 'Remove Claim'}
+                  </button>
+                </div>
               </div>
             )}
           </div>

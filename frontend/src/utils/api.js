@@ -8,7 +8,7 @@ const generateUUID = () => {
   }
   // Fallback for older browsers
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const r = crypto.getRandomValues(new Uint8Array(1))[0] % 16 | 0;
+    const r = (crypto.getRandomValues(new Uint8Array(1))[0] % 16) | 0;
     const v = c === "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
@@ -43,7 +43,7 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Handle responses
@@ -56,7 +56,7 @@ api.interceptors.response.use(
       window.location.href = "/login";
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 // Public API calls (no auth required)
@@ -75,6 +75,9 @@ export const userApi = {
 
   // Get my claims
   getMyClaims: (params) => api.get("/user/my-claims", { params }),
+
+  // Delete own claim
+  deleteClaim: (claimId) => api.delete(`/user/my-claims/${claimId}`),
 
   // Get user profile
   getProfile: () => api.get("/user/profile"),
@@ -148,6 +151,9 @@ export const adminApi = {
   // Reject claim
   rejectClaim: (claimId, remarks) =>
     api.patch(`/admin/claims/${claimId}/reject`, { remarks }),
+
+  // Download CSV data
+  downloadCsv: () => api.get("/admin/download-csv", { responseType: "text" }),
 
   // Feedback management
   getAllFeedback: (params) => api.get("/feedback/admin/all", { params }),

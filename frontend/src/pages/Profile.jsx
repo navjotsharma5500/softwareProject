@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Mail, IdCard, Package, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw, Edit2, Save, X, Phone, FileText } from 'lucide-react';
+import { User, Mail, IdCard, Package, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw, Edit2, Save, X, Phone, FileText, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import { useDarkMode } from '../context/DarkModeContext';
@@ -16,6 +16,8 @@ const Profile = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [deletingClaim, setDeletingClaim] = useState(null); // Track which claim is being deleted
+  const [deletingReport, setDeletingReport] = useState(null); // Track which report is being deleted
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeSection, setActiveSection] = useState('claims'); // 'claims' or 'reports'
@@ -136,6 +138,46 @@ const Profile = () => {
       phone: profileData.phone || '',
     });
     setEditing(false);
+  };
+
+  const handleRemoveClaim = async (claimId, itemName) => {
+    const confirmed = window.confirm(`Are you sure you want to remove your claim for "${itemName}"?`);
+    if (!confirmed) return;
+
+    setDeletingClaim(claimId);
+    try {
+      await userApi.deleteClaim(claimId);
+      toast.success('Claim removed successfully!');
+      // Refresh claims
+      if (activeSection === 'claims') {
+        fetchMyClaims();
+      }
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to remove claim';
+      toast.error(message);
+    } finally {
+      setDeletingClaim(null);
+    }
+  };
+
+  const handleRemoveReport = async (reportId, itemName) => {
+    const confirmed = window.confirm(`Are you sure you want to delete your report for "${itemName}"?`);
+    if (!confirmed) return;
+
+    setDeletingReport(reportId);
+    try {
+      await reportApi.deleteReport(reportId);
+      toast.success('Report deleted successfully!');
+      // Refresh reports
+      if (activeSection === 'reports') {
+        fetchMyReports();
+      }
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to delete report';
+      toast.error(message);
+    } finally {
+      setDeletingReport(null);
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -513,9 +555,21 @@ const Profile = () => {
                       <div className={`p-4 rounded-lg border ${
                         darkMode ? 'bg-yellow-900/20 border-yellow-800' : 'bg-yellow-50 border-yellow-200'
                       }`}>
-                        <p className={`text-sm ${darkMode ? 'text-yellow-200' : 'text-yellow-800'}`}>
-                          <strong>Next Steps:</strong> Visit the admin office during office hours for verification.
-                        </p>
+                        <div className="flex justify-between items-center">
+                          <p className={`text-sm ${darkMode ? 'text-yellow-200' : 'text-yellow-800'}`}>
+                            <strong>Next Steps:</strong> Visit the admin office during office hours for verification.
+                          </p>
+                          <button
+                            onClick={() => handleRemoveClaim(claim._id, claim.item?.name || 'this item')}
+                            disabled={deletingClaim === claim._id}
+                            className={`flex items-center gap-2 px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold ${
+                              deletingClaim === claim._id ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                          >
+                            <Trash2 size={14} />
+                            {deletingClaim === claim._id ? 'Removing...' : 'Remove'}
+                          </button>
+                        </div>
                       </div>
                     )}
 
@@ -631,6 +685,21 @@ const Profile = () => {
                           <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
                             Reported on: {new Date(report.createdAt).toLocaleString()}
                           </p>
+                        </div>
+
+                        {/* Delete Report Button */}
+                        <div className="flex-shrink-0 ml-4">
+                          <button
+                            onClick={() => handleRemoveReport(report._id, report.itemDescription)}
+                            disabled={deletingReport === report._id}
+                            className={`flex items-center gap-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-semibold ${
+                              deletingReport === report._id ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                            title="Delete this report"
+                          >
+                            <Trash2 size={16} className={deletingReport === report._id ? 'animate-spin' : ''} />
+                            {deletingReport === report._id ? 'Deleting...' : 'Delete'}
+                          </button>
                         </div>
                       </div>
                     </div>
