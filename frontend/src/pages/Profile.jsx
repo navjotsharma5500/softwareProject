@@ -27,7 +27,7 @@ const Profile = () => {
   const isInitialLoad = useRef(true);
   const [formData, setFormData, formControls] = useFormPersistence('profile_form', {
     name: '',
-    rollNo: '',
+    rollNo: null, // rollNo should be a number
     phone: '',
   });
   const [pagination, setPagination] = useState({
@@ -116,7 +116,11 @@ const Profile = () => {
   };
 
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: name === 'rollNo' ? Number(value) : value,
+    });
   };
 
   const handleSave = async () => {
@@ -329,14 +333,12 @@ const Profile = () => {
               </label>
               {editing ? (
                 <input
-                  type="text"
+                  type="number"
                   name="rollNo"
-                  value={formData.rollNo}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, '');
-                    setFormData({...formData, rollNo: value});
-                  }}
-                  placeholder="e.g., 102203456"
+                  value={formData.rollNo ?? ''}
+                  onChange={handleInputChange}
+                  placeholder="Enter your roll number"
+                  min="1"
                   maxLength="12"
                   className={`w-full px-4 py-2 rounded-lg border ${
                     darkMode
