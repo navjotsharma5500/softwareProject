@@ -7,6 +7,7 @@ import { userApi, reportApi } from '../utils/api';
 import { CATEGORY_DISPLAY_NAMES, LOCATIONS } from '../utils/constants';
 import useFormPersistence from '../hooks/useFormPersistence.jsx';
 import LoadingSpinner from '../components/LoadingSpinner';
+import ImageLightbox from '../components/ImageLightbox';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -21,6 +22,8 @@ const Profile = () => {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeSection, setActiveSection] = useState('claims'); // 'claims' or 'reports'
+  const [lightboxImages, setLightboxImages] = useState(null);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
   const isInitialLoad = useRef(true);
   const [formData, setFormData, formControls] = useFormPersistence('profile_form', {
     name: '',
@@ -676,7 +679,13 @@ const Profile = () => {
                                   key={index}
                                   src={photo}
                                   alt={`Photo ${index + 1}`}
-                                  className="w-20 h-20 object-cover rounded-lg"
+                                  className="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                                  onClick={() => {
+                                    setLightboxImages(report.photos);
+                                    setLightboxIndex(index);
+                                  }}
+                                  onContextMenu={(e) => e.preventDefault()}
+                                  draggable={false}
                                 />
                               ))}
                             </div>
@@ -743,7 +752,14 @@ const Profile = () => {
           )}
         </div>
       </div>
-    </div>
+      {/* Image Lightbox */}
+      {lightboxImages && (
+        <ImageLightbox
+          images={lightboxImages}
+          initialIndex={lightboxIndex}
+          onClose={() => setLightboxImages(null)}
+        />
+      )}    </div>
   );
 };
 
