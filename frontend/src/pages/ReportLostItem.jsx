@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDarkMode } from '../context/DarkModeContext';
 import { toast } from 'react-toastify';
 import { reportApi } from '../utils/api';
+import { uploadMultipleToImageKit } from '../utils/imagekit';
 import { Upload, X, AlertCircle } from 'lucide-react';
 import { CATEGORIES, LOCATIONS, CATEGORY_DISPLAY_NAMES } from '../utils/constants';
 import useFormPersistence from '../hooks/useFormPersistence.jsx';
@@ -37,25 +38,12 @@ const ReportLostItem = () => {
 
     setUploading(true);
     try {
-      // Get presigned URLs
+      // Get ImageKit authentication parameters from backend
       const fileTypes = files.map(f => f.type);
       const { data } = await reportApi.getUploadUrls(files.length, fileTypes);
       
-      // Upload files to S3
-      const uploadedUrls = [];
-      for (let i = 0; i < files.length; i++) {
-        const response = await fetch(data.uploadUrls[i].uploadUrl, {
-          method: 'PUT',
-          body: files[i],
-          headers: {
-            'Content-Type': files[i].type,
-          },
-        });
-        
-        if (response.ok) {
-          uploadedUrls.push(data.uploadUrls[i].fileUrl);
-        }
-      }
+      // Upload files directly to ImageKit
+      const uploadedUrls = await uploadMultipleToImageKit(files, data.uploadParams);
       
       setPhotos([...photos, ...uploadedUrls]);
       toast.success(`${uploadedUrls.length} photo(s) uploaded`);

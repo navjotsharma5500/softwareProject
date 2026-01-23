@@ -5,6 +5,7 @@ import { adminApi, userApi } from '../utils/api';
 import { CATEGORIES, LOCATIONS, CATEGORY_DISPLAY_NAMES } from '../utils/constants';
 import useFormPersistence from '../hooks/useFormPersistence.jsx';
 import { useDarkMode } from '../context/DarkModeContext';
+import ImageLightbox from '../components/ImageLightbox';
 
 const Admin = () => {
   const { darkMode } = useDarkMode();
@@ -22,6 +23,8 @@ const Admin = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [userHistory, setUserHistory] = useState({ claims: [], reports: [] });
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [lightboxImages, setLightboxImages] = useState(null);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
   
   // Pagination state
   const [itemsPage, setItemsPage] = useFormPersistence('admin_items_page', 1);
@@ -1569,7 +1572,13 @@ const Admin = () => {
                                         key={idx}
                                         src={photo}
                                         alt={`Report photo ${idx + 1}`}
-                                        className="w-16 h-16 object-cover rounded border-2 border-gray-300"
+                                        className="w-16 h-16 object-cover rounded border-2 border-gray-300 cursor-pointer hover:opacity-80 transition-opacity"
+                                        onClick={() => {
+                                          setLightboxImages(report.photos);
+                                          setLightboxIndex(idx);
+                                        }}
+                                        onContextMenu={(e) => e.preventDefault()}
+                                        draggable={false}
                                       />
                                     ))}
                                   </div>
@@ -1737,6 +1746,15 @@ const Admin = () => {
           </div>
         )}
       </div>
+
+      {/* Image Lightbox */}
+      {lightboxImages && (
+        <ImageLightbox
+          images={lightboxImages}
+          initialIndex={lightboxIndex}
+          onClose={() => setLightboxImages(null)}
+        />
+      )}
     </div>
   );
 };

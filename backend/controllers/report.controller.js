@@ -1,16 +1,16 @@
 import Report from "../models/report.model.js";
 import {
-  generateUploadUrl,
+  generateUploadUrl, // Now returns ImageKit auth params instead of S3 presigned URLs
   deleteFile,
   extractKeyFromUrl,
-} from "../utils/s3.utils.js";
+} from "../utils/s3.utils.js"; // Keeping filename for backwards compatibility
 
 import {
   sendEmail,
   getReportSubmissionEmailBody,
 } from "../utils/email.utils.js";
 
-// Generate presigned URLs for photo uploads
+// Generate ImageKit authentication parameters for photo uploads
 export const getUploadUrls = async (req, res) => {
   try {
     const { count = 1, fileTypes = [] } = req.body;
@@ -19,13 +19,15 @@ export const getUploadUrls = async (req, res) => {
       return res.status(400).json({ message: "Maximum 3 photos allowed" });
     }
 
-    const uploadUrls = await Promise.all(
+    // Generate ImageKit auth params for each file
+    const uploadParams = await Promise.all(
       Array.from({ length: count }).map((_, index) =>
-        generateUploadUrl("reports", fileTypes[index] || "image/jpeg")
-      )
+        generateUploadUrl("reports", fileTypes[index] || "image/jpeg"),
+      ),
     );
 
-    res.status(200).json({ uploadUrls });
+    // Return authentication parameters for client-side upload
+    res.status(200).json({ uploadParams });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -114,7 +116,7 @@ export const createReport = async (req, res) => {
       const foundKey = Object.keys(CATEGORY_DISPLAY_NAMES).find(
         (k) =>
           CATEGORY_DISPLAY_NAMES[k].toLowerCase() ===
-          sanitizedCategory.toLowerCase()
+          sanitizedCategory.toLowerCase(),
       );
       if (foundKey) {
         sanitizedCategory = foundKey;
@@ -125,7 +127,7 @@ export const createReport = async (req, res) => {
     if (!VALID_CATEGORIES.includes(sanitizedCategory)) {
       return res.status(400).json({
         message: `Invalid category: "${category}". Must be one of: ${VALID_CATEGORIES.join(
-          ", "
+          ", ",
         )}`,
       });
     }
@@ -218,7 +220,7 @@ export const getReportById = async (req, res) => {
   try {
     const report = await Report.findById(req.params.id).populate(
       "user",
-      "name email rollNo"
+      "name email rollNo",
     );
 
     if (!report) {
@@ -291,7 +293,7 @@ export const updateReport = async (req, res) => {
       const foundKey = Object.keys(CATEGORY_DISPLAY_NAMES).find(
         (k) =>
           CATEGORY_DISPLAY_NAMES[k].toLowerCase() ===
-          sanitizedCategory.toLowerCase()
+          sanitizedCategory.toLowerCase(),
       );
       if (foundKey) sanitizedCategory = foundKey;
       if (!VALID_CATEGORIES.includes(sanitizedCategory)) {
@@ -328,14 +330,14 @@ export const deleteReport = async (req, res) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    // Delete photos from S3
+    // Delete photos from ImageKit
     for (const photo of report.photos) {
-      const key = extractKeyFromUrl(photo);
-      if (key) {
+      const fileId = extractKeyFromUrl(photo);
+      if (fileId) {
         try {
-          await deleteFile(key);
+          await deleteFile(fileId);
         } catch (err) {
-          console.error("Error deleting photo:", err);
+          console.error("Error deleting photo from ImageKit:", err);
         }
       }
     }
@@ -362,7 +364,7 @@ export const updateReportStatus = async (req, res) => {
     const report = await Report.findByIdAndUpdate(
       req.params.id,
       { status },
-      { new: true }
+      { new: true },
     ).populate("user", "name email rollNo");
     if (!report) {
       return res.status(404).json({ message: "Report not found" });

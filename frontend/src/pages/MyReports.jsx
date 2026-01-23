@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { reportApi } from '../utils/api';
 import { FileText, Calendar, MapPin, Tag, Trash2, AlertCircle } from 'lucide-react';
 import { CATEGORY_DISPLAY_NAMES, LOCATIONS } from '../utils/constants';
+import ImageLightbox from '../components/ImageLightbox';
 
 const MyReports = () => {
   const navigate = useNavigate();
@@ -13,6 +14,8 @@ const MyReports = () => {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1 });
+  const [lightboxImages, setLightboxImages] = useState(null);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   const fetchReports = async (page = 1) => {
     setLoading(true);
@@ -176,7 +179,13 @@ const MyReports = () => {
                             key={index}
                             src={photo}
                             alt={`Photo ${index + 1}`}
-                            className="w-20 h-20 object-cover rounded-lg"
+                            className="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => {
+                              setLightboxImages(report.photos);
+                              setLightboxIndex(index);
+                            }}
+                            onContextMenu={(e) => e.preventDefault()}
+                            draggable={false}
                           />
                         ))}
                       </div>
@@ -252,6 +261,15 @@ const MyReports = () => {
           </div>
         </div>
       </div>
+
+      {/* Image Lightbox */}
+      {lightboxImages && (
+        <ImageLightbox
+          images={lightboxImages}
+          initialIndex={lightboxIndex}
+          onClose={() => setLightboxImages(null)}
+        />
+      )}
     </div>
   );
 };
