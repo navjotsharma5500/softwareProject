@@ -28,10 +28,10 @@ function getEmailTemplate(content, title) {
               <tr>
                 <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 40px; text-align: center;">
                   <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold; letter-spacing: -0.5px;">
-                    🔍 Thapar Lost & Found
+                    🔍 Thapar Lost &amp; Found Portal
                   </h1>
                   <p style="margin: 8px 0 0 0; color: #e0e7ff; font-size: 14px;">
-                    Thapar University Lost & Found Portal
+                    Admin-managed listings — only items deposited with the campus guard or admin are shown.
                   </p>
                 </td>
               </tr>
@@ -46,22 +46,23 @@ function getEmailTemplate(content, title) {
               <!-- Footer -->
               <tr>
                 <td style="background-color: #f9fafb; padding: 30px 40px; border-top: 1px solid #e5e7eb;">
-                  <p style="margin: 0 0 10px 0; color: #6b7280; font-size: 14px; text-align: center;">
+                  <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px; text-align: center;">
                     <strong>Need Help?</strong>
                   </p>
-                  <p style="margin: 0 0 15px 0; color: #9ca3af; font-size: 13px; text-align: center; line-height: 1.6;">
-                    Contact the admin team through the portal or reply to this email for assistance.
+                  <p style="margin: 0 0 12px 0; color: #9ca3af; font-size: 13px; text-align: center; line-height: 1.6;">
+                    For assistance, please visit the admin office in person during working hours (Mon–Fri, 09:00–17:00 on Thapar working days). Only items physically deposited with the campus guard or admin are listed in the portal.
                   </p>
-                  <div style="text-align: center; margin-top: 20px;">
-                    <a href="${
-                      process.env.FRONTEND_URL || "http://localhost:3000"
-                    }" 
-                       style="display: inline-block; padding: 12px 24px; background-color: #667eea; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px;">
-                      Visit Portal
+                  <div style="text-align: center; margin-top: 16px;">
+                    <a href="${process.env.FRONTEND_URL || "http://localhost:3000"}" 
+                       style="display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px;">
+                      Open Lost &amp; Found Portal
                     </a>
                   </div>
-                  <p style="margin: 20px 0 0 0; color: #9ca3af; font-size: 12px; text-align: center;">
-                    © ${new Date().getFullYear()} Thapar University. All rights reserved.
+                  <div style="text-align: center; margin-top: 12px;">
+                    <a href="${(process.env.FRONTEND_URL || "http://localhost:3000") + "/how-it-works"}" style="color: #4f46e5; text-decoration: none; font-size: 13px;">How the portal works</a>
+                  </div>
+                  <p style="margin: 18px 0 0 0; color: #9ca3af; font-size: 12px; text-align: center;">
+                    © ${new Date().getFullYear()} Thapar University Lost &amp; Found Portal.
                   </p>
                 </td>
               </tr>
@@ -81,14 +82,16 @@ function getEmailTemplate(content, title) {
  * @param {string} html - Email body (HTML)
  * @returns {Promise}
  */
-export function sendEmail(to, subject, html) {
+export async function sendEmail(to, subject, html) {
   const mailOptions = {
     from: `"Thapar Lost & Found" <${process.env.GMAIL_USER}>`,
     to,
     subject,
     html,
   };
-  return transporter.sendMail(mailOptions);
+
+  // Await transporter send so callers can reliably use `await sendEmail(...)`
+  return await transporter.sendMail(mailOptions);
 }
 
 /**
@@ -107,8 +110,8 @@ export function getClaimStatusEmailBody(claim, status) {
       <div style="display: inline-block; padding: 16px 32px; background-color: ${statusBgColor}; border-radius: 8px; border: 2px solid ${statusColor};">
         <h2 style="margin: 0; color: ${statusColor}; font-size: 24px; font-weight: bold;">
           ${statusIcon} Claim ${
-    status.charAt(0).toUpperCase() + status.slice(1)
-  }
+            status.charAt(0).toUpperCase() + status.slice(1)
+          }
         </h2>
       </div>
     </div>
@@ -117,7 +120,7 @@ export function getClaimStatusEmailBody(claim, status) {
       ${
         isApproved
           ? `Great news! Your claim for the item has been approved. Please visit the admin office during working hours to collect your item.`
-          : `We regret to inform you that your claim has been rejected. This may be due to insufficient verification details or if the item has already been claimed by the rightful owner.`
+          : `We regret to inform you that your claim has been rejected. This may be due to insufficient verification details, inability to verify ownership, or if the item has already been claimed by the rightful owner.`
       }
     </p>
 
@@ -173,7 +176,7 @@ export function getClaimStatusEmailBody(claim, status) {
           <li>Visit the admin office during working hours</li>
           <li>Bring your student ID or valid identification</li>
           <li>Be prepared to answer verification questions about the item</li>
-          <li>The admin will verify your claim before handing over the item</li>
+            <li>The admin will verify your identity and the claim in-person before handing over the item</li>
         </ol>
       </div>
     `
@@ -202,7 +205,7 @@ export function getClaimStatusEmailBody(claim, status) {
     content,
     `Claim ${
       status.charAt(0).toUpperCase() + status.slice(1)
-    } - Thapar Lost & Found`
+    } - Thapar Lost & Found Portal`,
   );
 }
 
@@ -221,7 +224,7 @@ export function getReportSubmissionEmailBody(report) {
     </div>
 
     <p style="color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
-      Thank you for reporting your lost item. Your report has been successfully submitted to the Thapar University Lost & Found Portal. We will notify you if a matching item is found.
+      Thank you for reporting your lost item. Your report has been successfully submitted to the Thapar University Lost & Found Portal. The portal does not send automatic match notifications — please check the portal regularly and submit a claim if you find your item.
     </p>
 
     <div style="background-color: #f9fafb; border-left: 4px solid #667eea; padding: 20px; margin-bottom: 24px; border-radius: 4px;">
@@ -283,7 +286,7 @@ export function getReportSubmissionEmailBody(report) {
       </h3>
       <ol style="margin: 0; padding-left: 20px; color: #047857; font-size: 14px; line-height: 1.8;">
         <li><strong>Check the Portal Regularly:</strong> Browse the found items section to see if your item appears</li>
-        <li><strong>Automatic Notifications:</strong> You'll receive an email if a matching item is deposited with the admin</li>
+        <li><strong>Check Regularly:</strong> The portal does not send automatic match notifications — please check the found items section regularly and submit a claim if you see your item.</li>
         <li><strong>Submit a Claim:</strong> When you find your item, submit a claim through the portal</li>
         <li><strong>Visit Admin Office:</strong> After claim approval, visit the office with your ID to collect the item</li>
       </ol>
@@ -307,7 +310,7 @@ export function getReportSubmissionEmailBody(report) {
 
   return getEmailTemplate(
     content,
-    "Lost Item Report Submitted - Thapar Lost & Found"
+    "Lost Item Report Submitted - Thapar Lost & Found Portal",
   );
 }
 

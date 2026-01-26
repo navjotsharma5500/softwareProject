@@ -240,3 +240,7 @@ PRODUCTION_CLEANUP.md
 fampay_cover_letter.txt
 readmeml.md
 resume.tex
+
+
+EC2*.md
+EXTERNAL*.md

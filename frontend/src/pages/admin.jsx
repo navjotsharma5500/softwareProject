@@ -163,6 +163,9 @@ const Admin = () => {
       } else if (activeTab === 'claims') {
         await fetchClaims();
         toast.success('Claims refreshed!');
+      } else if (activeTab === 'feedback') {
+        await fetchFeedback();
+        toast.success('Feedback refreshed!');
       }
     } catch {
       toast.error('Failed to refresh data');
@@ -1169,15 +1172,28 @@ const Admin = () => {
                           <h4 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                             {feedback.name}
                           </h4>
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            feedback.status === 'approved'
-                              ? 'bg-green-100 text-green-700'
-                              : feedback.status === 'rejected'
-                              ? 'bg-red-100 text-red-700'
-                              : 'bg-yellow-100 text-yellow-700'
-                          }`}>
-                            {feedback.status}
-                          </span>
+                          {/* Derive a user-friendly status label from isApproved + status to avoid mismatches */}
+                          {(() => {
+                            const statusLabel =
+                              feedback.isApproved === true
+                                ? 'approved'
+                                : feedback.isApproved === false && feedback.status !== 'pending'
+                                ? 'rejected'
+                                : feedback.status || 'pending';
+
+                            const statusClass =
+                              statusLabel === 'approved'
+                                ? 'bg-green-100 text-green-700'
+                                : statusLabel === 'rejected'
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-yellow-100 text-yellow-700';
+
+                            return (
+                              <span className={`text-xs px-2 py-1 rounded-full ${statusClass}`}>
+                                {statusLabel}
+                              </span>
+                            );
+                          })()}
                         </div>
                         <div className="flex items-center gap-2 mb-2">
                           {[...Array(5)].map((_, i) => (

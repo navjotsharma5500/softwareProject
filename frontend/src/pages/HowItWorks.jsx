@@ -21,12 +21,10 @@ const HowItWorks = () => {
             </p>
             <div className={`${darkMode ? 'bg-gray-700/50' : 'bg-indigo-50'} p-4 rounded-lg border-l-4 ${darkMode ? 'border-indigo-400' : 'border-indigo-600'}`}>
               <p className={`${darkMode ? 'text-gray-300' : 'text-gray-800'}`}>
-                <span className={`font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-700'}`}>Important:</span> It is <span className="font-semibold">not</span> the admin's responsibility to proactively search for your lost item or to match found items with your report. There is currently no automated or AI/ML system for matching lost and found items. The admin's role is to securely store deposited items, upload them to the portal, and verify claims in person at the office. <span className="font-semibold">It is your responsibility to check the portal and follow up with the admin if you have lost something.</span>
+                <span className={`font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-700'}`}>Important:</span> It is <span className="font-semibold">not</span> the admin's responsibility to proactively search for your lost item or to match found items with your report. There is currently no automated or AI/ML system for matching lost and found items. The admin's role is to securely store deposited items, upload them to the portal, and verify claims in person at the office. <span className="font-semibold">It is your responsibility to check the portal and apply for claim if you have lost something.</span>
               </p>
             </div>
-            <p className={`text-sm italic ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Most people only check this portal if they have lost something. If you haven't lost anything, you likely won't need to browse the listings.
-            </p>
+           
           </div>
         </section>
 
@@ -116,7 +114,7 @@ const HowItWorks = () => {
                 How do I know if my claim/report is approved?
               </p>
               <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                To claim an item, you must first submit a claim for it on the portal. After submitting your claim, visit the admin's office during working hours. The admin will ask you questions (a "viva") about the item to verify your ownership and will check if you have filed a missing report. Only after successful verification will the item be handed over to you. You may also be notified by email or can check your profile page for updates.
+                To claim an item, you must first submit a claim for it on the portal. After submitting your claim, visit the admin office in person during working hours (Mon–Fri, 09:00–17:00 on Thapar working days). The admin will ask you questions (a "viva") about the item to verify your ownership and will check if you have filed a missing report. Only after successful verification will the item be handed over to you — check your profile page for status updates.
               </p>
             </div>
           </div>
@@ -127,7 +125,7 @@ const HowItWorks = () => {
             Need Help?
           </h2>
           <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            Contact the admin team via the portal or email for further assistance.
+            For assistance, please visit the admin office in person during working hours (Mon–Fri, 09:00–17:00 on Thapar working days). The admin team prefers in-person queries to ensure privacy and accurate verification.
           </p>
         </section>
       </div>

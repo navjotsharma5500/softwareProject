@@ -53,7 +53,7 @@ const feedbackSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "reviewed", "resolved", "archived"],
+      enum: ["pending", "reviewed", "resolved", "archived", "rejected"],
       default: "pending",
     },
     adminResponse: {
@@ -72,7 +72,7 @@ const feedbackSchema = new mongoose.Schema(
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  }
+  },
 );
 
 // Index for efficient querying

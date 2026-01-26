@@ -21,7 +21,7 @@ export const submitFeedback = async (req, res) => {
           "ui_ux",
           "performance",
           "general",
-          "other"
+          "other",
         )
         .required(),
       subject: Joi.string().min(3).max(200).required(),
@@ -229,7 +229,7 @@ export const updateFeedback = async (req, res) => {
           "ui_ux",
           "performance",
           "general",
-          "other"
+          "other",
         )
         .optional(),
       subject: Joi.string().min(3).max(200).optional(),
@@ -336,7 +336,13 @@ export const getAllFeedback = async (req, res) => {
     }
 
     if (status && status !== "all") {
-      query.status = status;
+      if (status === "approved") {
+        query.isApproved = true;
+      } else if (status === "rejected") {
+        query.isApproved = false;
+      } else {
+        query.status = status;
+      }
     }
 
     if (rating) {
@@ -460,7 +466,7 @@ export const updateFeedbackStatus = async (req, res) => {
     const Joi = (await import("joi")).default;
     const schema = Joi.object({
       status: Joi.string()
-        .valid("pending", "reviewed", "resolved", "archived")
+        .valid("pending", "reviewed", "resolved", "archived", "rejected")
         .required(),
     });
 
@@ -475,11 +481,15 @@ export const updateFeedbackStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = value;
 
-    const feedback = await Feedback.findByIdAndUpdate(
-      id,
-      { status },
-      { new: true }
-    );
+    // If status is 'rejected' ensure isApproved is set to false as well
+    const updateObj = { status };
+    if (status === "rejected") {
+      updateObj.isApproved = false;
+    }
+
+    const feedback = await Feedback.findByIdAndUpdate(id, updateObj, {
+      new: true,
+    });
 
     if (!feedback) {
       return res.status(404).json({ message: "Feedback not found" });
@@ -505,10 +515,12 @@ export const approveFeedback = async (req, res) => {
     const feedback = await Feedback.findByIdAndUpdate(
       id,
       {
+        // Ensure approved feedback is public and marked approved
         isApproved: true,
+        isPublic: true,
         status: "reviewed", // Auto-update status
       },
-      { new: true }
+      { new: true },
     );
 
     if (!feedback) {
