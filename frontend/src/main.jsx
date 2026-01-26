@@ -7,6 +7,7 @@ import { AuthProvider } from './context/AuthContext'
 import { DarkModeProvider } from './context/DarkModeContext'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import { Analytics } from "@vercel/analytics/next"
 
 createRoot(document.getElementById('root')).render(
   <BrowserRouter>
@@ -25,6 +26,7 @@ createRoot(document.getElementById('root')).render(
           pauseOnHover
           theme="colored"
         />
+        <Analytics />
       </DarkModeProvider>
     </AuthProvider>
   </BrowserRouter>,
