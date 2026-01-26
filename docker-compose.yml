@@ -1,23 +1,68 @@
-version: "3.8"
 services:
+  # Backend API
   backend:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: lostandfound-backend
+    restart: unless-stopped
     ports:
       - "3000:3000"
-    working_dir: /app
     env_file:
-      - backend/.env
-    command: npm start
+      - ./backend/.env
+    networks:
+      - lostandfound-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'node -e "require(''http'').get(''http://localhost:3000/health'', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
-  backend-test:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    working_dir: /app
-    env_file:
-      - backend/.env
-    command: npm test
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: lostandfound-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
     depends_on:
       - backend
+    networks:
+      - lostandfound-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  lostandfound-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
+  redis_data:
+    driver: local
+  nginx_logs:
+    driver: local

@@ -148,12 +148,9 @@ export const createReport = async (req, res) => {
 
     await report.populate("user", "name email rollNo");
 
-    // Send email notification to user
-    if (report.user && report.user.email) {
-      const subject = "Your lost item report has been submitted";
-      const html = getReportSubmissionEmailBody(report);
-      sendEmail(report.user.email, subject, html).catch(console.error);
-    }
+    // NOTE: We do not send an email when a report is submitted.
+    // Users are responsible for checking the portal for matching items and
+    // submitting claims; admin will handle in-person verification.
 
     res.status(201).json({ report, message: "Report created successfully" });
   } catch (error) {

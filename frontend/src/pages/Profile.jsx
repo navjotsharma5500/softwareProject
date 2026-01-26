@@ -26,8 +26,8 @@ const Profile = () => {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const isInitialLoad = useRef(true);
   const [formData, setFormData, formControls] = useFormPersistence('profile_form', {
-    name: '',
-    rollNo: null, // rollNo should be a number
+    name: 'SURYA KANT TIWARI',
+    rollNo: 'ADD YOUR ROLL NO', // rollNo stored as string (may be alphanumeric)
     phone: '',
   });
   const [pagination, setPagination] = useState({
@@ -42,10 +42,13 @@ const Profile = () => {
     try {
       const response = await userApi.getProfile();
       setProfileData(response.data.user);
+      // Prefer stored rollNo unless it's missing or set to '0' — fallback to phone
+      const fetched = response.data.user;
+      const rollFallback = fetched.rollNo && fetched.rollNo !== '0' ? fetched.rollNo : (fetched.phone || '');
       formControls.replaceIfEmpty({
-        name: response.data.user.name,
-        rollNo: response.data.user.rollNo,
-        phone: response.data.user.phone || '',
+        name: fetched.name,
+        rollNo: rollFallback,
+        phone: fetched.phone || '',
       });
     } catch (error) {
       toast.error('Failed to load profile');
@@ -119,14 +122,26 @@ const Profile = () => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: name === 'rollNo' ? Number(value) : value,
+      [name]: value,
     });
   };
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      await userApi.updateProfile(formData);
+      // Client-side validation: prevent excessively long names
+      if (formData.name && formData.name.length > 100) {
+        toast.error('Name is too long (max 100 characters)');
+        setSaving(false);
+        return;
+      }
+      // Ensure rollNo is numeric when updating (backend accepts numeric values)
+      const payload = { ...formData };
+      if (payload.rollNo !== undefined && payload.rollNo !== "") {
+        // Convert numeric strings to Number; if invalid, NaN will be sent and backend will validate
+        payload.rollNo = Number(payload.rollNo);
+      }
+      await userApi.updateProfile(payload);
       await fetchProfile();
       setEditing(false);
       formControls.clear();
@@ -141,7 +156,7 @@ const Profile = () => {
   const handleCancel = () => {
     setFormData({
       name: profileData.name,
-      rollNo: profileData.rollNo,
+      rollNo: profileData.rollNo && profileData.rollNo !== '0' ? profileData.rollNo : (profileData.phone || ''),
       phone: profileData.phone || '',
     });
     setEditing(false);
@@ -292,6 +307,8 @@ const Profile = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
+                  placeholder="SURYA IS THE GOAT"
+                  maxLength={100}
                   className={`w-full px-4 py-2 rounded-lg border ${
                     darkMode
                       ? 'bg-gray-700 border-gray-600 text-white'
@@ -333,13 +350,12 @@ const Profile = () => {
               </label>
               {editing ? (
                 <input
-                  type="number"
+                  type="text"
                   name="rollNo"
                   value={formData.rollNo ?? ''}
                   onChange={handleInputChange}
-                  placeholder="Enter your roll number"
-                  min="1"
-                  maxLength="12"
+                  placeholder="add your roll number here"
+                  maxLength="20"
                   className={`w-full px-4 py-2 rounded-lg border ${
                     darkMode
                       ? 'bg-gray-700 border-gray-600 text-white'
@@ -350,7 +366,7 @@ const Profile = () => {
                 <p className={`px-4 py-2 rounded-lg ${
                   darkMode ? 'bg-gray-700 text-white' : 'bg-gray-50 text-gray-900'
                 }`}>
-                  {profileData?.rollNo || user?.rollNo}
+                  {(profileData?.rollNo && profileData.rollNo !== '0') ? profileData.rollNo : (profileData?.phone || user?.rollNo)}
                 </p>
               )}
             </div>

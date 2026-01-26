@@ -120,11 +120,9 @@ export const deleteReport = async (req, res) => {
 
     // Check if the report belongs to the user
     if (report.reporter.toString() !== userId) {
-      return res
-        .status(403)
-        .json({
-          message: "Access denied. You can only delete your own reports.",
-        });
+      return res.status(403).json({
+        message: "Access denied. You can only delete your own reports.",
+      });
     }
 
     await Report.findByIdAndDelete(reportId);
@@ -412,8 +410,13 @@ export const updateProfile = async (req, res) => {
   // Joi validation
   const Joi = (await import("joi")).default;
   const schema = Joi.object({
-    name: Joi.string().min(2).max(50),
-    rollNo: Joi.string().alphanum().min(2).max(20),
+    // Limit name length to reasonable size
+    name: Joi.string().min(2).max(100),
+    // Require numeric roll numbers (accept number or numeric string)
+    rollNo: Joi.alternatives().try(
+      Joi.number().integer().min(1),
+      Joi.string().pattern(/^\d+$/),
+    ),
     phone: Joi.string()
       .pattern(/^\d{10,15}$/)
       .allow(null, ""),
@@ -427,7 +430,7 @@ export const updateProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
     if (name) user.name = name;
-    if (rollNo) user.rollNo = rollNo;
+    if (rollNo !== undefined && rollNo !== null) user.rollNo = String(rollNo);
     if (phone !== undefined) user.phone = phone;
     await user.save();
 
