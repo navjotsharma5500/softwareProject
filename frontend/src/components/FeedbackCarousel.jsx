@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Star, Quote, MessageSquare, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -8,6 +8,9 @@ const FeedbackCarousel = () => {
   const { darkMode } = useDarkMode();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
+  const containerRef = useRef(null);
+  const slideRefs = useRef({});
+  const [measuredHeight, setMeasuredHeight] = useState(null);
 
   // Mock approved feedback data
   const testimonials = [
@@ -80,6 +83,30 @@ const FeedbackCarousel = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex]);
 
+  // Measure current slide height and update container height to avoid layout jumps
+  useLayoutEffect(() => {
+    const measure = () => {
+      const el = slideRefs.current[currentIndex];
+      if (el) {
+        const h = el.offsetHeight;
+        setMeasuredHeight(h);
+        if (containerRef.current) containerRef.current.style.height = `${h}px`;
+      }
+    };
+
+    // Measure after a small delay to allow framer-motion to mount elements
+    const id = window.requestAnimationFrame(measure);
+    // Also measure on next tick in case fonts/images changed layout
+    const tid = setTimeout(measure, 50);
+
+    window.addEventListener('resize', measure);
+    return () => {
+      window.cancelAnimationFrame(id);
+      clearTimeout(tid);
+      window.removeEventListener('resize', measure);
+    };
+  }, [currentIndex, testimonials.length]);
+
   const slideVariants = {
     enter: (direction) => ({
       x: direction > 0 ? 1000 : -1000,
@@ -116,7 +143,15 @@ const FeedbackCarousel = () => {
 
         {/* Carousel */}
         <div className="relative max-w-4xl mx-auto">
-          <div className="overflow-hidden">
+          <div
+            ref={containerRef}
+            className="overflow-hidden relative"
+            style={{
+              minHeight: measuredHeight ? undefined : '14rem',
+              height: measuredHeight ? `${measuredHeight}px` : undefined,
+              transition: 'height 300ms ease'
+            }}
+          >
             <AnimatePresence initial={false} custom={direction}>
               <motion.div
                 key={currentIndex}
@@ -129,7 +164,8 @@ const FeedbackCarousel = () => {
                   x: { type: "spring", stiffness: 300, damping: 30 },
                   opacity: { duration: 0.2 }
                 }}
-                className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-2xl p-8 md:p-12 relative`}
+                ref={(el) => (slideRefs.current[currentIndex] = el)}
+                className={`${darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl shadow-2xl p-8 md:p-12 relative w-full absolute inset-0`}
               >
                 {/* Quote Icon */}
                 <div className="absolute top-6 left-6 opacity-10">
@@ -180,6 +216,7 @@ const FeedbackCarousel = () => {
 
           {/* Navigation Buttons */}
           <button
+            onMouseDown={(e) => e.preventDefault()}
             onClick={prevSlide}
             className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-16 ${
               darkMode ? 'bg-slate-800 hover:bg-slate-700' : 'bg-white hover:bg-gray-50'
@@ -189,6 +226,7 @@ const FeedbackCarousel = () => {
             <ChevronLeft size={24} className={darkMode ? 'text-white' : 'text-gray-900'} />
           </button>
           <button
+            onMouseDown={(e) => e.preventDefault()}
             onClick={nextSlide}
             className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-16 ${
               darkMode ? 'bg-slate-800 hover:bg-slate-700' : 'bg-white hover:bg-gray-50'
@@ -203,6 +241,7 @@ const FeedbackCarousel = () => {
             {testimonials.map((_, index) => (
               <button
                 key={index}
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
                   setDirection(index > currentIndex ? 1 : -1);
                   setCurrentIndex(index);

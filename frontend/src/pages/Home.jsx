@@ -19,6 +19,7 @@ const Home = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useFormPersistence('home_view', 'grid'); // 'grid' or 'list'
   const isInitialLoad = useRef(true);
+  const itemsContainerRef = useRef(null);
 
   // Tab state (persisted)
   const [activeTab, setActiveTab] = useFormPersistence('home_activeTab', 'available'); // 'available' or 'claimed'
@@ -77,9 +78,23 @@ const Home = () => {
     }));
   };
 
+  const scrollToItems = () => {
+    if (!itemsContainerRef.current) return;
+    const header = document.querySelector('header');
+    const headerHeight = header && window.getComputedStyle(header).position !== 'static'
+      ? header.offsetHeight
+      : 0;
+    const defaultOffset = 80; // safe fallback for typical headers
+    const offset = headerHeight ? headerHeight + 8 : defaultOffset;
+    const top = itemsContainerRef.current.getBoundingClientRect().top + window.pageYOffset;
+    window.scrollTo({ top: Math.max(0, top - offset), behavior: 'smooth' });
+  };
+
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     setFilters(prev => ({ ...prev, page: 1 })); // Reset to page 1 when tab changes
+    // Ensure we scroll to the items after switching tabs
+    scrollToItems();
   };
 
   const handleRefresh = async () => {
@@ -109,7 +124,7 @@ const Home = () => {
 
   const handlePageChange = (newPage) => {
     setFilters(prev => ({ ...prev, page: newPage }));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToItems();
   };
 
   return (
@@ -374,6 +389,7 @@ const Home = () => {
         {/* Items Grid/List */}
         {!loading && items.length > 0 && (
           <motion.div 
+            ref={itemsContainerRef}
             layout
             className={viewMode === 'grid' 
               ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12'
