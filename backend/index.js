@@ -24,6 +24,10 @@ dotenv.config();
 
 const app = express();
 
+// ✅ CRITICAL: Trust proxy - MUST be at the top for Cloudflare + Nginx
+// Fixes HTTPS redirect loops and ensures req.secure, req.protocol work correctly
+app.set("trust proxy", 1);
+
 // CORS configuration - works with Nginx reverse proxy
 // In production, Nginx handles CORS headers to avoid duplication
 const allowedOrigins = [
@@ -81,8 +85,6 @@ if (process.env.JEST_WORKER_ID !== undefined) {
   });
 }
 
-// Trust proxy - required for Render and other cloud platforms
-app.set("trust proxy", 1);
 if (
   process.env.NODE_ENV === "development" ||
   process.env.JEST_WORKER_ID !== undefined
@@ -121,16 +123,19 @@ app.use("/api/reports", apiLimiter, reportRoutes);
 app.use("/api/feedback", apiLimiter, feedbackRoutes);
 
 app.get("/health", (req, res) => {
-  res.status(200).send("Server is healthy");
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
 app.get("/", (req, res) => {
-  res.status(200).send("API root");
+  res.status(200).json({ message: "Lost & Found API", version: "1.0.0" });
 });
 
 // Start server (skip only during tests)
 if (process.env.JEST_WORKER_ID === undefined) {
-  app.listen(port, "0.0.0.0");
+  app.listen(port, "127.0.0.1", () => {
+    console.log(`✅ Server running on http://127.0.0.1:${port}`);
+    console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+  });
 }
-//0/0/0/0 does not mean localhost. It means to listen on all available interfaces.
+// Listen on localhost only - Nginx handles external traffic
 export default app;
 1;
