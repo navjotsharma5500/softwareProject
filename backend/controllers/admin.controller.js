@@ -1,5 +1,10 @@
 import Item from "../models/item.model.js";
 import Claim from "../models/claim.model.js";
+import Report from "../models/report.model.js";
+
+import { sendEmail, getClaimStatusEmailBody } from "../utils/email.utils.js";
+import User from "../models/user.model.js";
+import { clearCachePattern } from "../utils/redisClient.js";
 
 // Valid categories (must match frontend constants.js and models)
 const VALID_CATEGORIES = [
@@ -59,7 +64,8 @@ const sanitizeCategory = (category) => {
   // Handle display names
   if (typeof sanitized === "string") {
     const foundKey = Object.keys(CATEGORY_DISPLAY_NAMES).find(
-      (k) => CATEGORY_DISPLAY_NAMES[k].toLowerCase() === sanitized.toLowerCase()
+      (k) =>
+        CATEGORY_DISPLAY_NAMES[k].toLowerCase() === sanitized.toLowerCase(),
     );
     if (foundKey) {
       sanitized = foundKey;
@@ -71,7 +77,7 @@ const sanitizeCategory = (category) => {
     return {
       valid: false,
       error: `Invalid category: "${category}". Must be one of: ${VALID_CATEGORIES.join(
-        ", "
+        ", ",
       )}`,
     };
   }
@@ -108,6 +114,12 @@ export const createItem = async (req, res) => {
     });
 
     await newItem.save();
+
+    // Clear items cache after creating a new item
+    await clearCachePattern("items:list:*");
+    // Clear all item detail caches to be safe
+    await clearCachePattern("item:*");
+
     return res
       .status(201)
       .json({ message: "Item created successfully", item: newItem });
@@ -119,9 +131,20 @@ export const createItem = async (req, res) => {
 
 // Update an existing item
 export const updateItem = async (req, res) => {
+  // Joi validation
+  const Joi = (await import("joi")).default;
+  const schema = Joi.object({
+    name: Joi.string().min(2).max(100),
+    category: Joi.string().min(2).max(50),
+    foundLocation: Joi.string().min(2).max(100),
+    dateFound: Joi.date().iso(),
+    isClaimed: Joi.boolean(),
+    owner: Joi.string().hex().length(24),
+  });
+  const { error } = schema.validate(req.body);
+  if (error) return res.status(400).json({ message: error.details[0].message });
   const { id } = req.params;
   const updates = req.body;
-
   // Sanitize category if present in updates
   if (updates.category) {
     const categoryResult = sanitizeCategory(updates.category);
@@ -130,7 +153,6 @@ export const updateItem = async (req, res) => {
     }
     updates.category = categoryResult.category;
   }
-
   try {
     const item = await Item.findByIdAndUpdate(id, updates, {
       new: true,
@@ -139,6 +161,12 @@ export const updateItem = async (req, res) => {
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
     }
+
+    // Clear items cache after updating an item
+    await clearCachePattern("items:list:*");
+    // Clear this specific item's cache
+    await clearCachePattern(`item:${id}`);
+
     return res.status(200).json({ message: "Item updated successfully", item });
   } catch (error) {
     console.error(error);
@@ -157,6 +185,12 @@ export const deleteItem = async (req, res) => {
     }
     // Also delete all claims associated with this item
     await Claim.deleteMany({ item: id });
+
+    // Clear items cache after deleting an item
+    await clearCachePattern("items:list:*");
+    // Clear this specific item's cache
+    await clearCachePattern(`item:${id}`);
+
     return res.status(200).json({ message: "Item deleted successfully" });
   } catch (error) {
     console.error(error);
@@ -169,7 +203,9 @@ export const getItemById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const item = await Item.findById(id).populate("owner", "name email rollNo");
+    const item = await Item.findById(id)
+      .populate("owner", "name email rollNo")
+      .lean();
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
     }
@@ -187,7 +223,8 @@ export const getItemClaims = async (req, res) => {
   try {
     const claims = await Claim.find({ item: id })
       .populate("claimant", "name email rollNo")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
     return res.status(200).json({ claims });
   } catch (error) {
     console.error(error);
@@ -229,7 +266,7 @@ export const listPendingClaims = async (req, res) => {
           claim.claimant?.name?.toLowerCase().includes(searchLower) ||
           claim.claimant?.email?.toLowerCase().includes(searchLower) ||
           claim.item?.name?.toLowerCase().includes(searchLower) ||
-          claim.item?.itemId?.toLowerCase().includes(searchLower)
+          claim.item?.itemId?.toLowerCase().includes(searchLower),
       );
 
       total = filteredClaims.length;
@@ -267,30 +304,48 @@ export const listPendingClaims = async (req, res) => {
 
 // Approve a claim
 export const approveClaim = async (req, res) => {
+  // Joi validation
+  const Joi = (await import("joi")).default;
+  const schema = Joi.object({
+    remarks: Joi.string().allow("", null),
+  });
+  const { error } = schema.validate(req.body);
+  if (error) return res.status(400).json({ message: error.details[0].message });
   const { id } = req.params; // claim ID
   const { remarks } = req.body;
-
   try {
-    const claim = await Claim.findById(id);
+    const claim = await Claim.findById(id)
+      .populate("claimant")
+      .populate("item");
     if (!claim) return res.status(404).json({ message: "Claim not found" });
-
     claim.status = "approved";
     if (remarks) claim.remarks = remarks;
     await claim.save();
-
     // Update the item to set isClaimed = true and owner
-    const item = await Item.findById(claim.item);
+    const item = await Item.findById(claim.item._id);
     if (item) {
       item.isClaimed = true;
-      item.owner = claim.claimant;
+      item.owner = claim.claimant._id;
       await item.save();
     }
-
     // Reject all other pending claims for this item
     await Claim.updateMany(
-      { item: claim.item, _id: { $ne: id }, status: "pending" },
-      { status: "rejected", remarks: "Another claim was approved" }
+      { item: claim.item._id, _id: { $ne: id }, status: "pending" },
+      { status: "rejected", remarks: "Another claim was approved" },
     );
+    // Send email notification to claimant
+    if (claim.claimant && claim.claimant.email) {
+      const subject = "Your claim has been approved";
+      const html = getClaimStatusEmailBody(claim, "approved");
+      sendEmail(claim.claimant.email, subject, html).catch(console.error);
+    }
+
+    // Clear items cache since item claimed status changed
+    await clearCachePattern("items:list:*");
+    // Clear specific item cache
+    await clearCachePattern(`item:${claim.item._id}`);
+    // Clear claimant's claims cache
+    await clearCachePattern(`user:${claim.claimant._id}:claims:*`);
 
     return res.status(200).json({ message: "Claim approved", claim });
   } catch (error) {
@@ -301,17 +356,29 @@ export const approveClaim = async (req, res) => {
 
 // Reject a claim
 export const rejectClaim = async (req, res) => {
+  // Joi validation
+  const Joi = (await import("joi")).default;
+  const schema = Joi.object({
+    remarks: Joi.string().allow("", null),
+  });
+  const { error } = schema.validate(req.body);
+  if (error) return res.status(400).json({ message: error.details[0].message });
   const { id } = req.params; // claim ID
   const { remarks } = req.body;
-
   try {
-    const claim = await Claim.findById(id);
+    const claim = await Claim.findById(id)
+      .populate("claimant")
+      .populate("item");
     if (!claim) return res.status(404).json({ message: "Claim not found" });
-
     claim.status = "rejected";
     if (remarks) claim.remarks = remarks;
     await claim.save();
-
+    // Send email notification to claimant
+    if (claim.claimant && claim.claimant.email) {
+      const subject = "Your claim has been rejected";
+      const html = getClaimStatusEmailBody(claim, "rejected");
+      sendEmail(claim.claimant.email, subject, html).catch(console.error);
+    }
     return res.status(200).json({ message: "Claim rejected", claim });
   } catch (error) {
     console.error(error);
@@ -354,10 +421,14 @@ export const listAllItems = async (req, res) => {
 
     const [items, total] = await Promise.all([
       Item.find(query)
+        .select(
+          "itemId name category foundLocation dateFound isClaimed owner createdAt",
+        )
         .populate("owner", "name email rollNo")
         .skip(skip)
         .limit(limit)
-        .sort({ createdAt: -1 }),
+        .sort({ createdAt: -1 })
+        .lean(),
       Item.countDocuments(query),
     ]);
 
@@ -377,5 +448,133 @@ export const listAllItems = async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Download all data as CSV
+export const downloadDataAsCSV = async (req, res) => {
+  try {
+    // Get all data from the database
+    const [items, claims, users, reports] = await Promise.all([
+      Item.find({}).populate("owner", "name email rollNo").lean(),
+      Claim.find({})
+        .populate("claimant", "name email rollNo")
+        .populate("item", "itemId name category foundLocation dateFound")
+        .lean(),
+      User.find({}).lean(),
+      Report.find({}).populate("user", "name email rollNo").lean(),
+    ]);
+
+    // Set response headers for CSV download
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="lost_found_data_${timestamp}.csv"`,
+    );
+
+    // Helper function to escape CSV values
+    const escapeCSV = (value) => {
+      if (value === null || value === undefined) return "";
+      const str = String(value);
+      if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    // Start with items data
+    res.write("==== ITEMS ====\n");
+    res.write(
+      "Item ID,Name,Category,Found Location,Date Found,Is Claimed,Owner Name,Owner Email,Owner Roll No,Created At\n",
+    );
+
+    items.forEach((item) => {
+      const row = [
+        escapeCSV(item.itemId),
+        escapeCSV(item.name),
+        escapeCSV(item.category),
+        escapeCSV(item.foundLocation),
+        escapeCSV(
+          item.dateFound ? new Date(item.dateFound).toLocaleDateString() : "",
+        ),
+        escapeCSV(item.isClaimed),
+        escapeCSV(item.owner?.name || ""),
+        escapeCSV(item.owner?.email || ""),
+        escapeCSV(item.owner?.rollNo || ""),
+        escapeCSV(new Date(item.createdAt).toLocaleString()),
+      ].join(",");
+      res.write(row + "\n");
+    });
+
+    res.write("\n==== CLAIMS ====\n");
+    res.write(
+      "Claim ID,Item ID,Item Name,Item Category,Claimant Name,Claimant Email,Claimant Roll No,Status,Remarks,Created At,Updated At\n",
+    );
+
+    claims.forEach((claim) => {
+      const row = [
+        escapeCSV(claim._id),
+        escapeCSV(claim.item?.itemId || ""),
+        escapeCSV(claim.item?.name || ""),
+        escapeCSV(claim.item?.category || ""),
+        escapeCSV(claim.claimant?.name || ""),
+        escapeCSV(claim.claimant?.email || ""),
+        escapeCSV(claim.claimant?.rollNo || ""),
+        escapeCSV(claim.status),
+        escapeCSV(claim.remarks || ""),
+        escapeCSV(new Date(claim.createdAt).toLocaleString()),
+        escapeCSV(new Date(claim.updatedAt).toLocaleString()),
+      ].join(",");
+      res.write(row + "\n");
+    });
+
+    res.write("\n==== USERS ====\n");
+    res.write(
+      "User ID,Name,Email,Roll No,Phone,Is Admin,Google ID,Created At\n",
+    );
+
+    users.forEach((user) => {
+      const row = [
+        escapeCSV(user._id),
+        escapeCSV(user.name),
+        escapeCSV(user.email),
+        escapeCSV(user.rollNo),
+        escapeCSV(user.phone || ""),
+        escapeCSV(user.isAdmin),
+        escapeCSV(user.googleId),
+        escapeCSV(new Date(user.createdAt).toLocaleString()),
+      ].join(",");
+      res.write(row + "\n");
+    });
+
+    res.write("\n==== REPORTS ====\n");
+    res.write(
+      "Report ID,Reporter Name,Reporter Email,Reporter Roll No,Item Description,Category,Location,Date Lost,Additional Details,Status,Created At\n",
+    );
+
+    reports.forEach((report) => {
+      const row = [
+        escapeCSV(report._id),
+        escapeCSV(report.user?.name || ""),
+        escapeCSV(report.user?.email || ""),
+        escapeCSV(report.user?.rollNo || ""),
+        escapeCSV(report.itemDescription),
+        escapeCSV(report.category),
+        escapeCSV(report.location),
+        escapeCSV(
+          report.dateLost ? new Date(report.dateLost).toLocaleDateString() : "",
+        ),
+        escapeCSV(report.additionalDetails || ""),
+        escapeCSV(report.status),
+        escapeCSV(new Date(report.createdAt).toLocaleString()),
+      ].join(",");
+      res.write(row + "\n");
+    });
+
+    res.end();
+  } catch (error) {
+    console.error("CSV download error:", error.message);
+    res.status(500).json({ message: "Failed to generate CSV download" });
   }
 };

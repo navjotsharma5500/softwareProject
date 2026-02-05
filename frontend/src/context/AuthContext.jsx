@@ -103,6 +103,27 @@ export const AuthProvider = ({ children }) => {
     isAdmin: user?.isAdmin || false
   };
 
+  if (loading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="text-center px-6">
+          <div className="mb-8">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-3">
+            Loading...
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 text-sm max-w-md">
+            Cold starting server... This might take up to 20-30 seconds
+          </p>
+          <p className="text-gray-500 dark:text-gray-400 text-xs mt-2">
+            (Free service - Thanks for your patience! 🙏)
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <AuthContext.Provider value={value}>
       {children}

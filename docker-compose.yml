@@ -1,0 +1,55 @@
+# Docker Compose for Subdomain Deployment
+# Traditional setup with Nginx reverse proxy
+
+services:
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lostandfound-backend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000" # Bind to localhost only
+    env_file:
+      - ./backend/.env
+    networks:
+      - lostandfound-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: lostandfound-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./ssl:/etc/letsencrypt:ro
+    depends_on:
+      - backend
+    networks:
+      - lostandfound-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  lostandfound-network:
+    driver: bridge

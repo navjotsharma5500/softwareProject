@@ -7,7 +7,8 @@ import { AuthProvider } from './context/AuthContext'
 import { DarkModeProvider } from './context/DarkModeContext'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-
+import { Analytics } from "@vercel/analytics/react"
+import { SpeedInsights } from "@vercel/speed-insights/react"
 createRoot(document.getElementById('root')).render(
   <BrowserRouter>
     <AuthProvider>
@@ -23,8 +24,10 @@ createRoot(document.getElementById('root')).render(
           pauseOnFocusLoss
           draggable
           pauseOnHover
-          theme="light"
+          theme="colored"
         />
+        <Analytics />
+        <SpeedInsights />
       </DarkModeProvider>
     </AuthProvider>
   </BrowserRouter>,

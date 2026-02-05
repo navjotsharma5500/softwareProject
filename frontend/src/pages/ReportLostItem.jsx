@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useDarkMode } from '../context/DarkModeContext';
 import { toast } from 'react-toastify';
 import { reportApi } from '../utils/api';
+import { uploadMultipleToImageKit } from '../utils/imagekit';
 import { Upload, X, AlertCircle } from 'lucide-react';
 import { CATEGORIES, LOCATIONS, CATEGORY_DISPLAY_NAMES } from '../utils/constants';
 import useFormPersistence from '../hooks/useFormPersistence.jsx';
 
 const ReportLostItem = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { darkMode } = useDarkMode();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -35,25 +38,12 @@ const ReportLostItem = () => {
 
     setUploading(true);
     try {
-      // Get presigned URLs
+      // Get ImageKit authentication parameters from backend
       const fileTypes = files.map(f => f.type);
       const { data } = await reportApi.getUploadUrls(files.length, fileTypes);
       
-      // Upload files to S3
-      const uploadedUrls = [];
-      for (let i = 0; i < files.length; i++) {
-        const response = await fetch(data.uploadUrls[i].uploadUrl, {
-          method: 'PUT',
-          body: files[i],
-          headers: {
-            'Content-Type': files[i].type,
-          },
-        });
-        
-        if (response.ok) {
-          uploadedUrls.push(data.uploadUrls[i].fileUrl);
-        }
-      }
+      // Upload files directly to ImageKit
+      const uploadedUrls = await uploadMultipleToImageKit(files, data.uploadParams);
       
       setPhotos([...photos, ...uploadedUrls]);
       toast.success(`${uploadedUrls.length} photo(s) uploaded`);
@@ -71,7 +61,13 @@ const ReportLostItem = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    // If not logged in, redirect to login with redirect back to this page
+    if (!user) {
+      navigate(`/login?redirect=/report-lost-item`);
+      return;
+    }
+
     if (!formData.itemDescription || !formData.category || !formData.location || !formData.dateLost) {
       toast.error('Please fill all required fields');
       return;

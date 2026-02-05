@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { User, Mail, IdCard, Package, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw, Edit2, Save, X, Phone, FileText } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { User, Mail, IdCard, Package, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw, Edit2, Save, X, Phone, FileText, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import { useDarkMode } from '../context/DarkModeContext';
 import { userApi, reportApi } from '../utils/api';
 import { CATEGORY_DISPLAY_NAMES, LOCATIONS } from '../utils/constants';
 import useFormPersistence from '../hooks/useFormPersistence.jsx';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ImageLightbox from '../components/ImageLightbox';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -15,12 +17,17 @@ const Profile = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [deletingClaim, setDeletingClaim] = useState(null); // Track which claim is being deleted
+  const [deletingReport, setDeletingReport] = useState(null); // Track which report is being deleted
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeSection, setActiveSection] = useState('claims'); // 'claims' or 'reports'
+  const [lightboxImages, setLightboxImages] = useState(null);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const isInitialLoad = useRef(true);
   const [formData, setFormData, formControls] = useFormPersistence('profile_form', {
-    name: '',
-    rollNo: '',
+    name: 'SURYA KANT TIWARI',
+    rollNo: 'ADD YOUR ROLL NO', // rollNo stored as string (may be alphanumeric)
     phone: '',
   });
   const [pagination, setPagination] = useState({
@@ -35,10 +42,13 @@ const Profile = () => {
     try {
       const response = await userApi.getProfile();
       setProfileData(response.data.user);
+      // Prefer stored rollNo unless it's missing or set to '0' — fallback to phone
+      const fetched = response.data.user;
+      const rollFallback = fetched.rollNo && fetched.rollNo !== '0' ? fetched.rollNo : (fetched.phone || '');
       formControls.replaceIfEmpty({
-        name: response.data.user.name,
-        rollNo: response.data.user.rollNo,
-        phone: response.data.user.phone || '',
+        name: fetched.name,
+        rollNo: rollFallback,
+        phone: fetched.phone || '',
       });
     } catch (error) {
       toast.error('Failed to load profile');
@@ -57,6 +67,7 @@ const Profile = () => {
       console.error(error);
     } finally {
       setLoading(false);
+      isInitialLoad.current = false;
     }
   };
 
@@ -76,6 +87,7 @@ const Profile = () => {
       console.error(error);
     } finally {
       setLoading(false);
+      isInitialLoad.current = false;
     }
   };
 
@@ -107,13 +119,29 @@ const Profile = () => {
   };
 
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
   };
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      await userApi.updateProfile(formData);
+      // Client-side validation: prevent excessively long names
+      if (formData.name && formData.name.length > 100) {
+        toast.error('Name is too long (max 100 characters)');
+        setSaving(false);
+        return;
+      }
+      // Ensure rollNo is numeric when updating (backend accepts numeric values)
+      const payload = { ...formData };
+      if (payload.rollNo !== undefined && payload.rollNo !== "") {
+        // Convert numeric strings to Number; if invalid, NaN will be sent and backend will validate
+        payload.rollNo = Number(payload.rollNo);
+      }
+      await userApi.updateProfile(payload);
       await fetchProfile();
       setEditing(false);
       formControls.clear();
@@ -128,10 +156,50 @@ const Profile = () => {
   const handleCancel = () => {
     setFormData({
       name: profileData.name,
-      rollNo: profileData.rollNo,
+      rollNo: profileData.rollNo && profileData.rollNo !== '0' ? profileData.rollNo : (profileData.phone || ''),
       phone: profileData.phone || '',
     });
     setEditing(false);
+  };
+
+  const handleRemoveClaim = async (claimId, itemName) => {
+    const confirmed = window.confirm(`Are you sure you want to remove your claim for "${itemName}"?`);
+    if (!confirmed) return;
+
+    setDeletingClaim(claimId);
+    try {
+      await userApi.deleteClaim(claimId);
+      toast.success('Claim removed successfully!');
+      // Refresh claims
+      if (activeSection === 'claims') {
+        fetchMyClaims();
+      }
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to remove claim';
+      toast.error(message);
+    } finally {
+      setDeletingClaim(null);
+    }
+  };
+
+  const handleRemoveReport = async (reportId, itemName) => {
+    const confirmed = window.confirm(`Are you sure you want to delete your report for "${itemName}"?`);
+    if (!confirmed) return;
+
+    setDeletingReport(reportId);
+    try {
+      await reportApi.deleteReport(reportId);
+      toast.success('Report deleted successfully!');
+      // Refresh reports
+      if (activeSection === 'reports') {
+        fetchMyReports();
+      }
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to delete report';
+      toast.error(message);
+    } finally {
+      setDeletingReport(null);
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -239,6 +307,8 @@ const Profile = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
+                  placeholder="SURYA IS THE GOAT"
+                  maxLength={100}
                   className={`w-full px-4 py-2 rounded-lg border ${
                     darkMode
                       ? 'bg-gray-700 border-gray-600 text-white'
@@ -282,13 +352,10 @@ const Profile = () => {
                 <input
                   type="text"
                   name="rollNo"
-                  value={formData.rollNo}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, '');
-                    setFormData({...formData, rollNo: value});
-                  }}
-                  placeholder="e.g., 102203456"
-                  maxLength="12"
+                  value={formData.rollNo ?? ''}
+                  onChange={handleInputChange}
+                  placeholder="add your roll number here"
+                  maxLength="20"
                   className={`w-full px-4 py-2 rounded-lg border ${
                     darkMode
                       ? 'bg-gray-700 border-gray-600 text-white'
@@ -299,7 +366,7 @@ const Profile = () => {
                 <p className={`px-4 py-2 rounded-lg ${
                   darkMode ? 'bg-gray-700 text-white' : 'bg-gray-50 text-gray-900'
                 }`}>
-                  {profileData?.rollNo || user?.rollNo}
+                  {(profileData?.rollNo && profileData.rollNo !== '0') ? profileData.rollNo : (profileData?.phone || user?.rollNo)}
                 </p>
               )}
             </div>
@@ -404,9 +471,10 @@ const Profile = () => {
           {activeSection === 'claims' && (
             <>
               {loading ? (
-                <div className="flex justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-                </div>
+                <LoadingSpinner 
+                  showColdStartMessage={isInitialLoad.current}
+                  message="Loading claims..."
+                />
               ) : claims.length === 0 ? (
                 <div className="text-center py-12">
                   <Package className="mx-auto text-gray-400 mb-4" size={48} />
@@ -508,9 +576,21 @@ const Profile = () => {
                       <div className={`p-4 rounded-lg border ${
                         darkMode ? 'bg-yellow-900/20 border-yellow-800' : 'bg-yellow-50 border-yellow-200'
                       }`}>
-                        <p className={`text-sm ${darkMode ? 'text-yellow-200' : 'text-yellow-800'}`}>
-                          <strong>Next Steps:</strong> Visit the admin office during office hours for verification.
-                        </p>
+                        <div className="flex justify-between items-center">
+                          <p className={`text-sm ${darkMode ? 'text-yellow-200' : 'text-yellow-800'}`}>
+                            <strong>Next Steps:</strong> Visit the admin office during office hours for verification.
+                          </p>
+                          <button
+                            onClick={() => handleRemoveClaim(claim._id, claim.item?.name || 'this item')}
+                            disabled={deletingClaim === claim._id}
+                            className={`flex items-center gap-2 px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold ${
+                              deletingClaim === claim._id ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                          >
+                            <Trash2 size={14} />
+                            {deletingClaim === claim._id ? 'Removing...' : 'Remove'}
+                          </button>
+                        </div>
                       </div>
                     )}
 
@@ -567,9 +647,10 @@ const Profile = () => {
           {activeSection === 'reports' && (
             <>
               {loading ? (
-                <div className="flex justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-                </div>
+                <LoadingSpinner 
+                  showColdStartMessage={isInitialLoad.current}
+                  message="Loading reports..."
+                />
               ) : reports.length === 0 ? (
                 <div className="text-center py-12">
                   <FileText className="mx-auto text-gray-400 mb-4" size={48} />
@@ -616,7 +697,13 @@ const Profile = () => {
                                   key={index}
                                   src={photo}
                                   alt={`Photo ${index + 1}`}
-                                  className="w-20 h-20 object-cover rounded-lg"
+                                  className="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                                  onClick={() => {
+                                    setLightboxImages(report.photos);
+                                    setLightboxIndex(index);
+                                  }}
+                                  onContextMenu={(e) => e.preventDefault()}
+                                  draggable={false}
                                 />
                               ))}
                             </div>
@@ -625,6 +712,21 @@ const Profile = () => {
                           <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
                             Reported on: {new Date(report.createdAt).toLocaleString()}
                           </p>
+                        </div>
+
+                        {/* Delete Report Button */}
+                        <div className="flex-shrink-0 ml-4">
+                          <button
+                            onClick={() => handleRemoveReport(report._id, report.itemDescription)}
+                            disabled={deletingReport === report._id}
+                            className={`flex items-center gap-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-semibold ${
+                              deletingReport === report._id ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                            title="Delete this report"
+                          >
+                            <Trash2 size={16} className={deletingReport === report._id ? 'animate-spin' : ''} />
+                            {deletingReport === report._id ? 'Deleting...' : 'Delete'}
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -668,7 +770,14 @@ const Profile = () => {
           )}
         </div>
       </div>
-    </div>
+      {/* Image Lightbox */}
+      {lightboxImages && (
+        <ImageLightbox
+          images={lightboxImages}
+          initialIndex={lightboxIndex}
+          onClose={() => setLightboxImages(null)}
+        />
+      )}    </div>
   );
 };
 

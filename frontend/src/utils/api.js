@@ -1,5 +1,19 @@
 import axios from "axios";
 
+// Generate secure UUID for idempotency using Web Crypto API
+const generateUUID = () => {
+  // Use native crypto.randomUUID() if available (modern browsers)
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback for older browsers
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (crypto.getRandomValues(new Uint8Array(1))[0] % 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
 
@@ -9,20 +23,27 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true, // Send cookies with requests
 });
 
-// Add token to requests
+// Add token and idempotency key to requests
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Add idempotency key for POST, PUT, PATCH requests
+    if (["post", "put", "patch"].includes(config.method?.toLowerCase())) {
+      config.headers["Idempotency-Key"] = generateUUID();
+    }
+
     return config;
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Handle responses
@@ -35,7 +56,7 @@ api.interceptors.response.use(
       window.location.href = "/login";
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 // Public API calls (no auth required)
@@ -54,6 +75,9 @@ export const userApi = {
 
   // Get my claims
   getMyClaims: (params) => api.get("/user/my-claims", { params }),
+
+  // Delete own claim
+  deleteClaim: (claimId) => api.delete(`/user/my-claims/${claimId}`),
 
   // Get user profile
   getProfile: () => api.get("/user/profile"),
@@ -127,6 +151,17 @@ export const adminApi = {
   // Reject claim
   rejectClaim: (claimId, remarks) =>
     api.patch(`/admin/claims/${claimId}/reject`, { remarks }),
+
+  // Download CSV data
+  downloadCsv: () => api.get("/admin/download-csv", { responseType: "text" }),
+
+  // Feedback management
+  getAllFeedback: (params) => api.get("/feedback/admin/all", { params }),
+  approveFeedback: (id) => api.patch(`/feedback/${id}/approve`),
+  updateFeedbackStatus: (id, status) =>
+    api.patch(`/feedback/${id}/status`, { status }),
+  respondToFeedback: (id, response) =>
+    api.post(`/feedback/${id}/respond`, { response }),
 };
 
 export default api;

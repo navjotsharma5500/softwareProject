@@ -9,12 +9,12 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
-      unique: true,
+      unique: true, // Creates index automatically
     },
     googleId: {
       type: String,
       required: true,
-      unique: true,
+      unique: true, // Creates index automatically
     },
     isAdmin: {
       type: Boolean,
@@ -33,6 +33,10 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Indexes for performance optimization
+// Note: email and googleId already indexed via unique: true
+userSchema.index({ isAdmin: 1 }); // Admin queries
 
 const User = mongoose.model("User", userSchema);
 export default User;

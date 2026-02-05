@@ -10,8 +10,10 @@
     "create-admin": "node createAdmin.js",
     "create-admin-interactive": "node createAdminInteractive.js",
     "seed": "node seedData.js",
+    "seed-feedback": "node seedFeedback.js",
     "add-items": "node addMoreItems.js",
-    "db-status": "node dbStatus.js"
+    "db-status": "node dbStatus.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand"
   },
   "author": "",
   "license": "ISC",
@@ -21,22 +23,37 @@
     "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
+    "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "csurf": "^1.11.0",
+    "csv-writer": "^1.6.0",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "express-mongo-sanitize": "^2.2.0",
     "express-rate-limit": "^8.2.1",
     "express-session": "^1.18.2",
+    "express-slow-down": "^3.0.1",
     "helmet": "^8.1.0",
+    "hpp": "^0.2.3",
+    "imagekit": "^6.0.0",
+    "install": "^0.13.0",
+    "ioredis": "^5.8.2",
+    "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.3",
     "morgan": "^1.10.1",
+    "nodemailer": "^7.0.11",
     "nodemon": "^3.1.10",
+    "npm": "^11.6.4",
     "passport": "^0.7.0",
-    "passport-google-oauth20": "^2.0.0"
+    "passport-google-oauth20": "^2.0.0",
+    "xss-clean": "^0.1.4"
   },
   "devDependencies": {
     "@babel/core": "^7.23.0",
-    "@babel/preset-env": "^7.23.0"
+    "@babel/preset-env": "^7.23.0",
+    "jest": "^30.2.0",
+    "supertest": "^7.1.4"
   }
 }

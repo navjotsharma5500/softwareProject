@@ -52,5 +52,12 @@ const itemSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Indexes for performance optimization
+itemSchema.index({ category: 1, isClaimed: 1, dateFound: -1 }); // Common filter queries
+itemSchema.index({ foundLocation: 1, isClaimed: 1 }); // Location-based queries
+itemSchema.index({ name: "text" }); // Text search on item name
+itemSchema.index({ createdAt: -1 }); // Sorting by creation date
+
 const Item = mongoose.model("Item", itemSchema);
 export default Item;

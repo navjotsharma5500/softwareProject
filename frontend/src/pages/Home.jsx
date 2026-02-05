@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, X, RefreshCw, Grid, List } from 'lucide-react';
@@ -7,6 +7,8 @@ import { publicApi } from '../utils/api';
 import { CATEGORIES, LOCATIONS, TIME_PERIODS, CATEGORY_DISPLAY_NAMES } from '../utils/constants';
 import { useDarkMode } from '../context/DarkModeContext';
 import useFormPersistence from '../hooks/useFormPersistence';
+import FeedbackCarousel from '../components/FeedbackCarousel';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -16,6 +18,8 @@ const Home = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useFormPersistence('home_view', 'grid'); // 'grid' or 'list'
+  const isInitialLoad = useRef(true);
+  const itemsContainerRef = useRef(null);
 
   // Tab state (persisted)
   const [activeTab, setActiveTab] = useFormPersistence('home_activeTab', 'available'); // 'available' or 'claimed'
@@ -57,6 +61,7 @@ const Home = () => {
       console.error(error);
     } finally {
       setLoading(false);
+      isInitialLoad.current = false;
     }
   };
 
@@ -73,9 +78,23 @@ const Home = () => {
     }));
   };
 
+  const scrollToItems = () => {
+    if (!itemsContainerRef.current) return;
+    const header = document.querySelector('header');
+    const headerHeight = header && window.getComputedStyle(header).position !== 'static'
+      ? header.offsetHeight
+      : 0;
+    const defaultOffset = 80; // safe fallback for typical headers
+    const offset = headerHeight ? headerHeight + 8 : defaultOffset;
+    const top = itemsContainerRef.current.getBoundingClientRect().top + window.pageYOffset;
+    window.scrollTo({ top: Math.max(0, top - offset), behavior: 'smooth' });
+  };
+
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     setFilters(prev => ({ ...prev, page: 1 })); // Reset to page 1 when tab changes
+    // Ensure we scroll to the items after switching tabs
+    scrollToItems();
   };
 
   const handleRefresh = async () => {
@@ -105,7 +124,7 @@ const Home = () => {
 
   const handlePageChange = (newPage) => {
     setFilters(prev => ({ ...prev, page: newPage }));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToItems();
   };
 
   return (
@@ -361,14 +380,16 @@ const Home = () => {
 
         {/* Loading State */}
         {loading && (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          </div>
+          <LoadingSpinner 
+            showColdStartMessage={isInitialLoad.current}
+            message={isInitialLoad.current ? "Loading items..." : "Loading..."}
+          />
         )}
 
         {/* Items Grid/List */}
         {!loading && items.length > 0 && (
           <motion.div 
+            ref={itemsContainerRef}
             layout
             className={viewMode === 'grid' 
               ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12'
@@ -588,6 +609,11 @@ const Home = () => {
             </button>
           </div>
         )}
+
+        {/* Feedback Carousel */}
+        <div className="mt-16">
+          <FeedbackCarousel />
+        </div>
       </div>
     </div>
   );
