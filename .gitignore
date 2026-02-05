@@ -48,6 +48,44 @@ coverage/
 .env.*.local
 .env.local
 .env.test
+
+# Cloudflare Tunnel credentials (SENSITIVE)
+.cloudflared/
+*.json
+tunnel-credentials.json
+
+# SSH keys and certificates (SENSITIVE)  
+*.pem
+*.key
+*.cert
+
+# AWS credentials
+.aws/
+aws-credentials.json
+
+# Temporary and cache files
+.tmp/
+.temp/
+*.tmp
+*.cache
+
+# Editor files
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS specific
+.DS_Store
+Thumbs.db
+Desktop.ini
+Thumbs.db:encryptable
+
+# Backup files
+*.backup
+*.bak
+nginx.conf.backup
 .env.production
 .env.development
 !.env.example
