@@ -211,7 +211,7 @@ backend/QUICK_START.md
 backend/ADMIN_SETUP.md
 frontend/BUILD_COMPLETE.md
 frontend/FRONTEND_COMPLETE.md
-
+/PRODUCTION_CORS_FIX.md
 # Local database files (if using SQLite)
 *.db
 *.sqlite
