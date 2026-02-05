@@ -38,7 +38,7 @@ app.use(
     origin: function (origin, callback) {
       // Allow requests with no origin (like mobile apps, curl, Postman, or via Nginx proxy)
       if (!origin) return callback(null, true);
-      
+
       if (allowedOrigins.indexOf(origin) !== -1) {
         callback(null, true);
       } else {
@@ -56,7 +56,7 @@ app.use(
     exposedHeaders: ["set-cookie"],
     preflightContinue: false,
     optionsSuccessStatus: 204,
-  })
+  }),
 );
 
 app.use(express.json());
@@ -93,7 +93,7 @@ app.use(
       httpOnly: true,
       maxAge: 14 * 24 * 60 * 60 * 1000, // 2 weeks (14 days)
     },
-  })
+  }),
 );
 
 // Initialize passport
