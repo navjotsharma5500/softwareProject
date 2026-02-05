@@ -24,6 +24,7 @@ import slowDown from "express-slow-down";
 
 export default function securityMiddleware(app) {
   // 1. Advanced Helmet policies for HTTP security headers
+  // Note: CORS must be configured BEFORE helmet to avoid conflicts
   app.use(
     helmet.contentSecurityPolicy({
       directives: {

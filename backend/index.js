@@ -23,6 +23,42 @@ import securityMiddleware from "./security.js";
 dotenv.config();
 
 const app = express();
+
+// CORS configuration - works with Nginx reverse proxy
+// In production, Nginx handles CORS headers to avoid duplication
+const allowedOrigins = [
+  "https://lost-and-found-portal-six.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000",
+  process.env.FRONTEND_URL,
+].filter(Boolean); // Remove undefined values
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps, curl, Postman, or via Nginx proxy)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        // In production behind Nginx, trust the proxy
+        if (process.env.NODE_ENV === "production") {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    exposedHeaders: ["set-cookie"],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -45,17 +81,6 @@ if (
 ) {
   app.use(morgan("dev"));
 }
-app.use(
-  cors({
-    // Use FRONTEND_URL from environment, fallback to production/dev defaults
-    origin:
-      process.env.FRONTEND_URL ||
-      (process.env.NODE_ENV === "production"
-        ? "https://lost-and-found-portal-six.vercel.app"
-        : "http://localhost:5173"),
-    credentials: true,
-  })
-);
 
 // Session configuration for passport
 app.use(
