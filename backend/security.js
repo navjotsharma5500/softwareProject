@@ -37,14 +37,14 @@ export default function securityMiddleware(app) {
         upgradeInsecureRequests:
           process.env.NODE_ENV === "production" ? [] : null,
       },
-    })
+    }),
   );
   app.use(
     helmet.hsts({
       maxAge: 31536000, // 1 year in seconds
       includeSubDomains: true,
       preload: true,
-    })
+    }),
   );
 
   // 2. Additional Helmet security headers
@@ -57,7 +57,7 @@ export default function securityMiddleware(app) {
   app.use(
     hpp({
       whitelist: ["category", "status"], // Allow duplicate query params for filtering
-    })
+    }),
   );
 
   // 4. Response compression for better performance
@@ -70,7 +70,7 @@ export default function securityMiddleware(app) {
         return compression.filter(req, res);
       },
       level: 6, // Compression level (0-9, 6 is default)
-    })
+    }),
   );
 
   // 5. Request size limits to prevent DoS attacks
@@ -90,7 +90,7 @@ export default function securityMiddleware(app) {
       delayAfter: 50, // Allow 50 requests per minute at full speed
       delayMs: () => 500, // Add 500ms delay per request after limit
       maxDelayMs: 20000, // Maximum delay of 20 seconds
-    })
+    }),
   );
 
   // 7. Security headers for additional protection
@@ -98,7 +98,7 @@ export default function securityMiddleware(app) {
     // Prevent browsers from caching sensitive data
     res.setHeader(
       "Cache-Control",
-      "no-store, no-cache, must-revalidate, proxy-revalidate"
+      "no-store, no-cache, must-revalidate, proxy-revalidate",
     );
     res.setHeader("Pragma", "no-cache");
     res.setHeader("Expires", "0");
@@ -119,7 +119,7 @@ export default function securityMiddleware(app) {
           res.statusCode === 429
         ) {
           console.warn(
-            `[SECURITY] ${req.method} ${req.url} - Status: ${res.statusCode} - IP: ${req.ip} - Duration: ${duration}ms`
+            `[SECURITY] ${req.method} ${req.url} - Status: ${res.statusCode} - IP: ${req.ip} - Duration: ${duration}ms`,
           );
         }
       });

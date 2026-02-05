@@ -24,6 +24,7 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
   withCredentials: true, // Send cookies with requests
+  maxRedirects: 0, // Don't follow redirects - API should respond directly
 });
 
 // Add token and idempotency key to requests

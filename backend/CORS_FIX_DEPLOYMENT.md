@@ -1,6 +1,7 @@
 # 🔥 CORS Fix - Deployment Guide
 
 ## Problem Summary
+
 - **Error**: `Access to XMLHttpRequest has been blocked by CORS policy`
 - **Cause**: Nginx 301 redirects (HTTP→HTTPS) strip CORS headers
 - **Status**: `net::ERR_FAILED 301 (Moved Permanently)`
@@ -8,6 +9,7 @@
 ## Root Cause Analysis
 
 ### Why 301 Breaks CORS
+
 1. Browser sends preflight OPTIONS request
 2. If request hits HTTP, Nginx redirects with 301
 3. **301 redirect does NOT preserve CORS headers**
@@ -15,6 +17,7 @@
 5. Browser blocks the actual request
 
 ### Why It Works in curl/Postman
+
 - curl/Postman **don't enforce CORS** (not a browser security model)
 - They follow redirects automatically without checking CORS headers
 
@@ -23,12 +26,14 @@
 ### 1. Nginx Configuration (Primary Fix)
 
 **What Changed:**
+
 - Added CORS headers **at Nginx level** (before Express)
 - Handle OPTIONS preflight requests **directly in Nginx**
 - CORS headers set with `always` flag (survives redirects/errors)
 - Added `X-Forwarded-Host` header for proper host detection
 
 **Why This Works:**
+
 - Nginx adds CORS headers **before** any redirect happens
 - OPTIONS requests return 204 immediately (no backend call)
 - CORS headers present on **all responses** including errors
@@ -48,7 +53,7 @@ location / {
     # Add CORS headers for all responses
     add_header 'Access-Control-Allow-Origin' 'https://lost-and-found-portal-six.vercel.app' always;
     add_header 'Access-Control-Allow-Credentials' 'true' always;
-    
+
     proxy_pass http://backend;
     # ... rest of proxy config
 }
@@ -57,11 +62,13 @@ location / {
 ### 2. Express CORS Configuration (Secondary)
 
 **What Changed:**
+
 - Simplified to work **with** Nginx (not against it)
 - Trusts proxy in production mode
 - Maintains localhost support for development
 
 **Why This Works:**
+
 - Nginx handles CORS in production
 - Express handles CORS in development (localhost)
 - No duplicate/conflicting headers
@@ -107,6 +114,7 @@ pm2 restart backend
 ### Step 3: Verify the Fix
 
 **Test 1: Check CORS headers**
+
 ```bash
 curl -I -X OPTIONS https://lostandfoundapi.guestapp.in/api/user/items \
   -H "Origin: https://lost-and-found-portal-six.vercel.app" \
@@ -114,6 +122,7 @@ curl -I -X OPTIONS https://lostandfoundapi.guestapp.in/api/user/items \
 ```
 
 **Expected Response:**
+
 ```
 HTTP/2 204
 access-control-allow-origin: https://lost-and-found-portal-six.vercel.app
@@ -123,6 +132,7 @@ access-control-max-age: 86400
 ```
 
 **Test 2: Check actual API call**
+
 ```bash
 curl -X GET https://lostandfoundapi.guestapp.in/api/user/items?page=1&limit=12 \
   -H "Origin: https://lost-and-found-portal-six.vercel.app"
@@ -131,6 +141,7 @@ curl -X GET https://lostandfoundapi.guestapp.in/api/user/items?page=1&limit=12 \
 **Expected:** Response with `access-control-allow-origin` header
 
 **Test 3: Browser DevTools**
+
 1. Open your frontend: `https://lost-and-found-portal-six.vercel.app`
 2. Open DevTools → Network tab
 3. Navigate to a page that calls the API
@@ -145,9 +156,10 @@ curl -X GET https://lostandfoundapi.guestapp.in/api/user/items?page=1&limit=12 \
 ### ❌ What NOT to Do
 
 1. **Using wildcard with credentials**
+
    ```javascript
    // WRONG - Doesn't work with credentials: true
-   cors({ origin: '*', credentials: true })
+   cors({ origin: "*", credentials: true });
    ```
 
 2. **CORS only in Express (behind Nginx)**
@@ -155,18 +167,20 @@ curl -X GET https://lostandfoundapi.guestapp.in/api/user/items?page=1&limit=12 \
    - Nginx strips headers during redirect
 
 3. **Disabling CORS entirely**
+
    ```javascript
    // WRONG - Security risk
    app.use((req, res, next) => {
      res.header("Access-Control-Allow-Origin", "*");
-   })
+   });
    ```
 
 4. **Not using `always` flag in Nginx**
+
    ```nginx
    # WRONG - Headers lost on error responses
    add_header 'Access-Control-Allow-Origin' '...';
-   
+
    # RIGHT - Headers present even on errors
    add_header 'Access-Control-Allow-Origin' '...' always;
    ```
@@ -180,6 +194,7 @@ curl -X GET https://lostandfoundapi.guestapp.in/api/user/items?page=1&limit=12 \
 ### Why This is Secure
 
 1. **Specific Origin** - Not using wildcards
+
    ```nginx
    # Good - Explicit origin
    add_header 'Access-Control-Allow-Origin' 'https://lost-and-found-portal-six.vercel.app' always;
@@ -204,16 +219,19 @@ curl -X GET https://lostandfoundapi.guestapp.in/api/user/items?page=1&limit=12 \
 ## 📊 Architecture Flow
 
 ### Before (Broken)
+
 ```
 Browser → HTTP Request → Nginx → 301 Redirect (loses CORS) → Browser blocks
 ```
 
 ### After (Fixed)
+
 ```
 Browser → HTTPS Request → Nginx (adds CORS) → Express → Nginx → Browser (CORS headers present)
 ```
 
 ### Preflight Flow
+
 ```
 Browser → OPTIONS → Nginx (returns 204 + CORS) → Browser (allows actual request)
 Browser → GET/POST → Nginx (adds CORS) → Express → Response (CORS headers present)
@@ -237,6 +255,7 @@ After deployment, verify:
 ### If CORS errors persist:
 
 1. **Check Nginx is reloaded**
+
    ```bash
    sudo systemctl status nginx
    sudo nginx -t
@@ -251,12 +270,14 @@ After deployment, verify:
    - Clear cache and hard reload
 
 4. **Check Nginx logs**
+
    ```bash
    sudo tail -f /var/log/nginx/subdomain-error.log
    sudo tail -f /var/log/nginx/subdomain-access.log
    ```
 
 5. **Verify backend is running**
+
    ```bash
    pm2 status
    pm2 logs backend
@@ -271,6 +292,7 @@ After deployment, verify:
 ## 🎉 Success Indicators
 
 You'll know it's fixed when:
+
 - ✅ No CORS errors in browser console
 - ✅ Network tab shows 200/204 (not 301)
 - ✅ `Access-Control-Allow-Origin` header present in responses
