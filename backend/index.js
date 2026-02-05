@@ -37,39 +37,34 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
 ].filter(Boolean); // Remove undefined values
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Production: Behind Nginx reverse proxy
-      // Nginx adds CORS headers, but Express needs to allow the request
-      if (process.env.NODE_ENV === "production") {
-        // When behind Nginx, origin might be undefined (proxied request)
-        // Trust Nginx to handle CORS validation
-        return callback(null, true);
-      }
+// Only use Express CORS in development - Nginx handles it in production
+if (process.env.NODE_ENV !== "production") {
+  app.use(
+    cors({
+      origin: function (origin, callback) {
+        // Development: Direct browser access
+        if (!origin) return callback(null, true); // Allow tools like Postman
 
-      // Development: Direct browser access
-      if (!origin) return callback(null, true); // Allow tools like Postman
-
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error(`Origin ${origin} not allowed by CORS`));
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "X-Requested-With",
-      "Idempotency-Key",
-    ],
-    exposedHeaders: ["set-cookie"],
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
-  }),
-);
+        if (allowedOrigins.indexOf(origin) !== -1) {
+          callback(null, true);
+        } else {
+          callback(new Error(`Origin ${origin} not allowed by CORS`));
+        }
+      },
+      credentials: true,
+      methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+      allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "Idempotency-Key",
+      ],
+      exposedHeaders: ["set-cookie"],
+      preflightContinue: false,
+      optionsSuccessStatus: 204,
+    }),
+  );
+}
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
