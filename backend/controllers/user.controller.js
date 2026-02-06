@@ -30,7 +30,7 @@ export const claimItem = async (req, res) => {
     if (existingClaim) {
       return res
         .status(400)
-        .json({ message: "You already have a pending claim for this item" });
+        .json({ message: "You have already claimed this item. Please wait for admin approval." });
     }
 
     // Check if user has a rejected claim for this item (prevent re-claiming)

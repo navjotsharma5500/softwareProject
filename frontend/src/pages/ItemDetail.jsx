@@ -279,7 +279,7 @@ const ItemDetail = () => {
                     : userHasRejectedClaim
                     ? 'Your Claim Was Rejected - Cannot Re-claim'
                     : userHasClaimed
-                    ? 'You Already Have a Pending Claim'
+                    ? 'Already Claimed - Awaiting Approval'
                     : (item.owner && item.owner._id === user?._id)
                     ? 'You already claimed this'
                     : 'Request to Claim This Item'}
