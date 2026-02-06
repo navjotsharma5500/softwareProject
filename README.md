@@ -36,7 +36,6 @@ A full-stack web application for managing lost and found items at **Thapar Insti
   - Auth endpoints: 50 requests/15 min
   - Claim endpoints: 10 requests/hour
   - Admin endpoints: 200 requests/15 min
-  - Feedback: 100 requests/day
 - 🔄 **Idempotency Middleware** - Prevents duplicate requests with `Idempotency-Key` header
 - ⚡ **Redis Caching** - Fast data retrieval with automatic cache invalidation
   - Item listings cached
@@ -186,7 +185,6 @@ softwareProject/
 │   ├── controllers/        # Request handlers
 │   │   ├── admin.controller.js
 │   │   ├── auth.controllers.js
-│   │   ├── feedback.controller.js
 │   │   ├── report.controller.js
 │   │   └── user.controller.js
 │   ├── middlewares/        # Auth, validation & security
@@ -197,13 +195,11 @@ softwareProject/
 │   │   ├── claim.model.js
 │   │   ├── item.model.js
 │   │   ├── user.model.js
-│   │   ├── feedback.model.js
 │   │   └── report.model.js
 │   ├── routes/            # API routes
 │   │   ├── admin.routes.js
 │   │   ├── auth.routes.js
 │   │   ├── user.routes.js
-│   │   ├── feedback.routes.js
 │   │   └── report.routes.js
 │   ├── utils/             # Helper utilities
 │   │   ├── redisClient.js
@@ -344,7 +340,6 @@ Detailed API documentation is available in `backend/API_DOCUMENTATION.md`
 - `GET /api/user/my-claims` - View my claims (cached)
 - `POST /api/admin/items` - Create item (admin, cache invalidation)
 - `PATCH /api/admin/claims/:id/approve` - Approve claim (admin, idempotent)
-- `POST /api/feedback` - Submit feedback (rate limited: 100/day)
 
 ## 🧪 Testing
 
@@ -381,7 +376,7 @@ Creates admin@thapar.edu / admin123
 ```javascript
 db.users.updateOne(
   { email: "youremail@thapar.edu" },
-  { $set: { isAdmin: true } }
+  { $set: { isAdmin: true } },
 );
 ```
 
@@ -429,7 +424,6 @@ All endpoints are protected with appropriate rate limits to prevent abuse:
 
 - Authentication: 50 requests per 15 minutes
 - Claims: 10 requests per hour
-- Feedback: 100 requests per day
 - Admin operations: 200 requests per 15 minutes
 
 ## 🔄 Idempotency
