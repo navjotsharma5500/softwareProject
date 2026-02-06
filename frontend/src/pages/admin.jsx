@@ -109,11 +109,12 @@ const Admin = () => {
   const fetchClaims = async () => {
     setLoading(true);
     try {
-      // Determine status based on activeTab
-      let status = 'pending';
-      if (activeTab === 'approved-claims') status = 'approved';
-      if (activeTab === 'rejected-claims') status = 'rejected';
-      if (claimFilters.status !== 'all') status = claimFilters.status;
+      // Determine status based on activeTab - tab takes priority over filter
+      let status = '';
+      if (activeTab === 'claims') status = 'pending';
+      else if (activeTab === 'approved-claims') status = 'approved';
+      else if (activeTab === 'rejected-claims') status = 'rejected';
+      else if (claimFilters.status !== 'all') status = claimFilters.status;
       
       const params = {
         page: claimsPage,
@@ -160,7 +161,7 @@ const Admin = () => {
       if (activeTab === 'items') {
         await fetchItems();
         toast.success('Items refreshed!');
-      } else if (activeTab === 'claims') {
+      } else if (activeTab === 'claims' || activeTab === 'approved-claims' || activeTab === 'rejected-claims') {
         await fetchClaims();
         toast.success('Claims refreshed!');
       } else if (activeTab === 'feedback') {
@@ -238,13 +239,20 @@ const Admin = () => {
 
   const handleApproveClaim = async (claimId) => {
     try {
-      await adminApi.approveClaim(claimId, remarkText);
-      toast.success('Claim approved! Check the "Approved Claims" tab to see it.');
+      const response = await adminApi.approveClaim(claimId, remarkText);
+      toast.success('✅ Claim approved successfully!');
       setShowModal(false);
       setRemarkText('');
       setSelectedItem(null);
-      // Refresh current view
-      await fetchClaims();
+      
+      // If this was the last claim on the current page, go to page 1
+      if (claims.length === 1 && claimsPage > 1) {
+        setClaimsPage(1);
+      } else {
+        // Refresh current view
+        await fetchClaims();
+      }
+      
       // Also refresh items to show updated claimed status
       await fetchItems();
     } catch (error) {
@@ -254,13 +262,19 @@ const Admin = () => {
 
   const handleRejectClaim = async (claimId) => {
     try {
-      await adminApi.rejectClaim(claimId, remarkText);
-      toast.success('Claim rejected! Check the "Rejected Claims" tab to see it.');
+      const response = await adminApi.rejectClaim(claimId, remarkText);
+      toast.success('❌ Claim rejected successfully!');
       setShowModal(false);
       setRemarkText('');
       setSelectedItem(null);
-      // Refresh current view
-      await fetchClaims();
+      
+      // If this was the last claim on the current page, go to page 1
+      if (claims.length === 1 && claimsPage > 1) {
+        setClaimsPage(1);
+      } else {
+        // Refresh current view
+        await fetchClaims();
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to reject claim');
     }
@@ -1445,21 +1459,23 @@ const Admin = () => {
               {/* Approve/Reject Claim */}
               {(modalType === 'approve' || modalType === 'reject') && (
                 <div className="p-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                  <h3 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                     {modalType === 'approve' ? 'Approve Claim' : 'Reject Claim'}
                   </h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className={`mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                     {modalType === 'approve' 
                       ? `Approve claim by ${selectedItem?.claimant?.name} for "${selectedItem?.item?.name}"?`
                       : `Reject claim by ${selectedItem?.claimant?.name} for "${selectedItem?.item?.name}"?`
                     }
                   </p>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Remarks (optional)</label>
+                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Remarks (optional)</label>
                     <textarea
                       value={remarkText}
                       onChange={(e) => setRemarkText(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                        darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'
+                      }`}
                       rows="3"
                       placeholder="Add remarks..."
                     />
@@ -1480,7 +1496,9 @@ const Admin = () => {
                     </button>
                     <button
                       onClick={() => setShowModal(false)}
-                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                      className={`px-4 py-2 border rounded-lg transition-colors ${
+                        darkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
                     >
                       Cancel
                     </button>
