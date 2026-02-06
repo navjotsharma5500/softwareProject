@@ -377,57 +377,67 @@ const Admin = () => {
                 </div>
 
                 {showItemFilters && (
-                  <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="relative">
-                      <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} size={18} />
-                      <input
-                        type="text"
-                        placeholder="Search items..."
-                        value={itemFilters.search}
-                        onChange={(e) => setItemFilters({...itemFilters, search: e.target.value})}
-                        className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                          darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'
+                  <div className="mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
+                      <div className="relative">
+                        <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} size={18} />
+                        <input
+                          type="text"
+                          placeholder="Search items..."
+                          value={itemFilters.search}
+                          onChange={(e) => setItemFilters({...itemFilters, search: e.target.value})}
+                          className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                            darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'
+                          }`}
+                        />
+                      </div>
+
+                      <select
+                        value={itemFilters.category}
+                        onChange={(e) => setItemFilters({...itemFilters, category: e.target.value})}
+                        className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                          darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
                         }`}
-                      />
+                      >
+                        <option value="">All Categories</option>
+                        {CATEGORIES.map(cat => (
+                          <option key={cat} value={cat}>{CATEGORY_DISPLAY_NAMES[cat]}</option>
+                        ))}
+                      </select>
+
+                      <select
+                        value={itemFilters.location}
+                        onChange={(e) => setItemFilters({...itemFilters, location: e.target.value})}
+                        className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                          darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                        }`}
+                      >
+                        <option value="">All Locations</option>
+                        {LOCATIONS.map(loc => (
+                          <option key={loc} value={loc}>{loc}</option>
+                        ))}
+                      </select>
+
+                      <select
+                        value={itemFilters.status}
+                        onChange={(e) => setItemFilters({...itemFilters, status: e.target.value})}
+                        className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                          darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                        }`}
+                      >
+                        <option value="">All Status</option>
+                        <option value="available">Available</option>
+                        <option value="claimed">Claimed</option>
+                      </select>
                     </div>
-
-                    <select
-                      value={itemFilters.category}
-                      onChange={(e) => setItemFilters({...itemFilters, category: e.target.value})}
-                      className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                        darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
+                    <button
+                      onClick={() => setItemFilters({ search: '', category: '', location: '', status: '' })}
+                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                        darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                       }`}
                     >
-                      <option value="">All Categories</option>
-                      {CATEGORIES.map(cat => (
-                        <option key={cat} value={cat}>{CATEGORY_DISPLAY_NAMES[cat]}</option>
-                      ))}
-                    </select>
-
-                    <select
-                      value={itemFilters.location}
-                      onChange={(e) => setItemFilters({...itemFilters, location: e.target.value})}
-                      className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                        darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                    >
-                      <option value="">All Locations</option>
-                      {LOCATIONS.map(loc => (
-                        <option key={loc} value={loc}>{loc}</option>
-                      ))}
-                    </select>
-
-                    <select
-                      value={itemFilters.status}
-                      onChange={(e) => setItemFilters({...itemFilters, status: e.target.value})}
-                      className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                        darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                      }`}
-                    >
-                      <option value="">All Status</option>
-                      <option value="available">Available</option>
-                      <option value="claimed">Claimed</option>
-                    </select>
+                      Clear Filters
+                    </button>
                   </div>
                 )}
 
@@ -583,19 +593,29 @@ const Admin = () => {
             </div>
 
             {showClaimFilters && (
-              <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="relative">
-                  <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} size={18} />
-                  <input
-                    type="text"
-                    placeholder="Search by claimant name or item..."
-                    value={claimFilters.search}
-                    onChange={(e) => setClaimFilters({...claimFilters, search: e.target.value})}
-                    className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                      darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'
-                    }`}
-                  />
+              <div className="mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                  <div className="relative">
+                    <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} size={18} />
+                    <input
+                      type="text"
+                      placeholder="Search by claimant name or item..."
+                      value={claimFilters.search}
+                      onChange={(e) => setClaimFilters({...claimFilters, search: e.target.value})}
+                      className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                        darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'
+                      }`}
+                    />
+                  </div>
                 </div>
+                <button
+                  onClick={() => setClaimFilters({ search: '', status: 'all' })}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                    darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                  }`}
+                >
+                  Clear Filters
+                </button>
               </div>
             )}
             
@@ -649,7 +669,7 @@ const Admin = () => {
                               <FileText size={14} />
                             </button>
                             <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{claim.claimant?.email}</p>
-                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Roll: {claim.claimant?.rollNo}</p>
+                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Roll No/Email ID: {claim.claimant?.rollNo}</p>
                           </div>
                           <div>
                             <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Item Details:</span>
@@ -737,19 +757,29 @@ const Admin = () => {
             </div>
 
             {showClaimFilters && (
-              <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="relative">
-                  <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} size={18} />
-                  <input
-                    type="text"
-                    placeholder="Search by claimant name or item..."
-                    value={claimFilters.search}
-                    onChange={(e) => setClaimFilters({...claimFilters, search: e.target.value})}
-                    className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                      darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'
-                    }`}
-                  />
+              <div className="mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                  <div className="relative">
+                    <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} size={18} />
+                    <input
+                      type="text"
+                      placeholder="Search by claimant name or item..."
+                      value={claimFilters.search}
+                      onChange={(e) => setClaimFilters({...claimFilters, search: e.target.value})}
+                      className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                        darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'
+                      }`}
+                    />
+                  </div>
                 </div>
+                <button
+                  onClick={() => setClaimFilters({ search: '', status: 'all' })}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                    darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                  }`}
+                >
+                  Clear Filters
+                </button>
               </div>
             )}
             
@@ -802,7 +832,7 @@ const Admin = () => {
                             <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Claimant:</span>
                             <p className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>{claim.claimant?.name}</p>
                             <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{claim.claimant?.email}</p>
-                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Roll: {claim.claimant?.rollNo}</p>
+                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Roll No/Email ID: {claim.claimant?.rollNo}</p>
                           </div>
                           <div>
                             <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Item Details:</span>
@@ -874,19 +904,29 @@ const Admin = () => {
             </div>
 
             {showClaimFilters && (
-              <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="relative">
-                  <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} size={18} />
-                  <input
-                    type="text"
-                    placeholder="Search by claimant name or item..."
-                    value={claimFilters.search}
-                    onChange={(e) => setClaimFilters({...claimFilters, search: e.target.value})}
-                    className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                      darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'
-                    }`}
-                  />
+              <div className="mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                  <div className="relative">
+                    <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} size={18} />
+                    <input
+                      type="text"
+                      placeholder="Search by claimant name or item..."
+                      value={claimFilters.search}
+                      onChange={(e) => setClaimFilters({...claimFilters, search: e.target.value})}
+                      className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                        darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'
+                      }`}
+                    />
+                  </div>
                 </div>
+                <button
+                  onClick={() => setClaimFilters({ search: '', status: 'all' })}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                    darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                  }`}
+                >
+                  Clear Filters
+                </button>
               </div>
             )}
             
@@ -939,7 +979,7 @@ const Admin = () => {
                             <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Claimant:</span>
                             <p className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>{claim.claimant?.name}</p>
                             <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{claim.claimant?.email}</p>
-                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Roll: {claim.claimant?.rollNo}</p>
+                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Roll No/Email ID: {claim.claimant?.rollNo}</p>
                           </div>
                           <div>
                             <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Item Details:</span>

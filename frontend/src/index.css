@@ -19,4 +19,32 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+
+  .rainbow-text {
+    background: linear-gradient(
+      to right,
+      #ff0000,
+      #ff7f00,
+      #ffff00,
+      #00ff00,
+      #0000ff,
+      #4b0082,
+      #9400d3
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: rainbow-animation 3s ease-in-out infinite;
+    background-size: 200% auto;
+  }
+
+  @keyframes rainbow-animation {
+    0%,
+    100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
 }

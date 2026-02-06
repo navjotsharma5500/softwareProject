@@ -14,12 +14,28 @@ export const DarkModeProvider = ({ children }) => {
   const [darkMode, setDarkMode] = useState(() => {
     // Check localStorage for saved preference
     const saved = localStorage.getItem('darkMode');
-    return saved ? JSON.parse(saved) : true; // Default to dark mode
+    const isDark = saved ? JSON.parse(saved) : true; // Default to dark mode
+    
+    // Apply initial dark class immediately
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    
+    return isDark;
   });
 
   useEffect(() => {
     // Save to localStorage whenever darkMode changes
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
+    
+    // Apply or remove 'dark' class from the document element
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, [darkMode]);
 
   const toggleDarkMode = () => {
