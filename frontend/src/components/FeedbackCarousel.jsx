@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Star, Quote, MessageSquare, Eye } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, Star, Quote } from 'lucide-react';
 import { useDarkMode } from '../context/DarkModeContext';
 
 const FeedbackCarousel = () => {
@@ -256,37 +255,6 @@ const FeedbackCarousel = () => {
             ))}
           </div>
         </div>
-
-        {/* Call to Action Buttons */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="flex flex-col sm:flex-row justify-center gap-4 mt-12"
-        >
-          <Link
-            to="/feedback"
-            className={`flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold text-lg transition-all transform hover:scale-105 ${
-              darkMode 
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg' 
-                : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg'
-            }`}
-          >
-            <MessageSquare size={24} />
-            Share Your Feedback
-          </Link>
-          <Link
-            to="/feedback-feed"
-            className={`flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold text-lg transition-all transform hover:scale-105 ${
-              darkMode 
-                ? 'bg-slate-800 hover:bg-slate-700 text-white border-2 border-slate-600' 
-                : 'bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-300'
-            }`}
-          >
-            <Eye size={24} />
-            View All Feedback
-          </Link>
-        </motion.div>
       </div>
     </div>
   );

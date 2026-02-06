@@ -20,12 +20,15 @@ export const googleCallback = async (req, res) => {
       { expiresIn: "7d" }, // 7 days for OAuth
     );
 
+    // Set token as cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: true, // Always use secure in production
+      sameSite: "none", // Required for cross-site cookies
       maxAge: 7 * 24 * 3600000, // 7 days
       path: "/",
+      domain:
+        process.env.NODE_ENV === "production" ? ".guestapp.in" : undefined,
     });
 
     // Extract redirect from state parameter if present
@@ -60,8 +63,11 @@ export const logout = async (req, res) => {
   try {
     res.clearCookie("token", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "Lax",
+      secure: true,
+      sameSite: "none",
+      path: "/",
+      domain:
+        process.env.NODE_ENV === "production" ? ".guestapp.in" : undefined,
     });
     res.status(200).json({ message: "Logout successful" });
   } catch (error) {

@@ -1,7 +1,6 @@
 // Complete production-ready security middleware for Express.js
 // Comprehensive security implementation for Lost & Found Portal
 
-import express from "express";
 import helmet from "helmet";
 import hpp from "hpp";
 import compression from "compression";
@@ -15,11 +14,12 @@ import slowDown from "express-slow-down";
  * 2. HSTS for HTTPS enforcement
  * 3. Parameter pollution prevention
  * 4. Response compression
- * 5. Request size limits
- * 6. Rate limiting and slow-down
+ * 5. Request slow-down protection
+ * 6. Security headers
+ * 7. Request logging for security monitoring
  *
- * Note: mongoSanitize and xss-clean are disabled due to Express v5 incompatibility
- * Input sanitization is handled at the route/controller level using validation
+ * Note: Request body size limits (10mb) are set in main index.js
+ * Input sanitization is handled at the route/controller level using Joi validation
  */
 
 export default function securityMiddleware(app) {
@@ -73,17 +73,7 @@ export default function securityMiddleware(app) {
     }),
   );
 
-  // 5. Request size limits to prevent DoS attacks
-  app.use((req, res, next) => {
-    // Only set limits if not already set in main app
-    if (!req._body) {
-      app.use(express.json({ limit: "10kb" }));
-      app.use(express.urlencoded({ limit: "10kb", extended: true }));
-    }
-    next();
-  });
-
-  // 6. Slow-down middleware - Introduces delay after 50 requests in a minute to mitigate brute-force attacks
+  // 5. Slow-down middleware - Introduces delay after 50 requests in a minute to mitigate brute-force attacks
   app.use(
     slowDown({
       windowMs: 60 * 1000, // 1 minute window
@@ -93,7 +83,7 @@ export default function securityMiddleware(app) {
     }),
   );
 
-  // 7. Security headers for additional protection
+  // 6. Security headers for additional protection
   app.use((req, res, next) => {
     // Prevent browsers from caching sensitive data
     res.setHeader(
@@ -106,7 +96,7 @@ export default function securityMiddleware(app) {
     next();
   });
 
-  // 8. Request logging for security monitoring (production)
+  // 7. Request logging for security monitoring (production)
   if (process.env.NODE_ENV === "production") {
     app.use((req, res, next) => {
       const start = Date.now();
