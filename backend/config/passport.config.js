@@ -2,7 +2,15 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import User from "../models/user.model.js";
 import dotenv from "dotenv";
-dotenv.config();
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Fix for ES modules - get __dirname equivalent
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env from backend root directory explicitly
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 // Serialize user for session
 passport.serializeUser((user, done) => {
@@ -70,8 +78,8 @@ passport.use(
       } catch (error) {
         return done(error, null);
       }
-    }
-  )
+    },
+  ),
 );
 
 export default passport;

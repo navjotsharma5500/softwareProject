@@ -203,7 +203,9 @@ frontend/test.js
 # backend/dbStatus.js
 # backend/createAdmin.js
 # backend/createAdminInteractive.js
-
+/504_TIMEOUT_FIX_SUMMARY.md
+/SUBDOMAIN_DEPLOYMENT.md
+/backend/504_TIMEOUT_FIX_SUMMARY.md
 # Build documentation (can be regenerated)
 backend/IMPLEMENTATION_SUMMARY.md
 backend/SEEDING_GUIDE.md
@@ -211,7 +213,7 @@ backend/QUICK_START.md
 backend/ADMIN_SETUP.md
 frontend/BUILD_COMPLETE.md
 frontend/FRONTEND_COMPLETE.md
-
+/PRODUCTION_CORS_FIX.md
 # Local database files (if using SQLite)
 *.db
 *.sqlite

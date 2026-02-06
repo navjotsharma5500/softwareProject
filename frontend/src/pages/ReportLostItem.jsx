@@ -113,12 +113,12 @@ const ReportLostItem = () => {
 
       await reportApi.createReport(payload);
       
-      toast.success('Report submitted successfully! View it in your profile.');
+      toast.success('Report submitted successfully! Redirecting to your profile...');
       // clear persisted draft after successful submit
       formControls.clear();
       photosControls.clear();
       
-      // Reset form to initial state instead of navigating away
+      // Reset form to initial state
       setFormData({
         itemDescription: '',
         category: '',
@@ -127,6 +127,11 @@ const ReportLostItem = () => {
         additionalDetails: '',
       });
       setPhotos([]);
+      
+      // Redirect to profile page with reports section selected
+      setTimeout(() => {
+        navigate('/profile?section=reports');
+      }, 1000);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to submit report');
     } finally {
@@ -147,13 +152,14 @@ const ReportLostItem = () => {
           {/* Item Description */}
           <div className="mb-4">
             <label className={`block mb-2 font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
-              Item Description *
+              Item Description * <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>({formData.itemDescription.length}/100)</span>
             </label>
             <input
               type="text"
               name="itemDescription"
               value={formData.itemDescription}
               onChange={handleInputChange}
+              maxLength={100}
               className={`w-full px-4 py-2 rounded-lg border ${
                 darkMode
                   ? 'bg-gray-700 border-gray-600 text-white'
@@ -237,12 +243,13 @@ const ReportLostItem = () => {
           {/* Additional Details */}
           <div className="mb-4">
             <label className={`block mb-2 font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
-              Additional Details
+              Additional Details <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>({formData.additionalDetails.length}/500)</span>
             </label>
             <textarea
               name="additionalDetails"
               value={formData.additionalDetails}
               onChange={handleInputChange}
+              maxLength={500}
               rows="4"
               className={`w-full px-4 py-2 rounded-lg border ${
                 darkMode

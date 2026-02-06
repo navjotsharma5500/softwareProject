@@ -8,10 +8,12 @@ import { CATEGORY_DISPLAY_NAMES, LOCATIONS } from '../utils/constants';
 import useFormPersistence from '../hooks/useFormPersistence.jsx';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ImageLightbox from '../components/ImageLightbox';
+import { useSearchParams } from 'react-router-dom';
 
 const Profile = () => {
   const { user } = useAuth();
   const { darkMode } = useDarkMode();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [profileData, setProfileData] = useState(null);
   const [claims, setClaims] = useState([]);
   const [reports, setReports] = useState([]);
@@ -21,7 +23,11 @@ const Profile = () => {
   const [deletingReport, setDeletingReport] = useState(null); // Track which report is being deleted
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [activeSection, setActiveSection] = useState('claims'); // 'claims' or 'reports'
+  
+  // Check URL parameter for section on mount
+  const initialSection = searchParams.get('section') === 'reports' ? 'reports' : 'claims';
+  const [activeSection, setActiveSection] = useState(initialSection); // 'claims' or 'reports'
+  
   const [lightboxImages, setLightboxImages] = useState(null);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const isInitialLoad = useRef(true);
@@ -93,6 +99,12 @@ const Profile = () => {
 
   useEffect(() => {
     fetchProfile();
+    
+    // Clear the section parameter from URL after initial load
+    if (searchParams.get('section')) {
+      setSearchParams({}, { replace: true });
+    }
+    
     if (activeSection === 'claims') {
       fetchMyClaims();
     } else {

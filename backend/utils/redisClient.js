@@ -7,7 +7,13 @@ if (process.env.REDIS_URL) {
   redis = new Redis(process.env.REDIS_URL, {
     maxRetriesPerRequest: 3,
     enableReadyCheck: true,
+    connectTimeout: 5000, // 5s connection timeout
+    commandTimeout: 3000, // 3s command timeout - prevents hanging
     retryStrategy(times) {
+      if (times > 3) {
+        console.error('Redis: Max retries reached, falling back to DB');
+        return null; // Stop retrying
+      }
       const delay = Math.min(times * 50, 2000);
       return delay;
     },

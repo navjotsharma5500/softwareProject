@@ -50,14 +50,16 @@ const itemSchema = new mongoose.Schema(
     isClaimed: { type: Boolean, default: false },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Indexes for performance optimization
-itemSchema.index({ category: 1, isClaimed: 1, dateFound: -1 }); // Common filter queries
-itemSchema.index({ foundLocation: 1, isClaimed: 1 }); // Location-based queries
+// Most common query: isClaimed filter + createdAt sort (used by frontend default view)
+itemSchema.index({ isClaimed: 1, createdAt: -1 }); // PRIMARY - default query
+itemSchema.index({ category: 1, isClaimed: 1, createdAt: -1 }); // With category filter
+itemSchema.index({ foundLocation: 1, isClaimed: 1, createdAt: -1 }); // With location filter
+itemSchema.index({ dateFound: -1, isClaimed: 1 }); // Time-based queries
 itemSchema.index({ name: "text" }); // Text search on item name
-itemSchema.index({ createdAt: -1 }); // Sorting by creation date
 
 const Item = mongoose.model("Item", itemSchema);
 export default Item;

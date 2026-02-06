@@ -9,7 +9,7 @@ export const googleCallback = async (req, res) => {
   try {
     if (!req.user) {
       return res.redirect(
-        `${process.env.FRONTEND_URL}/login?error=authentication_failed`
+        `${process.env.FRONTEND_URL}/login?error=authentication_failed`,
       );
     }
 
@@ -17,14 +17,15 @@ export const googleCallback = async (req, res) => {
     const token = jwt.sign(
       { _id: req.user._id, isAdmin },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" } // 7 days for OAuth
+      { expiresIn: "7d" }, // 7 days for OAuth
     );
 
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "Lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 3600000, // 7 days
+      path: "/",
     });
 
     // Extract redirect from state parameter if present
@@ -32,13 +33,13 @@ export const googleCallback = async (req, res) => {
     try {
       if (req.query.state) {
         const state = JSON.parse(
-          Buffer.from(req.query.state, "base64").toString()
+          Buffer.from(req.query.state, "base64").toString(),
         );
         if (state.redirect) {
           redirectUrl = `${
             process.env.FRONTEND_URL
           }/login?token=${token}&redirect=${encodeURIComponent(
-            state.redirect
+            state.redirect,
           )}`;
         }
       }

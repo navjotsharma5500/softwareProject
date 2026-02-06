@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import helmet from "helmet";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import session from "express-session";
@@ -24,6 +23,10 @@ dotenv.config();
 
 const app = express();
 
+// ✅ CRITICAL: Trust proxy - MUST be at the top for Cloudflare + Nginx
+// Fixes HTTPS redirect loops and ensures req.secure, req.protocol work correctly
+app.set("trust proxy", 1);
+
 // CORS configuration - works with Nginx reverse proxy
 // In production, Nginx handles CORS headers to avoid duplication
 const allowedOrigins = [
@@ -33,31 +36,34 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
 ].filter(Boolean); // Remove undefined values
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps, curl, Postman, or via Nginx proxy)
-      if (!origin) return callback(null, true);
+// Only use Express CORS in development - Nginx handles it in production
+if (process.env.NODE_ENV !== "production") {
+  app.use(
+    cors({
+      origin: function (origin, callback) {
+        // Development: Direct browser access
+        if (!origin) return callback(null, true); // Allow tools like Postman
 
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        // In production behind Nginx, trust the proxy
-        if (process.env.NODE_ENV === "production") {
+        if (allowedOrigins.indexOf(origin) !== -1) {
           callback(null, true);
         } else {
-          callback(new Error("Not allowed by CORS"));
+          callback(new Error(`Origin ${origin} not allowed by CORS`));
         }
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-    exposedHeaders: ["set-cookie"],
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
-  }),
-);
+      },
+      credentials: true,
+      methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+      allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "Idempotency-Key",
+      ],
+      exposedHeaders: ["set-cookie"],
+      preflightContinue: false,
+      optionsSuccessStatus: 204,
+    }),
+  );
+}
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -73,8 +79,6 @@ if (process.env.JEST_WORKER_ID !== undefined) {
   });
 }
 
-// Trust proxy - required for Render and other cloud platforms
-app.set("trust proxy", 1);
 if (
   process.env.NODE_ENV === "development" ||
   process.env.JEST_WORKER_ID !== undefined
@@ -105,6 +109,21 @@ app.set("etag", "strong");
 
 connectDB();
 
+// Request timeout middleware - prevent hanging requests
+app.use((req, res, next) => {
+  // Set timeout to 25 seconds (well under Cloudflare's 100s)
+  req.setTimeout(25000, () => {
+    console.error(`⏱️  Request timeout: ${req.method} ${req.url}`);
+    if (!res.headersSent) {
+      res.status(408).json({
+        message: "Request timeout",
+        error: "The server took too long to process your request",
+      });
+    }
+  });
+  next();
+});
+
 // Apply rate limiters to routes
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/admin", adminLimiter, adminRoutes);
@@ -113,16 +132,19 @@ app.use("/api/reports", apiLimiter, reportRoutes);
 app.use("/api/feedback", apiLimiter, feedbackRoutes);
 
 app.get("/health", (req, res) => {
-  res.status(200).send("Server is healthy");
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
 app.get("/", (req, res) => {
-  res.status(200).send("API root");
+  res.status(200).json({ message: "Lost & Found API", version: "1.0.0" });
 });
 
 // Start server (skip only during tests)
 if (process.env.JEST_WORKER_ID === undefined) {
-  app.listen(port, "0.0.0.0");
+  app.listen(port, "127.0.0.1", () => {
+    console.log(`✅ Server running on http://127.0.0.1:${port}`);
+    console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+  });
 }
-//0/0/0/0 does not mean localhost. It means to listen on all available interfaces.
+// Listen on localhost only - Nginx handles external traffic
 export default app;
 1;
