@@ -29,9 +29,8 @@ router.get(
   "/google/callback",
   passport.authenticate("google", {
     failureRedirect: `${process.env.FRONTEND_URL}/login?error=invalid_email`,
-    session: false,
   }),
-  googleCallback
+  googleCallback,
 );
 
 // Active routes

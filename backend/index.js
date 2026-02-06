@@ -35,11 +35,16 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
 ].filter(Boolean); // Remove undefined values
 
-// Enable CORS for all environments to allow localhost development with production backend
-app.use(
-  cors({
+// Conditionally enable CORS - skip if behind Nginx proxy to avoid duplicate headers
+app.use((req, res, next) => {
+  // Skip CORS middleware if behind Nginx (production) - Nginx sets these headers
+  if (req.headers["x-forwarded-for"] || req.headers["x-real-ip"]) {
+    return next();
+  }
+
+  // Apply CORS for direct access (development/localhost)
+  return cors({
     origin: function (origin, callback) {
-      // Development: Direct browser access
       if (!origin) return callback(null, true); // Allow tools like Postman
 
       if (allowedOrigins.indexOf(origin) !== -1) {
@@ -59,12 +64,15 @@ app.use(
     exposedHeaders: ["set-cookie"],
     preflightContinue: false,
     optionsSuccessStatus: 204,
-  }),
-);
+  })(req, res, next);
+});
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Request body parsers with size limits
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
+
+// Apply security middleware
 securityMiddleware(app);
 const port = process.env.PORT || 3000;
 
