@@ -235,6 +235,10 @@ database-backup/
 # Database admin scripts with hardcoded credentials
 backend/createSpecificAdmin.js
 **/makeAdminWithCredentials.js
+**/makeAdminInteractive.js
+backend/makeAdminInteractive.js
+**/DEPLOY_CORS_FIX.md
+DEPLOY_CORS_FIX.md
 **/directDbAccess.js
 
 # Database utility and seeding scripts

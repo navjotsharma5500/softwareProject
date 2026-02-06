@@ -16,7 +16,7 @@ const FeedbackCarousel = () => {
   const testimonials = [
     {
       id: 1,
-      name: "Arjun Sharma",
+      name: "Surya Kant Tiwari",
       rating: 5,
       message: "Found my lost wallet within 24 hours! The portal is incredibly user-friendly and efficient. Thank you team!",
       category: "general",

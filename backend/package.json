@@ -7,10 +7,11 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "make-admin": "node makeAdmin.js",
+    "make-admin-interactive": "node makeAdminInteractive.js",
     "create-admin": "node createAdmin.js",
     "create-admin-interactive": "node createAdminInteractive.js",
     "seed": "node seedData.js",
-    "seed-feedback": "node seedFeedback.js",
     "add-items": "node addMoreItems.js",
     "db-status": "node dbStatus.js",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand"

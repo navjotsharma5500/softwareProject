@@ -155,14 +155,6 @@ export const adminApi = {
 
   // Download CSV data
   downloadCsv: () => api.get("/admin/download-csv", { responseType: "text" }),
-
-  // Feedback management
-  getAllFeedback: (params) => api.get("/feedback/admin/all", { params }),
-  approveFeedback: (id) => api.patch(`/feedback/${id}/approve`),
-  updateFeedbackStatus: (id, status) =>
-    api.patch(`/feedback/${id}/status`, { status }),
-  respondToFeedback: (id, response) =>
-    api.post(`/feedback/${id}/respond`, { response }),
 };
 
 export default api;
