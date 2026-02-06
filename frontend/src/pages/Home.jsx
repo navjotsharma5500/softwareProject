@@ -461,7 +461,7 @@ const Home = () => {
                         <span className="font-medium">Claimed by:</span>{' '}
                         <span className="font-semibold">{item.owner.name}</span>
                         {item.owner.rollNo ? (
-                          <span className="ml-2 text-xs text-gray-500">(Roll: {item.owner.rollNo})</span>
+                          <span className="ml-2 text-xs text-gray-500">(Roll/Email: {item.owner.rollNo})</span>
                         ) : null}
                       </div>
                     ) : null}
@@ -542,7 +542,7 @@ const Home = () => {
                             <span className="font-medium">By:</span>{' '}
                             <span className="font-semibold">{item.owner.name}</span>
                             {item.owner.rollNo && (
-                              <span className="ml-1 text-xs text-gray-500">({item.owner.rollNo})</span>
+                              <span className="ml-1 text-xs text-gray-500">(Roll/Email: {item.owner.rollNo})</span>
                             )}
                           </div>
                         )}

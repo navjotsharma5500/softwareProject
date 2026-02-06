@@ -358,7 +358,7 @@ const Profile = () => {
                 darkMode ? 'text-gray-200' : 'text-gray-700'
               }`}>
                 <IdCard size={18} />
-                Roll Number/emailId
+                Roll Number/Email
               </label>
               {editing ? (
                 <input
