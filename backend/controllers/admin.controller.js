@@ -379,6 +379,10 @@ export const rejectClaim = async (req, res) => {
       const html = getClaimStatusEmailBody(claim, "rejected");
       sendEmail(claim.claimant.email, subject, html).catch(console.error);
     }
+
+    // Clear claimant's claims cache
+    await clearCachePattern(`user:${claim.claimant._id}:claims:*`);
+
     return res.status(200).json({ message: "Claim rejected", claim });
   } catch (error) {
     console.error(error);

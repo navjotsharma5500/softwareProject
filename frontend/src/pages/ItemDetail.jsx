@@ -22,6 +22,7 @@ const ItemDetail = () => {
   const [userHasClaimed, setUserHasClaimed] = useState(false);
   const [userClaimId, setUserClaimId] = useState(null);
   const [checkingClaim, setCheckingClaim] = useState(false);
+  const [userHasRejectedClaim, setUserHasRejectedClaim] = useState(false);
 
   const fetchItemDetails = async () => {
     try {
@@ -51,8 +52,12 @@ const ItemDetail = () => {
         const userClaim = response.data.claims.find(
           claim => claim.item?._id === item._id && claim.status !== 'rejected'
         );
+        const rejectedClaim = response.data.claims.find(
+          claim => claim.item?._id === item._id && claim.status === 'rejected'
+        );
         setUserHasClaimed(!!userClaim);
         setUserClaimId(userClaim?._id || null);
+        setUserHasRejectedClaim(!!rejectedClaim);
       } catch (error) {
         console.error('Failed to check claim status:', error);
       } finally {
@@ -260,9 +265,9 @@ const ItemDetail = () => {
               {!item.isClaimed && (
                 <button
                   onClick={handleClaim}
-                  disabled={claiming || checkingClaim || userHasClaimed || (item.owner && item.owner._id === user?._id)}
+                  disabled={claiming || checkingClaim || userHasClaimed || userHasRejectedClaim || (item.owner && item.owner._id === user?._id)}
                   className={`flex-1 py-4 rounded-xl font-semibold text-white transition-all ${
-                    claiming || checkingClaim || userHasClaimed || (item.owner && item.owner._id === user?._id)
+                    claiming || checkingClaim || userHasClaimed || userHasRejectedClaim || (item.owner && item.owner._id === user?._id)
                       ? 'bg-gray-400 cursor-not-allowed'
                       : 'bg-gradient-to-r from-blue-600 to-teal-600 hover:shadow-lg'
                   }`}
@@ -271,6 +276,8 @@ const ItemDetail = () => {
                     ? 'Checking...'
                     : claiming 
                     ? 'Submitting...' 
+                    : userHasRejectedClaim
+                    ? 'Your Claim Was Rejected - Cannot Re-claim'
                     : userHasClaimed
                     ? 'You Already Have a Pending Claim'
                     : (item.owner && item.owner._id === user?._id)
@@ -322,6 +329,25 @@ const ItemDetail = () => {
                     {deletingClaim ? 'Removing...' : 'Remove Claim'}
                   </button>
                 </div>
+              </div>
+            )}
+
+            {/* User Rejected Claim Message */}
+            {userHasRejectedClaim && !item.isClaimed && (
+              <div className={`mt-4 border rounded-lg p-4 ${
+                darkMode ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-200'
+              }`}>
+                <p className={`text-sm text-center ${darkMode ? 'text-red-200' : 'text-red-800'}`}>
+                  Your previous claim for this item was rejected by an admin. You cannot re-claim this item.
+                  Please check your{' '}
+                  <button 
+                    onClick={() => navigate('/profile')}
+                    className={`font-semibold underline ${darkMode ? 'hover:text-red-100' : 'hover:text-red-900'}`}
+                  >
+                    profile page
+                  </button>
+                  {' '}for details or contact the admin office.
+                </p>
               </div>
             )}
           </div>

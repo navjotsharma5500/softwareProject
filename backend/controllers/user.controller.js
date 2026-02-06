@@ -33,6 +33,22 @@ export const claimItem = async (req, res) => {
         .json({ message: "You already have a pending claim for this item" });
     }
 
+    // Check if user has a rejected claim for this item (prevent re-claiming)
+    const rejectedClaim = await Claim.findOne({
+      item: id,
+      claimant: userId,
+      status: "rejected",
+    });
+
+    if (rejectedClaim) {
+      return res
+        .status(403)
+        .json({
+          message:
+            "You cannot claim this item as your previous claim was rejected",
+        });
+    }
+
     // Create new claim
     const newClaim = new Claim({
       item: id,
