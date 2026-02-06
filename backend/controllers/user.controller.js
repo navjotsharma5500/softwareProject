@@ -276,15 +276,18 @@ export const listItems = async (req, res) => {
       query.name = { $regex: req.query.search, $options: "i" };
     }
 
-    const items = await Item.find(query)
-      .select("itemId name category foundLocation dateFound isClaimed owner")
-      .populate("owner", "name rollNo") // Don't show email to public
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 })
-      .lean(); // Faster read-only queries
+    // Execute queries in parallel for better performance
+    const [items, total] = await Promise.all([
+      Item.find(query)
+        .select("itemId name category foundLocation dateFound isClaimed owner")
+        .populate("owner", "name rollNo") // Don't show email to public
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+        .lean(), // Faster read-only queries
+      Item.countDocuments(query),
+    ]);
 
-    const total = await Item.countDocuments(query);
     const totalPages = Math.ceil(total / limit);
 
     const responseData = {

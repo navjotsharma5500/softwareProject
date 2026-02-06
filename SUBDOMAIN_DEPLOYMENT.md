@@ -192,7 +192,7 @@ nslookup lostandfoundapi.guestapp.in
 
 ```bash
 # Re-run certbot
-sudo certbot --nginx -d your-subdomain.yourdomain.com --force-renewal
+sudo certbot --nginx -d https://lostandfoundapi.guestapp.in --force-renewal
 ```
 
 ---

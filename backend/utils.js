@@ -4,11 +4,29 @@ dotenv.config();
 const connectDB = async () => {
   try {
     const res = await mongoose.connect(process.env.MONGODB_URI, {
-      maxPoolSize: 10, // Maximum connections in pool (good for Render)
+      maxPoolSize: 10, // Maximum connections in pool
       minPoolSize: 2, // Minimum connections to maintain
-      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-      serverSelectionTimeoutMS: 5000, // Timeout after 5s if can't connect
+      socketTimeoutMS: 300000, // 5 minutes - prevents premature closure
+      serverSelectionTimeoutMS: 10000, // 10s to find server after idle
+      connectTimeoutMS: 10000, // 10s for initial connection
+      heartbeatFrequencyMS: 10000, // Ping every 10s to keep connections alive
+      retryWrites: true,
+      retryReads: true,
     });
+
+    // Handle connection events
+    mongoose.connection.on("disconnected", () => {
+      console.log("⚠️  MongoDB disconnected");
+    });
+
+    mongoose.connection.on("reconnected", () => {
+      console.log("✅ MongoDB reconnected");
+    });
+
+    mongoose.connection.on("error", (err) => {
+      console.error("❌ MongoDB error:", err.message);
+    });
+
     // console.log("mongoDB connected successfully", res.connection.host);
   } catch (error) {
     console.log(error);

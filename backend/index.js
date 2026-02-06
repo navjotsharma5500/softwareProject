@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import helmet from "helmet";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import session from "express-session";
@@ -109,6 +108,21 @@ app.use(passportConfig.session());
 app.set("etag", "strong");
 
 connectDB();
+
+// Request timeout middleware - prevent hanging requests
+app.use((req, res, next) => {
+  // Set timeout to 25 seconds (well under Cloudflare's 100s)
+  req.setTimeout(25000, () => {
+    console.error(`⏱️  Request timeout: ${req.method} ${req.url}`);
+    if (!res.headersSent) {
+      res.status(408).json({
+        message: "Request timeout",
+        error: "The server took too long to process your request",
+      });
+    }
+  });
+  next();
+});
 
 // Apply rate limiters to routes
 app.use("/api/auth", authLimiter, authRoutes);
