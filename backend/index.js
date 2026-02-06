@@ -10,7 +10,6 @@ import authRoutes from "./routes/auth.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import reportRoutes from "./routes/report.routes.js";
-import feedbackRoutes from "./routes/feedback.routes.js";
 
 import {
   apiLimiter,
@@ -36,34 +35,32 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
 ].filter(Boolean); // Remove undefined values
 
-// Only use Express CORS in development - Nginx handles it in production
-if (process.env.NODE_ENV !== "production") {
-  app.use(
-    cors({
-      origin: function (origin, callback) {
-        // Development: Direct browser access
-        if (!origin) return callback(null, true); // Allow tools like Postman
+// Enable CORS for all environments to allow localhost development with production backend
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Development: Direct browser access
+      if (!origin) return callback(null, true); // Allow tools like Postman
 
-        if (allowedOrigins.indexOf(origin) !== -1) {
-          callback(null, true);
-        } else {
-          callback(new Error(`Origin ${origin} not allowed by CORS`));
-        }
-      },
-      credentials: true,
-      methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-      allowedHeaders: [
-        "Content-Type",
-        "Authorization",
-        "X-Requested-With",
-        "Idempotency-Key",
-      ],
-      exposedHeaders: ["set-cookie"],
-      preflightContinue: false,
-      optionsSuccessStatus: 204,
-    }),
-  );
-}
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Idempotency-Key",
+    ],
+    exposedHeaders: ["set-cookie"],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  }),
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -129,7 +126,6 @@ app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/admin", adminLimiter, adminRoutes);
 app.use("/api/user", apiLimiter, userRoutes);
 app.use("/api/reports", apiLimiter, reportRoutes);
-app.use("/api/feedback", apiLimiter, feedbackRoutes);
 
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
