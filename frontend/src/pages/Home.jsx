@@ -17,6 +17,8 @@ const Home = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useFormPersistence('home_view', 'grid'); // 'grid' or 'list'
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [showHowItWorksModal, setShowHowItWorksModal] = useState(false);
   const isInitialLoad = useRef(true);
   const itemsContainerRef = useRef(null);
 
@@ -68,6 +70,15 @@ const Home = () => {
     fetchItems();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, activeTab]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({
@@ -126,6 +137,14 @@ const Home = () => {
     scrollToItems();
   };
 
+  const handleHowItWorksClick = () => {
+    if (isScrolled) {
+      setShowHowItWorksModal(true);
+    } else {
+      navigate('/how-it-works');
+    }
+  };
+
   return (
     <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
       {/* Animated How It Works Button - slides in from left */}
@@ -140,9 +159,14 @@ const Home = () => {
         }}
         className="fixed top-20 left-4 z-40"
       >
-        <button
-          onClick={() => navigate('/how-it-works')}
-          className={`group px-4 py-3 rounded-full shadow-lg transition-all duration-300 ${
+        <motion.button
+          onClick={handleHowItWorksClick}
+          animate={{
+            paddingLeft: isScrolled ? 12 : 16,
+            paddingRight: isScrolled ? 12 : 16,
+          }}
+          transition={{ duration: 0.3 }}
+          className={`group rounded-full shadow-lg transition-all duration-300 py-3 ${
             darkMode 
               ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500' 
               : 'bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-400 hover:to-teal-400'
@@ -150,7 +174,7 @@ const Home = () => {
           title="How It Works"
         >
           <svg
-            className="w-5 h-5 text-white"
+            className="w-5 h-5 text-white flex-shrink-0"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -162,11 +186,79 @@ const Home = () => {
               d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <span className="text-white font-semibold text-sm whitespace-nowrap">
-            How It Works
-          </span>
-        </button>
+          {!isScrolled && (
+            <motion.span 
+              className="text-white font-semibold text-sm whitespace-nowrap"
+              initial={{ opacity: 1, width: 'auto' }}
+              exit={{ opacity: 0, width: 0 }}
+            >
+              How It Works
+            </motion.span>
+          )}
+        </motion.button>
       </motion.div>
+
+      {/* How It Works Modal */}
+      {showHowItWorksModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className={`rounded-xl max-w-2xl max-h-[80vh] overflow-y-auto ${
+              darkMode ? 'bg-gray-900' : 'bg-white'
+            }`}
+          >
+            <div className="sticky top-0 flex justify-between items-center p-6 border-b border-gray-300 dark:border-gray-700">
+              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                How It Works
+              </h2>
+              <button
+                onClick={() => setShowHowItWorksModal(false)}
+                className={`p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors`}
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className={`p-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Why We Built This Card */}
+                <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                  <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                    🔎 Why We Built This
+                  </h3>
+                  <p className="text-sm mb-2">
+                    Historically, campus-wide <span className="font-semibold">lost-and-found updates</span> were sent as <span className="font-semibold">mass emails</span>. This <span className="font-semibold">clutters inboxes</span>.
+                  </p>
+                  <p className="text-sm mb-2">
+                    This portal centralizes found-item listings, resulting in <span className="font-semibold">less inbox noise</span> and clearer matching.
+                  </p>
+                  <p className="text-sm">
+                    <strong>⚠️ Important:</strong> Avoid sharing detailed photos of lost items in mass emails. Use this portal to keep sensitive information secure.
+                  </p>
+                </div>
+
+                {/* Overview Card */}
+                <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                  <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                    📋 Overview
+                  </h3>
+                  <p className="text-sm mb-2">
+                    This portal is managed by Thapar University administration. <span className="font-semibold">📌 Only items physically deposited with the campus guard or admin are listed here.</span>
+                  </p>
+                  <p className="text-sm mb-3">
+                    If you find an item, <span className="font-semibold">please hand it over to the campus guard or admin</span>.
+                  </p>
+                  <div className={`text-xs p-2 rounded border-l-4 ${darkMode ? 'bg-gray-700 border-indigo-400' : 'bg-indigo-50 border-indigo-600'}`}>
+                    <p><span className="font-bold">🔔 Important:</span> It is <span className="font-semibold">your responsibility</span> to check the portal and apply for a claim if you have lost something.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
 
       <div className="px-4 sm:px-6 md:px-8 lg:px-16 xl:px-24 py-12">
         {/* Hero Section */}
