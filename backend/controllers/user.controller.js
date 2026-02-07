@@ -41,12 +41,10 @@ export const claimItem = async (req, res) => {
     });
 
     if (rejectedClaim) {
-      return res
-        .status(403)
-        .json({
-          message:
-            "You cannot claim this item as your previous claim was rejected",
-        });
+      return res.status(403).json({
+        message:
+          "You cannot claim this item as your previous claim was rejected",
+      });
     }
 
     // Create new claim
@@ -431,10 +429,12 @@ export const updateProfile = async (req, res) => {
   const schema = Joi.object({
     // Limit name length to reasonable size
     name: Joi.string().min(2).max(100),
-    // Require numeric roll numbers (accept number or numeric string)
+    // Accept only numeric roll numbers for updates (6-15 digits)
     rollNo: Joi.alternatives().try(
-      Joi.number().integer().min(1),
-      Joi.string().pattern(/^\d+$/),
+      Joi.number().integer().min(100000).max(999999999999999),
+      Joi.string()
+        .pattern(/^\d{6,15}$/)
+        .message("Roll number must be 6-15 digits"),
     ),
     phone: Joi.string()
       .pattern(/^\d{10,15}$/)

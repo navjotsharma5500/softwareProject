@@ -590,7 +590,7 @@ const Profile = () => {
                       }`}>
                         <div className="flex justify-between items-center">
                           <p className={`text-sm ${darkMode ? 'text-yellow-200' : 'text-yellow-800'}`}>
-                            <strong>Next Steps:</strong> Visit the admin office during office hours for verification.
+                            <strong>Pending:</strong> Please visit the admin office during office hours to collect your item.
                           </p>
                           <button
                             onClick={() => handleRemoveClaim(claim._id, claim.item?.name || 'this item')}
@@ -606,12 +606,22 @@ const Profile = () => {
                       </div>
                     )}
 
-                    {claim.status === 'approved' && !claim.remarks && (
+                    {claim.status === 'approved' && (
                       <div className={`p-4 rounded-lg border ${
                         darkMode ? 'bg-green-900/20 border-green-800' : 'bg-green-50 border-green-200'
                       }`}>
                         <p className={`text-sm ${darkMode ? 'text-green-200' : 'text-green-800'}`}>
-                          <strong>Approved!</strong> Your claim has been approved. Please visit the admin office to collect your item.
+                          <strong>Approved!</strong> This item is now in your possession. You have successfully claimed this item.
+                        </p>
+                      </div>
+                    )}
+
+                    {claim.status === 'rejected' && (
+                      <div className={`p-4 rounded-lg border ${
+                        darkMode ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-200'
+                      }`}>
+                        <p className={`text-sm ${darkMode ? 'text-red-200' : 'text-red-800'}`}>
+                          <strong>Rejected:</strong> Your claim was not approved.
                         </p>
                       </div>
                     )}
