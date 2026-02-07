@@ -18,7 +18,6 @@ const Home = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useFormPersistence('home_view', 'grid'); // 'grid' or 'list'
   const [isScrolled, setIsScrolled] = useState(false);
-  const [showHowItWorksModal, setShowHowItWorksModal] = useState(false);
   const isInitialLoad = useRef(true);
   const itemsContainerRef = useRef(null);
 
@@ -137,14 +136,6 @@ const Home = () => {
     scrollToItems();
   };
 
-  const handleHowItWorksClick = () => {
-    if (isScrolled) {
-      setShowHowItWorksModal(true);
-    } else {
-      navigate('/how-it-works');
-    }
-  };
-
   return (
     <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
       {/* Animated How It Works Button - slides in from left */}
@@ -160,7 +151,7 @@ const Home = () => {
         className="fixed top-16 sm:top-20 left-2 sm:left-4 z-40"
       >
         <motion.button
-          onClick={handleHowItWorksClick}
+          onClick={() => navigate('/how-it-works')}
           animate={{
             paddingLeft: isScrolled ? 10 : 12,
             paddingRight: isScrolled ? 10 : 12,
@@ -197,74 +188,6 @@ const Home = () => {
           )}
         </motion.button>
       </motion.div>
-
-      {/* How It Works Modal */}
-      {showHowItWorksModal && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-2 sm:p-4"
-          onClick={() => setShowHowItWorksModal(false)}
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            onClick={(e) => e.stopPropagation()}
-            className={`rounded-xl w-full max-w-2xl max-h-[85vh] sm:max-h-[80vh] overflow-y-auto ${
-              darkMode ? 'bg-gray-900' : 'bg-white'
-            }`}
-          >
-            <div className={`sticky top-0 flex justify-between items-center p-3 sm:p-6 border-b ${
-              darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-300'
-            }`}>
-              <h2 className={`text-lg sm:text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                How It Works
-              </h2>
-              <button
-                onClick={() => setShowHowItWorksModal(false)}
-                className={`p-1.5 sm:p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors`}
-              >
-                <X className="w-5 h-5 sm:w-6 sm:h-6" />
-              </button>
-            </div>
-            <div className={`p-3 sm:p-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              <div className="grid grid-cols-1 gap-4 sm:gap-6">
-                {/* Why We Built This Card */}
-                <div className={`p-3 sm:p-4 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                  <h3 className={`text-base sm:text-xl font-bold mb-2 sm:mb-3 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
-                    🔎 Why We Built This
-                  </h3>
-                  <p className="text-xs sm:text-sm mb-2">
-                    Historically, campus-wide <span className="font-semibold">lost-and-found updates</span> were sent as <span className="font-semibold">mass emails</span>. This <span className="font-semibold">clutters inboxes</span>.
-                  </p>
-                  <p className="text-xs sm:text-sm mb-2">
-                    This portal centralizes found-item listings, resulting in <span className="font-semibold">less inbox noise</span> and clearer matching.
-                  </p>
-                  <p className="text-xs sm:text-sm">
-                    <strong>⚠️ Important:</strong> Avoid sharing detailed photos of lost items in mass emails. Use this portal to keep sensitive information secure.
-                  </p>
-                </div>
-
-                {/* Overview Card */}
-                <div className={`p-3 sm:p-4 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                  <h3 className={`text-base sm:text-xl font-bold mb-2 sm:mb-3 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
-                    📋 Overview
-                  </h3>
-                  <p className="text-xs sm:text-sm mb-2">
-                    This portal is managed by Thapar University administration. <span className="font-semibold">📌 Only items physically deposited with the campus guard or admin are listed here.</span>
-                  </p>
-                  <p className="text-xs sm:text-sm mb-2 sm:mb-3">
-                    If you find an item, <span className="font-semibold">please hand it over to the campus guard or admin</span>.
-                  </p>
-                  <div className={`text-xs p-2 rounded border-l-4 ${darkMode ? 'bg-gray-700 border-indigo-400' : 'bg-indigo-50 border-indigo-600'}`}>
-                    <p><span className="font-bold">🔔 Important:</span> It is <span className="font-semibold">your responsibility</span> to check the portal and apply for a claim if you have lost something.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
-
 
       <div className="px-4 sm:px-6 md:px-8 lg:px-16 xl:px-24 py-12">
         {/* Hero Section */}
