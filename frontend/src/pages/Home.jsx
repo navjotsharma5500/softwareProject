@@ -128,6 +128,46 @@ const Home = () => {
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
+      {/* Animated How It Works Button - slides in from left */}
+      <motion.div
+        initial={{ x: -100, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ 
+          type: "spring",
+          stiffness: 100,
+          damping: 20,
+          delay: 0.5
+        }}
+        className="fixed top-20 left-4 z-40"
+      >
+        <button
+          onClick={() => navigate('/how-it-works')}
+          className={`group px-4 py-3 rounded-full shadow-lg transition-all duration-300 ${
+            darkMode 
+              ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500' 
+              : 'bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-400 hover:to-teal-400'
+          } hover:scale-105 flex items-center justify-center gap-2`}
+          title="How It Works"
+        >
+          <svg
+            className="w-5 h-5 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <span className="text-white font-semibold text-sm whitespace-nowrap">
+            How It Works
+          </span>
+        </button>
+      </motion.div>
+
       <div className="px-4 sm:px-6 md:px-8 lg:px-16 xl:px-24 py-12">
         {/* Hero Section */}
         <div className="text-center mb-16 mt-8">
