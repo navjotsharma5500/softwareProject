@@ -157,24 +157,24 @@ const Home = () => {
           damping: 20,
           delay: 0.5
         }}
-        className="fixed top-20 left-4 z-40"
+        className="fixed top-16 sm:top-20 left-2 sm:left-4 z-40"
       >
         <motion.button
           onClick={handleHowItWorksClick}
           animate={{
-            paddingLeft: isScrolled ? 12 : 16,
-            paddingRight: isScrolled ? 12 : 16,
+            paddingLeft: isScrolled ? 10 : 12,
+            paddingRight: isScrolled ? 10 : 12,
           }}
           transition={{ duration: 0.3 }}
-          className={`group rounded-full shadow-lg transition-all duration-300 py-3 ${
+          className={`group rounded-full shadow-lg transition-all duration-300 py-2 sm:py-3 ${
             darkMode 
               ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500' 
               : 'bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-400 hover:to-teal-400'
-          } hover:scale-105 flex items-center justify-center gap-2`}
+          } hover:scale-105 flex items-center justify-center gap-1 sm:gap-2`}
           title="How It Works"
         >
           <svg
-            className="w-5 h-5 text-white flex-shrink-0"
+            className="w-4 h-4 sm:w-5 sm:h-5 text-white flex-shrink-0"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -188,7 +188,7 @@ const Home = () => {
           </svg>
           {!isScrolled && (
             <motion.span 
-              className="text-white font-semibold text-sm whitespace-nowrap"
+              className="text-white font-semibold text-xs sm:text-sm whitespace-nowrap"
               initial={{ opacity: 1, width: 'auto' }}
               exit={{ opacity: 0, width: 0 }}
             >
@@ -200,53 +200,59 @@ const Home = () => {
 
       {/* How It Works Modal */}
       {showHowItWorksModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-2 sm:p-4"
+          onClick={() => setShowHowItWorksModal(false)}
+        >
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className={`rounded-xl max-w-2xl max-h-[80vh] overflow-y-auto ${
+            onClick={(e) => e.stopPropagation()}
+            className={`rounded-xl w-full max-w-2xl max-h-[85vh] sm:max-h-[80vh] overflow-y-auto ${
               darkMode ? 'bg-gray-900' : 'bg-white'
             }`}
           >
-            <div className="sticky top-0 flex justify-between items-center p-6 border-b border-gray-300 dark:border-gray-700">
-              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            <div className={`sticky top-0 flex justify-between items-center p-3 sm:p-6 border-b ${
+              darkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-300'
+            }`}>
+              <h2 className={`text-lg sm:text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                 How It Works
               </h2>
               <button
                 onClick={() => setShowHowItWorksModal(false)}
-                className={`p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors`}
+                className={`p-1.5 sm:p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors`}
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
             </div>
-            <div className={`p-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className={`p-3 sm:p-6 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <div className="grid grid-cols-1 gap-4 sm:gap-6">
                 {/* Why We Built This Card */}
-                <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                  <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                <div className={`p-3 sm:p-4 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                  <h3 className={`text-base sm:text-xl font-bold mb-2 sm:mb-3 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
                     🔎 Why We Built This
                   </h3>
-                  <p className="text-sm mb-2">
+                  <p className="text-xs sm:text-sm mb-2">
                     Historically, campus-wide <span className="font-semibold">lost-and-found updates</span> were sent as <span className="font-semibold">mass emails</span>. This <span className="font-semibold">clutters inboxes</span>.
                   </p>
-                  <p className="text-sm mb-2">
+                  <p className="text-xs sm:text-sm mb-2">
                     This portal centralizes found-item listings, resulting in <span className="font-semibold">less inbox noise</span> and clearer matching.
                   </p>
-                  <p className="text-sm">
+                  <p className="text-xs sm:text-sm">
                     <strong>⚠️ Important:</strong> Avoid sharing detailed photos of lost items in mass emails. Use this portal to keep sensitive information secure.
                   </p>
                 </div>
 
                 {/* Overview Card */}
-                <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                  <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                <div className={`p-3 sm:p-4 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                  <h3 className={`text-base sm:text-xl font-bold mb-2 sm:mb-3 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
                     📋 Overview
                   </h3>
-                  <p className="text-sm mb-2">
+                  <p className="text-xs sm:text-sm mb-2">
                     This portal is managed by Thapar University administration. <span className="font-semibold">📌 Only items physically deposited with the campus guard or admin are listed here.</span>
                   </p>
-                  <p className="text-sm mb-3">
+                  <p className="text-xs sm:text-sm mb-2 sm:mb-3">
                     If you find an item, <span className="font-semibold">please hand it over to the campus guard or admin</span>.
                   </p>
                   <div className={`text-xs p-2 rounded border-l-4 ${darkMode ? 'bg-gray-700 border-indigo-400' : 'bg-indigo-50 border-indigo-600'}`}>
