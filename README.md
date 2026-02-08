@@ -66,8 +66,8 @@ A full-stack web application for managing lost and found items at **Thapar Insti
 - **MongoDB** - NoSQL database
 - **Mongoose 8.19.3** - ODM for MongoDB
 - **Redis (ioredis 5.8.2)** - Caching & session management
-- **JWT** - Authentication
-- **bcryptjs** - Password hashing
+- **JWT** - Authentication tokens
+- **Google OAuth 2.0** - Secure authentication via Thapar email
 - **Helmet** - Security headers
 - **CORS** - Cross-origin resource sharing
 - **Morgan** - HTTP request logger
@@ -151,10 +151,12 @@ This creates:
 - 15 sample items
 - 3 pending claims
 
-**Default Test Credentials:**
+**Default Test Users:**
 
-- **Admin**: admin@thapar.edu / admin123
-- **User**: john.doe@thapar.edu / password123
+- **Admin**: admin@thapar.edu (Google OAuth)
+- **User**: john.doe@thapar.edu (Google OAuth)
+
+_Note: Authentication is via Google OAuth using @thapar.edu emails only_
 
 ### 5. Run the Application
 
@@ -225,7 +227,6 @@ softwareProject/
 │   │   ├── pages/         # Page components
 │   │   │   ├── Home.jsx
 │   │   │   ├── login.jsx
-│   │   │   ├── signup.jsx
 │   │   │   ├── admin.jsx
 │   │   │   └── Claim_items.jsx
 │   │   ├── context/       # React Context
@@ -240,7 +241,8 @@ softwareProject/
 
 ## 🔐 Authentication & Authorization
 
-- **JWT-based authentication** with HTTP-only cookies
+- **Google OAuth 2.0 authentication** with @thapar.edu email restriction
+- **JWT-based sessions** with HTTP-only cookies
 - **Token expiry**: 1 hour
 - **Admin privileges** must be manually set in the database
 - **Protected routes** for user claims and admin dashboard
@@ -273,7 +275,8 @@ System auto-rejects other claims → Notify users
 
 - Email (must be @thapar.edu)
 - Name, Roll Number
-- Password (hashed with bcrypt)
+- Google ID
+- Profile Picture (Google)
 - isAdmin flag
 
 ### Item
@@ -311,8 +314,9 @@ COS, Library, LT, near HOSTEL O C D M, near HOSTEL A B J H, near HOSTEL Q PG, ne
 
 ## 🛡️ Security Features
 
-- Password hashing with bcryptjs
+- Google OAuth 2.0 integration
 - JWT token authentication
+- @thapar.edu email domain restriction
 - HTTP-only cookies
 - Helmet.js for security headers
 - CORS protection
@@ -334,8 +338,10 @@ Detailed API documentation is available in `backend/API_DOCUMENTATION.md`
 **Key Endpoints:**
 
 - `GET /api/user/items` - Browse items (public, cached)
-- `POST /api/auth/signup` - Create account (rate limited: 50/15min)
-- `POST /api/auth/login` - Login (rate limited: 50/15min)
+- `GET /api/auth/google` - Initiate Google OAuth
+- `GET /api/auth/google/callback` - OAuth callback
+- `POST /api/auth/logout` - Logout user
+- `GET /api/auth/profile` - Get current user profile
 - `POST /api/user/items/:id/claim` - Claim item (rate limited: 10/hour, idempotent)
 - `GET /api/user/my-claims` - View my claims (cached)
 - `POST /api/admin/items` - Create item (admin, cache invalidation)
@@ -369,7 +375,7 @@ Creates admin@thapar.edu / admin123
 
 ### Method 2: Manual Setup
 
-1. Sign up normally through the UI
+1. Login with your @thapar.edu Google account through the UI
 2. Connect to MongoDB
 3. Run:
 

@@ -32,50 +32,6 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   };
 
-  const login = async (email, password) => {
-    try {
-      const response = await axios.post(`${API_URL}/auth/login`, {
-        email,
-        password
-      });
-      const { token } = response.data;
-      localStorage.setItem('token', token);
-      
-      // Get user profile
-      const profileResponse = await axios.get(`${API_URL}/auth/profile`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const userData = profileResponse.data.user;
-      setUser(userData);
-      
-      return { success: true, user: userData };
-    } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.message || 'Login failed' 
-      };
-    }
-  };
-
-  const signup = async (name, email, password, rollNo) => {
-    try {
-      await axios.post(`${API_URL}/auth/signup`, {
-        name,
-        email,
-        password,
-        rollNo
-      });
-      
-      // Auto login after signup
-      return await login(email, password);
-    } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.message || 'Signup failed' 
-      };
-    }
-  };
-
   const logout = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -96,8 +52,6 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     loading,
-    login,
-    signup,
     logout,
     isAuthenticated: !!user,
     isAdmin: user?.isAdmin || false

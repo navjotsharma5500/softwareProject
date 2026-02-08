@@ -119,7 +119,7 @@ export function getClaimStatusEmailBody(claim, status) {
     <p style="color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
       ${
         isApproved
-          ? `Great news! Your claim for the item has been approved. Please visit the admin office during working hours to collect your item.`
+          ? `Great news! Your claim has been approved and the item has been successfully handed over to you. This email serves as your receipt.`
           : `We regret to inform you that your claim has been rejected. This may be due to insufficient verification details, inability to verify ownership, or if the item has already been claimed by the rightful owner.`
       }
     </p>
@@ -166,30 +166,15 @@ export function getClaimStatusEmailBody(claim, status) {
     </div>
 
     ${
-      isApproved
+      !isApproved
         ? `
-      <div style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 20px; margin-bottom: 24px; border-radius: 4px;">
-        <h3 style="margin: 0 0 12px 0; color: #1e40af; font-size: 16px; font-weight: 600;">
-          📍 Next Steps
-        </h3>
-        <ol style="margin: 0; padding-left: 20px; color: #1e3a8a; font-size: 14px; line-height: 1.8;">
-          <li>Visit the admin office during working hours</li>
-          <li>Bring your student ID or valid identification</li>
-          <li>Be prepared to answer verification questions about the item</li>
-            <li>The admin will verify your identity and the claim in-person before handing over the item</li>
-        </ol>
-      </div>
-    `
-        : `
       <div style="background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 20px; margin-bottom: 24px; border-radius: 4px;">
         <h3 style="margin: 0 0 12px 0; color: #991b1b; font-size: 16px; font-weight: 600;">
-          ℹ️ What You Can Do
+          📋 Claim Status Record
         </h3>
-        <ul style="margin: 0; padding-left: 20px; color: #7f1d1d; font-size: 14px; line-height: 1.8;">
-          <li>If you believe this is an error, contact the admin team</li>
-          <li>Provide additional proof of ownership if available</li>
-          <li>Check if you can submit a new claim with more details</li>
-        </ul>
+        <p style="margin: 0; color: #7f1d1d; font-size: 14px; line-height: 1.6;">
+          Your claim has been reviewed and was not approved. This email serves as official documentation of the claim decision. Reasons may include insufficient verification or the item being claimed by its rightful owner.
+        </p>
       </div>
     `
     }
@@ -197,7 +182,7 @@ export function getClaimStatusEmailBody(claim, status) {
     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
     
     <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0;">
-      If you have any questions or concerns, please don't hesitate to contact us.
+      Thank you for using Thapar Lost & Found Portal. Keep this email as your receipt.
     </p>
   `;
 
