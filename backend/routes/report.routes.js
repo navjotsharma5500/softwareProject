@@ -34,12 +34,28 @@ router.get("/user/:userId", isAuthenticated, adminOnly, getReportsByUserId);
 router.get("/:id", isAuthenticated, getReportById);
 
 // Update a report (with idempotency)
-router.patch("/:id", isAuthenticated, idempotencyMiddleware(3600), updateReport);
+router.patch(
+  "/:id",
+  isAuthenticated,
+  idempotencyMiddleware(3600),
+  updateReport,
+);
 
 // Delete a report (with idempotency)
-router.delete("/:id", isAuthenticated, idempotencyMiddleware(3600), deleteReport);
+router.delete(
+  "/:id",
+  isAuthenticated,
+  idempotencyMiddleware(3600),
+  deleteReport,
+);
 
 // Update report status (admin only, with idempotency)
-router.patch("/:id/status", isAuthenticated, adminOnly, idempotencyMiddleware(3600), updateReportStatus);
+router.patch(
+  "/:id/status",
+  isAuthenticated,
+  adminOnly,
+  idempotencyMiddleware(3600),
+  updateReportStatus,
+);
 
 export default router;

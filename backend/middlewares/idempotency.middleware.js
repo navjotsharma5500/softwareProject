@@ -4,7 +4,7 @@ import { getCache, setCache } from "../utils/redisClient.js";
  * Idempotency middleware to prevent duplicate requests
  * Clients should send an `Idempotency-Key` header with a unique UUID
  * If the same key is used within the TTL window, returns the cached response
- * 
+ *
  * @param {number} ttlSeconds - Time to live for the cached response (default: 86400 = 24 hours)
  * @param {boolean} strict - If true, requires Idempotency-Key header (default: false)
  */
@@ -19,9 +19,9 @@ export const idempotencyMiddleware = (ttlSeconds = 86400, strict = false) => {
 
     // If strict mode is enabled and no idempotency key is provided, reject the request
     if (strict && !idempotencyKey) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: "Idempotency-Key header is required for this operation",
-        hint: "Include a unique UUID in the 'Idempotency-Key' header to prevent duplicate requests"
+        hint: "Include a unique UUID in the 'Idempotency-Key' header to prevent duplicate requests",
       });
     }
 

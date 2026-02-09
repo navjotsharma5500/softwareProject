@@ -35,8 +35,10 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Add idempotency key for POST, PUT, PATCH requests
-    if (["post", "put", "patch"].includes(config.method?.toLowerCase())) {
+    // Add idempotency key for POST, PUT, PATCH, DELETE requests
+    if (
+      ["post", "put", "patch", "delete"].includes(config.method?.toLowerCase())
+    ) {
       config.headers["Idempotency-Key"] = generateUUID();
     }
 
