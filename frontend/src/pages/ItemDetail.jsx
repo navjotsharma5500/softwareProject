@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MapPin, Calendar, ArrowLeft, User, Trash2 } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
@@ -23,6 +23,10 @@ const ItemDetail = () => {
   const [userClaimId, setUserClaimId] = useState(null);
   const [checkingClaim, setCheckingClaim] = useState(false);
   const [userHasRejectedClaim, setUserHasRejectedClaim] = useState(false);
+  
+  // Use refs to prevent spam submissions
+  const isClaimingRef = useRef(false);
+  const isDeletingClaimRef = useRef(false);
 
   const fetchItemDetails = async () => {
     try {
@@ -86,6 +90,13 @@ const ItemDetail = () => {
       return;
     }
 
+    // Prevent spam claiming
+    if (isClaimingRef.current || claiming) {
+      console.log('Duplicate claim blocked');
+      return;
+    }
+
+    isClaimingRef.current = true;
     setClaiming(true);
     try {
       await userApi.claimItem(id);
@@ -98,6 +109,7 @@ const ItemDetail = () => {
       // If error, recheck claim status
       setUserHasClaimed(false);
     } finally {
+      isClaimingRef.current = false;
       setClaiming(false);
     }
   };
@@ -105,6 +117,13 @@ const ItemDetail = () => {
   const handleRemoveClaim = async () => {
     if (!userClaimId) return;
 
+    // Prevent spam deletion
+    if (isDeletingClaimRef.current || deletingClaim) {
+      console.log('Duplicate deletion blocked');
+      return;
+    }
+
+    isDeletingClaimRef.current = true;
     setDeletingClaim(true);
     try {
       await userApi.deleteClaim(userClaimId);
@@ -117,6 +136,7 @@ const ItemDetail = () => {
       const message = error.response?.data?.message || 'Failed to remove claim';
       toast.error(message);
     } finally {
+      isDeletingClaimRef.current = false;
       setDeletingClaim(false);
     }
   };

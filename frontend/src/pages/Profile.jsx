@@ -24,6 +24,11 @@ const Profile = () => {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   
+  // Use refs to prevent spam submissions
+  const isSavingRef = useRef(false);
+  const isDeletingClaimRef = useRef(false);
+  const isDeletingReportRef = useRef(false);
+  
   // Check URL parameter for section on mount
   const initialSection = searchParams.get('section') === 'reports' ? 'reports' : 'claims';
   const [activeSection, setActiveSection] = useState(initialSection); // 'claims' or 'reports'
@@ -139,6 +144,13 @@ const Profile = () => {
   };
 
   const handleSave = async () => {
+    // Prevent spam saves
+    if (isSavingRef.current || saving) {
+      console.log('Duplicate save blocked');
+      return;
+    }
+
+    isSavingRef.current = true;
     setSaving(true);
     try {
       // Client-side validation: prevent excessively long names
@@ -161,6 +173,7 @@ const Profile = () => {
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update profile');
     } finally {
+      isSavingRef.current = false;
       setSaving(false);
     }
   };
@@ -178,6 +191,13 @@ const Profile = () => {
     const confirmed = window.confirm(`Are you sure you want to remove your claim for "${itemName}"?`);
     if (!confirmed) return;
 
+    // Prevent spam deletions
+    if (isDeletingClaimRef.current || deletingClaim === claimId) {
+      console.log('Duplicate claim deletion blocked');
+      return;
+    }
+
+    isDeletingClaimRef.current = true;
     setDeletingClaim(claimId);
     try {
       await userApi.deleteClaim(claimId);
@@ -190,6 +210,7 @@ const Profile = () => {
       const message = error.response?.data?.message || 'Failed to remove claim';
       toast.error(message);
     } finally {
+      isDeletingClaimRef.current = false;
       setDeletingClaim(null);
     }
   };
@@ -198,6 +219,13 @@ const Profile = () => {
     const confirmed = window.confirm(`Are you sure you want to delete your report for "${itemName}"?`);
     if (!confirmed) return;
 
+    // Prevent spam deletions
+    if (isDeletingReportRef.current || deletingReport === reportId) {
+      console.log('Duplicate report deletion blocked');
+      return;
+    }
+
+    isDeletingReportRef.current = true;
     setDeletingReport(reportId);
     try {
       await reportApi.deleteReport(reportId);
@@ -210,6 +238,7 @@ const Profile = () => {
       const message = error.response?.data?.message || 'Failed to delete report';
       toast.error(message);
     } finally {
+      isDeletingReportRef.current = false;
       setDeletingReport(null);
     }
   };

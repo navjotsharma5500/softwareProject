@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useDarkMode } from '../context/DarkModeContext';
@@ -15,6 +15,9 @@ const ReportLostItem = () => {
   const { darkMode } = useDarkMode();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  
+  // Use ref to prevent spam submissions
+  const isSubmittingRef = useRef(false);
   const [photos, setPhotos, photosControls] = useFormPersistence('reportLost_photos', []);
   const [formData, setFormData, formControls] = useFormPersistence('reportLost_form', {
     itemDescription: '',
@@ -68,11 +71,18 @@ const ReportLostItem = () => {
       return;
     }
 
+    // Prevent spam submissions
+    if (isSubmittingRef.current || loading) {
+      console.log('Duplicate submission blocked');
+      return;
+    }
+
     if (!formData.itemDescription || !formData.category || !formData.location || !formData.dateLost) {
       toast.error('Please fill all required fields');
       return;
     }
 
+    isSubmittingRef.current = true;
     setLoading(true);
     try {
       // Normalize category to expected enum key (defensive: handle numeric indices or display labels)
@@ -135,6 +145,7 @@ const ReportLostItem = () => {
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to submit report');
     } finally {
+      isSubmittingRef.current = false;
       setLoading(false);
     }
   };
