@@ -33,6 +33,7 @@ export const LOCATIONS = [
   "Auditorium",
   "Main Gate",
   "Jaggi",
+  "Other",
 ];
 
 export const TIME_PERIODS = [

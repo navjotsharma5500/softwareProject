@@ -29,7 +29,7 @@ router.post(
   claimItem,
 );
 router.get("/my-claims", isAuthenticated, myClaims);
-router.delete("/my-claims/:claimId", isAuthenticated, deleteClaim);
+router.delete("/my-claims/:claimId", isAuthenticated, idempotencyMiddleware(3600), deleteClaim);
 router.get("/profile", isAuthenticated, getProfile);
 router.patch(
   "/profile",

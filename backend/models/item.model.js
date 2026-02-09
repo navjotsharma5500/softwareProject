@@ -43,6 +43,7 @@ const itemSchema = new mongoose.Schema(
         "Auditorium",
         "Main Gate",
         "Jaggi",
+        "Other",
       ],
       required: true,
     },

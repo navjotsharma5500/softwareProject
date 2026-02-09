@@ -4,17 +4,28 @@ import { getCache, setCache } from "../utils/redisClient.js";
  * Idempotency middleware to prevent duplicate requests
  * Clients should send an `Idempotency-Key` header with a unique UUID
  * If the same key is used within the TTL window, returns the cached response
+ * 
+ * @param {number} ttlSeconds - Time to live for the cached response (default: 86400 = 24 hours)
+ * @param {boolean} strict - If true, requires Idempotency-Key header (default: false)
  */
-export const idempotencyMiddleware = (ttlSeconds = 86400) => {
+export const idempotencyMiddleware = (ttlSeconds = 86400, strict = false) => {
   return async (req, res, next) => {
-    // Only apply to POST, PUT, PATCH requests
-    if (!["POST", "PUT", "PATCH"].includes(req.method)) {
+    // Only apply to POST, PUT, PATCH, DELETE requests
+    if (!["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) {
       return next();
     }
 
     const idempotencyKey = req.headers["idempotency-key"];
 
-    // If no idempotency key provided, continue without caching
+    // If strict mode is enabled and no idempotency key is provided, reject the request
+    if (strict && !idempotencyKey) {
+      return res.status(400).json({ 
+        message: "Idempotency-Key header is required for this operation",
+        hint: "Include a unique UUID in the 'Idempotency-Key' header to prevent duplicate requests"
+      });
+    }
+
+    // If no idempotency key provided (and not strict), continue without caching
     if (!idempotencyKey) {
       return next();
     }
@@ -26,7 +37,8 @@ export const idempotencyMiddleware = (ttlSeconds = 86400) => {
       const cachedResponse = await getCache(cacheKey);
 
       if (cachedResponse) {
-        // Return cached response
+        // Return cached response with a header indicating it was from cache
+        res.setHeader("X-Idempotency-Replay", "true");
         return res.status(cachedResponse.status).json(cachedResponse.data);
       }
 

@@ -1,6 +1,7 @@
 import Item from "../models/item.model.js";
 import Claim from "../models/claim.model.js";
 import Report from "../models/report.model.js";
+import { getNextSequence } from "../models/counter.model.js";
 
 import { sendEmail, getClaimStatusEmailBody } from "../utils/email.utils.js";
 import User from "../models/user.model.js";
@@ -101,9 +102,9 @@ export const createItem = async (req, res) => {
   category = categoryResult.category;
 
   try {
-    // Auto-generate Item ID
-    const itemCount = await Item.countDocuments();
-    const itemId = `ITEM${String(itemCount + 1).padStart(6, "0")}`;
+    // Auto-generate Item ID using atomic counter to prevent race conditions
+    const sequence = await getNextSequence("itemId");
+    const itemId = `ITEM${String(sequence).padStart(6, "0")}`;
 
     const newItem = new Item({
       itemId,
