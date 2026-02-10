@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, X, RefreshCw, Grid, List } from 'lucide-react';
 import { toast } from 'react-toastify';
