@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Edit2, Trash2, CheckCircle, XCircle, Package, Users, RefreshCw, Search, Filter, FileText, AlertCircle, MapPin, Clock, Calendar, MessageSquare, Star, Download } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { adminApi, userApi } from '../utils/api';
+import axios from 'axios';
 import { CATEGORIES, LOCATIONS, CATEGORY_DISPLAY_NAMES } from '../utils/constants';
 import useFormPersistence from '../hooks/useFormPersistence.jsx';
 import ImageLightbox from '../components/ImageLightbox';
@@ -46,6 +47,12 @@ const Admin = () => {
     status: 'all' // pending, approved, rejected, all
   });
   
+  // Local search input states to avoid API spam
+  const [itemSearchInput, setItemSearchInput] = useState(itemFilters.search || '');
+  const [claimSearchInput, setClaimSearchInput] = useState(claimFilters.search || '');
+  const itemSearchTimeoutRef = useRef(null);
+  const claimSearchTimeoutRef = useRef(null);
+  
   // Form state for create/edit
   const [formData, setFormData, formControls] = useFormPersistence('admin_item_form', {
     itemId: '',
@@ -70,6 +77,38 @@ const Admin = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, itemsPage, claimsPage, itemFilters, claimFilters]);
+  
+  // Sync search inputs with filter state
+  useEffect(() => {
+    setItemSearchInput(itemFilters.search || '');
+  }, [itemFilters.search]);
+  
+  useEffect(() => {
+    setClaimSearchInput(claimFilters.search || '');
+  }, [claimFilters.search]);
+  
+  // Debounced search handlers
+  const handleItemSearchChange = (value) => {
+    setItemSearchInput(value);
+    if (itemSearchTimeoutRef.current) {
+      clearTimeout(itemSearchTimeoutRef.current);
+    }
+    itemSearchTimeoutRef.current = setTimeout(() => {
+      setItemFilters({ ...itemFilters, search: value });
+      setItemsPage(1);
+    }, 300);
+  };
+  
+  const handleClaimSearchChange = (value) => {
+    setClaimSearchInput(value);
+    if (claimSearchTimeoutRef.current) {
+      clearTimeout(claimSearchTimeoutRef.current);
+    }
+    claimSearchTimeoutRef.current = setTimeout(() => {
+      setClaimFilters({ ...claimFilters, search: value });
+      setClaimsPage(1);
+    }, 300);
+  };
 
   const fetchItems = async () => {
     setLoading(true);
@@ -88,6 +127,10 @@ const Admin = () => {
       setItems(response.data.items);
       setItemsPagination(response.data.pagination || {});
     } catch (error) {
+      // Ignore cancellation errors (both AbortError and Axios CanceledError)
+      if (error.name === 'AbortError' || axios.isCancel(error)) {
+        return; // Silently ignore cancelled requests
+      }
       toast.error(error.response?.data?.message || 'Failed to load items');
     } finally {
       setLoading(false);
@@ -115,6 +158,10 @@ const Admin = () => {
       setClaims(response.data.claims);
       setClaimsPagination(response.data.pagination || {});
     } catch (error) {
+      // Ignore cancellation errors (both AbortError and Axios CanceledError)
+      if (error.name === 'AbortError' || axios.isCancel(error)) {
+        return; // Silently ignore cancelled requests
+      }
       toast.error(error.response?.data?.message || 'Failed to load claims');
     } finally {
       setLoading(false);
@@ -432,8 +479,8 @@ const Admin = () => {
                         <input
                           type="text"
                           placeholder="Search items..."
-                          value={itemFilters.search}
-                          onChange={(e) => setItemFilters({...itemFilters, search: e.target.value})}
+                          value={itemSearchInput}
+                          onChange={(e) => handleItemSearchChange(e.target.value)}
                           className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent border-gray-300"
                         />
                       </div>
@@ -471,7 +518,10 @@ const Admin = () => {
                       </select>
                     </div>
                     <button
-                      onClick={() => setItemFilters({ search: '', category: '', location: '', status: '' })}
+                      onClick={() => {
+                        setItemFilters({ search: '', category: '', location: '', status: '' });
+                        setItemSearchInput('');
+                      }}
                       className="px-4 py-2 rounded-lg font-semibold transition-all bg-gray-200 hover:bg-gray-300 text-gray-700"
                     >
                       Clear Filters
@@ -638,14 +688,17 @@ const Admin = () => {
                     <input
                       type="text"
                       placeholder="Search by claimant name or item..."
-                      value={claimFilters.search}
-                      onChange={(e) => setClaimFilters({...claimFilters, search: e.target.value})}
+                      value={claimSearchInput}
+                      onChange={(e) => handleClaimSearchChange(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white border-gray-300"
                     />
                   </div>
                 </div>
                 <button
-                  onClick={() => setClaimFilters({ search: '', status: 'all' })}
+                  onClick={() => {
+                    setClaimFilters({ search: '', status: 'all' });
+                    setClaimSearchInput('');
+                  }}
                   className="px-4 py-2 rounded-lg font-semibold transition-all bg-gray-200 hover:bg-gray-300 text-gray-700"
                 >
                   Clear Filters
@@ -794,14 +847,17 @@ const Admin = () => {
                     <input
                       type="text"
                       placeholder="Search by claimant name or item..."
-                      value={claimFilters.search}
-                      onChange={(e) => setClaimFilters({...claimFilters, search: e.target.value})}
+                      value={claimSearchInput}
+                      onChange={(e) => handleClaimSearchChange(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white border-gray-300"
                     />
                   </div>
                 </div>
                 <button
-                  onClick={() => setClaimFilters({ search: '', status: 'all' })}
+                  onClick={() => {
+                    setClaimFilters({ search: '', status: 'all' });
+                    setClaimSearchInput('');
+                  }}
                   className="px-4 py-2 rounded-lg font-semibold transition-all bg-gray-200 hover:bg-gray-300 text-gray-700"
                 >
                   Clear Filters
@@ -933,14 +989,17 @@ const Admin = () => {
                     <input
                       type="text"
                       placeholder="Search by claimant name or item..."
-                      value={claimFilters.search}
-                      onChange={(e) => setClaimFilters({...claimFilters, search: e.target.value})}
+                      value={claimSearchInput}
+                      onChange={(e) => handleClaimSearchChange(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white border-gray-300"
                     />
                   </div>
                 </div>
                 <button
-                  onClick={() => setClaimFilters({ search: '', status: 'all' })}
+                  onClick={() => {
+                    setClaimFilters({ search: '', status: 'all' });
+                    setClaimSearchInput('');
+                  }}
                   className="px-4 py-2 rounded-lg font-semibold transition-all bg-gray-200 hover:bg-gray-300 text-gray-700"
                 >
                   Clear Filters

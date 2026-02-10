@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, X, RefreshCw, Grid, List } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { publicApi } from '../utils/api';
+import axios from 'axios';
 import { CATEGORIES, LOCATIONS, TIME_PERIODS, CATEGORY_DISPLAY_NAMES } from '../utils/constants';
 import useFormPersistence from '../hooks/useFormPersistence';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -80,10 +80,12 @@ const Home = () => {
       setItems(response.data.items);
       setPagination(response.data.pagination);
     } catch (error) {
-      if (error.name !== 'AbortError') {
-        toast.error('Failed to load items');
-        console.error(error);
+      // Ignore cancellation errors (both AbortError and Axios CanceledError)
+      if (error.name === 'AbortError' || axios.isCancel(error)) {
+        return; // Silently ignore cancelled requests
       }
+      toast.error('Failed to load items');
+      console.error(error);
     } finally {
       setLoading(false);
       isInitialLoad.current = false;
