@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useDarkMode } from '../context/DarkModeContext';
 
 const DevelopersPage = () => {
-  const { darkMode } = useDarkMode();
   const [developers, setDevelopers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -90,33 +88,33 @@ const DevelopersPage = () => {
   }, []);
 
   return (
-    <div className={`min-h-screen py-12 px-4 sm:px-6 lg:px-8 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className={`text-4xl md:text-5xl font-bold mb-4 ${darkMode ? 'text-indigo-400' : 'text-indigo-700'}`}>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
             Meet the Developers
           </h1>
-          <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'} max-w-2xl mx-auto`}>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             The talented individuals who brought the Thapar Lost & Found Portal to life
           </p>
         </div>
 
         {loading ? (
           <div className="flex justify-center items-center py-20">
-            <div className={`animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 ${darkMode ? 'border-indigo-400' : 'border-indigo-600'}`}></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {developers.map((dev, index) => (
               <div
                 key={index}
-                className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-xl overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl`}
+                className="bg-white rounded-xl shadow-xl overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
               >
                 {/* Profile Header with Avatar */}
-                <div className={`relative h-32 ${darkMode ? 'bg-gradient-to-r from-indigo-600 to-purple-600' : 'bg-gradient-to-r from-indigo-500 to-purple-500'}`}>
+                <div className="relative h-32 bg-gradient-to-r from-gray-800 to-gray-900">
                   <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2">
-                    <div className={`w-32 h-32 rounded-full border-4 ${darkMode ? 'border-gray-800' : 'border-white'} overflow-hidden shadow-lg`}>
+                    <div className="w-32 h-32 rounded-full border-4 border-white overflow-hidden shadow-lg">
                       <img
                         src={dev.avatar}
                         alt={dev.name}
@@ -130,43 +128,43 @@ const DevelopersPage = () => {
                 <div className="pt-20 px-6 pb-6">
                   {/* Name and Role */}
                   <div className="text-center mb-4">
-                    <h2 className={`text-2xl font-bold mb-1 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                    <h2 className="text-2xl font-bold mb-1 text-gray-900">
                       {dev.name}
                     </h2>
-                    <p className={`text-sm font-medium ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                    <p className="text-sm font-medium text-gray-800">
                       {dev.role}
                     </p>
                     {dev.location && (
-                      <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      <p className="text-sm mt-1 text-gray-500">
                         📍 {dev.location}
                       </p>
                     )}
                   </div>
 
                   {/* Bio */}
-                  <div className={`text-center mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm leading-relaxed`}>
+                  <div className="text-center mb-4 text-gray-600 text-sm leading-relaxed">
                     <p>{dev.githubBio || dev.bio}</p>
                   </div>
 
                   {/* GitHub Stats */}
                   {(dev.publicRepos || dev.followers) && (
-                    <div className={`flex justify-center gap-6 mb-4 pb-4 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                    <div className="flex justify-center gap-6 mb-4 pb-4 border-b border-gray-200">
                       {dev.publicRepos && (
                         <div className="text-center">
-                          <div className={`text-xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                          <div className="text-xl font-bold text-gray-900">
                             {dev.publicRepos}
                           </div>
-                          <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          <div className="text-xs text-gray-500">
                             Repositories
                           </div>
                         </div>
                       )}
                       {dev.followers && (
                         <div className="text-center">
-                          <div className={`text-xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                          <div className="text-xl font-bold text-gray-900">
                             {dev.followers}
                           </div>
-                          <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          <div className="text-xs text-gray-500">
                             Followers
                           </div>
                         </div>
@@ -176,16 +174,16 @@ const DevelopersPage = () => {
 
                   {/* Contributions */}
                   <div className="mb-6">
-                    <h3 className={`text-sm font-semibold mb-3 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                    <h3 className="text-sm font-semibold mb-3 text-gray-800">
                       Key Contributions:
                     </h3>
                     <ul className="space-y-2">
                       {dev.contributions.map((contribution, idx) => (
                         <li
                           key={idx}
-                          className={`text-sm flex items-start ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}
+                          className="text-sm flex items-start text-gray-600"
                         >
-                          <span className={`mr-2 mt-1 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                          <span className="mr-2 mt-1 text-gray-900">
                             ✓
                           </span>
                           {contribution}
@@ -200,11 +198,7 @@ const DevelopersPage = () => {
                       href={dev.githubUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`w-full flex justify-center items-center py-3 rounded-lg font-semibold transition-all duration-200 ${
-                        darkMode
-                          ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-                          : 'bg-gray-900 hover:bg-gray-800 text-white'
-                      }`}
+                      className="w-full flex justify-center items-center py-3 rounded-lg font-semibold transition-all duration-200 bg-gray-900 hover:bg-gray-800 text-white"
                     >
                       <span className="inline-flex items-center">
                         <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
@@ -221,11 +215,11 @@ const DevelopersPage = () => {
         )}
 
         {/* Call to Action for Future Contributors */}
-        <div className={`mt-16 text-center ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-8 max-w-3xl mx-auto`}>
-          <h3 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+        <div className="mt-16 text-center bg-white rounded-xl shadow-lg p-8 max-w-3xl mx-auto">
+          <h3 className="text-2xl font-bold mb-4 text-gray-900">
             Want to Contribute?
           </h3>
-          <p className={`mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+          <p className="mb-6 text-gray-600">
             This project is open for contributions! If you'd like to help improve the Thapar Lost & Found Portal, 
             check out our GitHub repository and submit a pull request.
           </p>
@@ -234,21 +228,13 @@ const DevelopersPage = () => {
               href="https://github.com/SuryaKTiwari11/softwareProject"
               target="_blank"
               rel="noopener noreferrer"
-              className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
-                darkMode
-                  ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                  : 'bg-indigo-600 hover:bg-indigo-700 text-white'
-              }`}
+              className="px-6 py-3 rounded-lg font-semibold transition-all duration-200 bg-gray-900 hover:bg-gray-800 text-white"
             >
               View Repository on GitHub
             </a>
             <a
               href="mailto:admin@thapar.edu"
-              className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
-                darkMode
-                  ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-                  : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
-              }`}
+              className="px-6 py-3 rounded-lg font-semibold transition-all duration-200 bg-gray-200 hover:bg-gray-300 text-gray-800"
             >
               Contact Team
             </a>

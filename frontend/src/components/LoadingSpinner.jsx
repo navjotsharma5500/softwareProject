@@ -4,7 +4,7 @@ const LoadingSpinner = ({ showColdStartMessage = false, message = "Loading..." }
   return (
     <div className="flex flex-col justify-center items-center py-20">
       <div className="mb-6">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-gray-900"></div>
       </div>
       <p className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
         {message}

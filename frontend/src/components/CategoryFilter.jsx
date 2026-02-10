@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const CategoryFilter = ({ categories, activeCategory, setActiveCategory, darkMode }) => {
+const CategoryFilter = ({ categories, activeCategory, setActiveCategory }) => {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -23,7 +23,7 @@ const CategoryFilter = ({ categories, activeCategory, setActiveCategory, darkMod
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className={`text-3xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}
+        className={`text-3xl font-bold mb-6 text-gray-900`}
       >
         Browse Lost Items
       </motion.h2>
@@ -44,9 +44,7 @@ const CategoryFilter = ({ categories, activeCategory, setActiveCategory, darkMod
             onClick={() => setActiveCategory(category)}
             className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
               activeCategory === category
-                ? 'bg-gradient-to-r from-blue-600 to-teal-600 text-white shadow-lg'
-                : darkMode
-                ? 'bg-slate-800 text-gray-300 hover:bg-slate-700 border border-slate-700'
+                ? 'bg-gradient-to-r from-gray-800 to-gray-900 text-white shadow-lg'
                 : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 shadow-sm'
             }`}
           >

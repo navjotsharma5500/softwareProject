@@ -1,13 +1,11 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { useDarkMode } from '../context/DarkModeContext'
 
 const Footer = () => {
   const currentYear = new Date().getFullYear()
-  const { darkMode } = useDarkMode()
 
   return (
-    <footer className="bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300">
+    <footer className="bg-gray-100 text-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand Section */}
@@ -18,40 +16,40 @@ const Footer = () => {
                 alt="Thapar Institute Logo" 
                 className="h-10 w-auto mr-3"
               />
-              <span className="text-gray-900 dark:text-white font-bold text-xl">Lost & Found</span>
+              <span className="text-gray-900 font-bold text-xl">Lost & Found</span>
             </div>
-            <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-md">
+            <p className="text-gray-600 mb-4 max-w-md">
               Helping reunite people with their lost belongings. Report lost items, browse found items, and make claims all in one place.
             </p>
           </div>
 
           {/* Quick Links - 2 columns */}
           <div>
-            <h3 className="text-gray-900 dark:text-white font-semibold mb-4">Quick Links</h3>
+            <h3 className="text-gray-900 font-semibold mb-4">Quick Links</h3>
             <div className="grid grid-cols-2 gap-2">
               <ul className="space-y-2">
-                <li><Link to="/" className="hover:text-gray-900 dark:hover:text-white transition-colors">Home</Link></li>
-                <li><Link to="/report-lost-item" className="hover:text-gray-900 dark:hover:text-white transition-colors">Report Lost Item</Link></li>
-                <li><Link to="/how-it-works" className="hover:text-gray-900 dark:hover:text-white transition-colors">How It Works</Link></li>
+                <li><Link to="/" className="hover:text-gray-900 transition-colors">Home</Link></li>
+                <li><Link to="/report-lost-item" className="hover:text-gray-900 transition-colors">Report Lost Item</Link></li>
+                <li><Link to="/how-it-works" className="hover:text-gray-900 transition-colors">How It Works</Link></li>
               </ul>
               <ul className="space-y-2">
-                <li><Link to="/profile" className="hover:text-gray-900 dark:hover:text-white transition-colors">Profile</Link></li>
-                <li><Link to="/login" className="hover:text-gray-900 dark:hover:text-white transition-colors">Login</Link></li>
-                <li><Link to="/dev" className="hover:text-gray-900 dark:hover:text-white transition-colors">Developers</Link></li>
+                <li><Link to="/profile" className="hover:text-gray-900 transition-colors">Profile</Link></li>
+                <li><Link to="/login" className="hover:text-gray-900 transition-colors">Login</Link></li>
+                <li><Link to="/dev" className="hover:text-gray-900 transition-colors">Developers</Link></li>
               </ul>
             </div>
           </div>
 
           {/* Account & Support */}
           <div>
-            <h3 className="text-gray-900 dark:text-white font-semibold mb-4">SUPPORT</h3>
+            <h3 className="text-gray-900 font-semibold mb-4">SUPPORT</h3>
             <ul className="space-y-3">
               <li>
                 <div className="text-sm">
                   <p className="font-medium mb-1">Technical/Item Glitches:</p>
                   <a 
                     href="mailto:itmh@thapar.edu" 
-                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors break-all"
+                    className="text-gray-900 hover:text-gray-700 transition-colors break-all"
                   >
                     itmh@thapar.edu
                   </a>
@@ -62,7 +60,7 @@ const Footer = () => {
                   <p className="font-medium mb-1">Website Glitches:</p>
                   <a 
                     href="mailto:adminofficer@thapar.edu" 
-                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors break-all"
+                    className="text-gray-900 hover:text-gray-700 transition-colors break-all"
                   >
                     adminofficer@thapar.edu
                   </a>
@@ -73,18 +71,18 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-300 dark:border-gray-800 mt-8 pt-8">
+        <div className="border-t border-gray-300 mt-8 pt-8">
           <div className="flex flex-col items-center space-y-2">
-            <p className="text-gray-600 dark:text-gray-400 text-sm text-center">
+            <p className="text-gray-600 text-sm text-center">
               © {currentYear} Lost & Found. All rights reserved.
             </p>
-            <div className="flex items-center text-gray-600 dark:text-gray-400 text-sm space-x-4">
+            <div className="flex items-center text-gray-600 text-sm space-x-4">
               <span>Crafted by</span>
               <a 
                 href="https://github.com/SuryaKTiwari11/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center hover:text-gray-900 dark:hover:text-white transition-colors"
+                className="flex items-center hover:text-gray-900 transition-colors"
               >
                 <span className="mr-1">Surya</span>
                 <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -96,7 +94,7 @@ const Footer = () => {
                 href="https://github.com/akshatkakkar1" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center hover:text-gray-900 dark:hover:text-white transition-colors"
+                className="flex items-center hover:text-gray-900 transition-colors"
               >
                 <span className="mr-1">Akshat</span>
                 <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

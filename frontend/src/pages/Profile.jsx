@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { User, Mail, IdCard, Package, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw, Edit2, Save, X, Phone, FileText, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
-import { useDarkMode } from '../context/DarkModeContext';
 import { userApi, reportApi } from '../utils/api';
 import { CATEGORY_DISPLAY_NAMES, LOCATIONS } from '../utils/constants';
 import useFormPersistence from '../hooks/useFormPersistence.jsx';
@@ -12,7 +11,6 @@ import { useSearchParams } from 'react-router-dom';
 
 const Profile = () => {
   const { user } = useAuth();
-  const { darkMode } = useDarkMode();
   const [searchParams, setSearchParams] = useSearchParams();
   const [profileData, setProfileData] = useState(null);
   const [claims, setClaims] = useState([]);
@@ -270,27 +268,27 @@ const Profile = () => {
   };
 
   return (
-    <div className={`min-h-screen py-8 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className="min-h-screen py-8 bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Profile Header */}
-        <div className={`rounded-2xl shadow-lg p-8 mb-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+        <div className="rounded-2xl shadow-lg p-8 mb-8 bg-white">
           <div className="flex items-start gap-6 mb-6">
             {profileData?.profilePicture ? (
               <img
                 src={profileData.profilePicture}
                 alt={profileData.name}
-                className="w-24 h-24 rounded-full object-cover border-4 border-blue-500 shadow-lg"
+                className="w-24 h-24 rounded-full object-cover border-4 border-gray-300 shadow-lg"
               />
             ) : (
-              <div className="w-24 h-24 bg-gradient-to-r from-blue-600 to-teal-600 rounded-full flex items-center justify-center shadow-lg">
+              <div className="w-24 h-24 bg-gradient-to-r from-gray-800 to-gray-900 rounded-full flex items-center justify-center shadow-lg">
                 <User className="text-white" size={48} />
               </div>
             )}
             <div className="flex-1">
-              <h1 className={`text-3xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              <h1 className="text-3xl font-bold mb-2 text-gray-900">
                 {profileData?.name || user?.name}
               </h1>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className="text-sm text-gray-600">
                 {profileData?.email || user?.email}
               </p>
               {user?.isAdmin && (
@@ -302,7 +300,7 @@ const Profile = () => {
             {!editing ? (
               <button
                 onClick={() => setEditing(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
               >
                 <Edit2 size={18} />
                 Edit Profile
@@ -311,11 +309,7 @@ const Profile = () => {
               <div className="flex gap-2">
                 <button
                   onClick={handleCancel}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                    darkMode
-                      ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                  }`}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors bg-gray-200 hover:bg-gray-300 text-gray-700"
                 >
                   <X size={18} />
                   Cancel
@@ -336,9 +330,7 @@ const Profile = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Name */}
             <div>
-              <label className={`flex items-center gap-2 mb-2 font-medium ${
-                darkMode ? 'text-gray-200' : 'text-gray-700'
-              }`}>
+              <label className="flex items-center gap-2 mb-2 font-medium text-gray-700">
                 <User size={18} />
                 Full Name
               </label>
@@ -350,16 +342,10 @@ const Profile = () => {
                   onChange={handleInputChange}
                   placeholder="SURYA IS THE GOAT"
                   maxLength={100}
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    darkMode
-                      ? 'bg-gray-700 border-gray-600 text-white'
-                      : 'bg-white border-gray-300 text-gray-900'
-                  }`}
+                  className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
                 />
               ) : (
-                <p className={`px-4 py-2 rounded-lg ${
-                  darkMode ? 'bg-gray-700 text-white' : 'bg-gray-50 text-gray-900'
-                }`}>
+                <p className="px-4 py-2 rounded-lg bg-gray-50 text-gray-900">
                   {profileData?.name || user?.name}
                 </p>
               )}
@@ -367,15 +353,11 @@ const Profile = () => {
 
             {/* Email (Read-only) */}
             <div>
-              <label className={`flex items-center gap-2 mb-2 font-medium ${
-                darkMode ? 'text-gray-200' : 'text-gray-700'
-              }`}>
+              <label className="flex items-center gap-2 mb-2 font-medium text-gray-700">
                 <Mail size={18} />
                 Email Address
               </label>
-              <p className={`px-4 py-2 rounded-lg ${
-                darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-50 text-gray-600'
-              }`}>
+              <p className="px-4 py-2 rounded-lg bg-gray-50 text-gray-600">
                 {profileData?.email || user?.email}
                 <span className="ml-2 text-xs">(Cannot be changed)</span>
               </p>
@@ -383,9 +365,7 @@ const Profile = () => {
 
             {/* Roll Number */}
             <div>
-              <label className={`flex items-center gap-2 mb-2 font-medium ${
-                darkMode ? 'text-gray-200' : 'text-gray-700'
-              }`}>
+              <label className="flex items-center gap-2 mb-2 font-medium text-gray-700">
                 <IdCard size={18} />
                 Roll Number/Email
               </label>
@@ -397,16 +377,10 @@ const Profile = () => {
                   onChange={handleInputChange}
                   placeholder="add your roll number here"
                   maxLength="20"
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    darkMode
-                      ? 'bg-gray-700 border-gray-600 text-white'
-                      : 'bg-white border-gray-300 text-gray-900'
-                  }`}
+                  className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
                 />
               ) : (
-                <p className={`px-4 py-2 rounded-lg ${
-                  darkMode ? 'bg-gray-700 text-white' : 'bg-gray-50 text-gray-900'
-                }`}>
+                <p className="px-4 py-2 rounded-lg bg-gray-50 text-gray-900">
                   {(profileData?.rollNo && profileData.rollNo !== '0') ? profileData.rollNo : (profileData?.phone || user?.rollNo)}
                 </p>
               )}
@@ -414,9 +388,7 @@ const Profile = () => {
 
             {/* Phone */}
             <div>
-              <label className={`flex items-center gap-2 mb-2 font-medium ${
-                darkMode ? 'text-gray-200' : 'text-gray-700'
-              }`}>
+              <label className="flex items-center gap-2 mb-2 font-medium text-gray-700">
                 <Phone size={18} />
                 Phone Number (Optional)
               </label>
@@ -431,16 +403,10 @@ const Profile = () => {
                   }}
                   placeholder="9876543210"
                   maxLength="10"
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    darkMode
-                      ? 'bg-gray-700 border-gray-600 text-white'
-                      : 'bg-white border-gray-300 text-gray-900'
-                  }`}
+                  className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
                 />
               ) : (
-                <p className={`px-4 py-2 rounded-lg ${
-                  darkMode ? 'bg-gray-700 text-white' : 'bg-gray-50 text-gray-900'
-                }`}>
+                <p className="px-4 py-2 rounded-lg bg-gray-50 text-gray-900">
                   {profileData?.phone || 'Not provided'}
                 </p>
               )}
@@ -449,9 +415,9 @@ const Profile = () => {
         </div>
 
         {/* Claims and Reports Section */}
-        <div className={`rounded-2xl shadow-lg p-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+        <div className="rounded-2xl shadow-lg p-8 bg-white">
           {/* Tab Selector */}
-          <div className="flex gap-4 mb-6 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}">
+          <div className="flex gap-4 mb-6 border-b border-gray-200">
             <button
               onClick={() => {
                 setActiveSection('claims');
@@ -459,9 +425,7 @@ const Profile = () => {
               }}
               className={`px-4 py-3 font-semibold transition-all border-b-2 ${
                 activeSection === 'claims'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : darkMode
-                  ? 'border-transparent text-gray-400 hover:text-gray-300'
+                  ? 'border-gray-900 text-gray-900'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -477,9 +441,7 @@ const Profile = () => {
               }}
               className={`px-4 py-3 font-semibold transition-all border-b-2 ${
                 activeSection === 'reports'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : darkMode
-                  ? 'border-transparent text-gray-400 hover:text-gray-300'
+                  ? 'border-gray-900 text-gray-900'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -491,7 +453,7 @@ const Profile = () => {
           </div>
 
           <div className="flex items-center justify-between mb-6">
-            <h3 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            <h3 className={`text-xl font-semibold text-gray-900`}>
               {activeSection === 'claims' ? 'Claim Requests' : 'Lost Item Reports'} ({pagination.total || 0})
             </h3>
             
@@ -499,9 +461,9 @@ const Profile = () => {
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className={`p-2 rounded-lg font-semibold transition-all ${
-                darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-              } ${refreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`p-2 rounded-lg font-semibold transition-all bg-gray-100 hover:bg-gray-200 text-gray-700 ${
+                refreshing ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
               title="Refresh"
             >
               <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
@@ -527,14 +489,12 @@ const Profile = () => {
                   {claims.map((claim) => (
                   <div
                     key={claim._id}
-                    className={`border rounded-lg p-6 hover:shadow-md transition-shadow ${
-                      darkMode ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-white'
-                    }`}
+                    className="border rounded-lg p-6 hover:shadow-md transition-shadow border-gray-200 bg-white"
                   >
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-3">
-                          <h3 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                          <h3 className="text-xl font-semibold text-gray-900">
                             {claim.item?.name || 'Item'}
                           </h3>
                           {getStatusBadge(claim.status)}
@@ -542,19 +502,19 @@ const Profile = () => {
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                           <div>
-                            <span className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Item Details</span>
+                            <span className="text-sm font-medium text-gray-500">Item Details</span>
                             <div className="mt-2 space-y-1">
-                              <p className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                              <p className="text-sm text-gray-900">
                                 <span className="font-medium">Category:</span> {CATEGORY_DISPLAY_NAMES[claim.item?.category] || claim.item?.category}
                               </p>
-                              <div className={`flex items-center gap-2 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
                                 <span>{claim.item?.foundLocation}</span>
                               </div>
-                              <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                              <p className="text-sm text-gray-600">
                                 <span className="font-medium">Found:</span> {new Date(claim.item?.dateFound).toLocaleDateString('en-US', {
                                   month: 'short',
                                   day: 'numeric',
@@ -562,7 +522,7 @@ const Profile = () => {
                                 })}
                               </p>
                               {claim.item?.itemId && (
-                                <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                <p className="text-sm text-gray-600">
                                   <span className="font-medium">Item ID:</span> {claim.item.itemId}
                                 </p>
                               )}
@@ -570,10 +530,10 @@ const Profile = () => {
                           </div>
                           
                           <div>
-                            <span className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Claim Information</span>
+                            <span className="text-sm font-medium text-gray-500">Claim Information</span>
                             <div className="mt-2 space-y-1">
-                              <div className={`flex items-center gap-2 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                <Clock size={16} className="text-teal-600" />
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <Clock size={16} className="text-gray-600" />
                                 <span>
                                   Requested: {new Date(claim.createdAt).toLocaleDateString('en-US', {
                                     month: 'short',
@@ -591,34 +551,32 @@ const Profile = () => {
                     {claim.remarks && (
                       <div className={`mb-4 p-4 rounded-lg border ${
                         claim.status === 'approved' 
-                          ? darkMode ? 'bg-green-900/20 border-green-800' : 'bg-green-50 border-green-200'
+                          ? 'bg-green-50 border-green-200'
                           : claim.status === 'rejected'
-                          ? darkMode ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-200'
-                          : darkMode ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-50 border-blue-200'
+                          ? 'bg-red-50 border-red-200'
+                          : 'bg-gray-100 border-gray-200'
                       }`}>
                         <div className={`font-semibold text-sm mb-1 ${
                           claim.status === 'approved'
-                            ? darkMode ? 'text-green-300' : 'text-green-800'
+                            ? 'text-green-800'
                             : claim.status === 'rejected'
-                            ? darkMode ? 'text-red-300' : 'text-red-800'
-                            : darkMode ? 'text-blue-300' : 'text-blue-800'
+                            ? 'text-red-800'
+                            : 'text-gray-800'
                         }`}>Admin Remarks:</div>
                         <p className={`text-sm ${
                           claim.status === 'approved'
-                            ? darkMode ? 'text-green-200' : 'text-green-700'
+                            ? 'text-green-700'
                             : claim.status === 'rejected'
-                            ? darkMode ? 'text-red-200' : 'text-red-700'
-                            : darkMode ? 'text-blue-200' : 'text-blue-700'
+                            ? 'text-red-700'
+                            : 'text-gray-700'
                         }`}>{claim.remarks}</p>
                       </div>
                     )}
 
                     {claim.status === 'pending' && (
-                      <div className={`p-4 rounded-lg border ${
-                        darkMode ? 'bg-yellow-900/20 border-yellow-800' : 'bg-yellow-50 border-yellow-200'
-                      }`}>
+                      <div className="p-4 rounded-lg border bg-yellow-50 border-yellow-200">
                         <div className="flex justify-between items-center">
-                          <p className={`text-sm ${darkMode ? 'text-yellow-200' : 'text-yellow-800'}`}>
+                          <p className="text-sm text-yellow-800">
                             <strong>Pending:</strong> Please visit the admin office during office hours to collect your item.
                           </p>
                           <button
@@ -636,20 +594,16 @@ const Profile = () => {
                     )}
 
                     {claim.status === 'approved' && (
-                      <div className={`p-4 rounded-lg border ${
-                        darkMode ? 'bg-green-900/20 border-green-800' : 'bg-green-50 border-green-200'
-                      }`}>
-                        <p className={`text-sm ${darkMode ? 'text-green-200' : 'text-green-800'}`}>
+                      <div className="p-4 rounded-lg border bg-green-50 border-green-200">
+                        <p className="text-sm text-green-800">
                           <strong>Approved!</strong> This item is now in your possession. You have successfully claimed this item.
                         </p>
                       </div>
                     )}
 
                     {claim.status === 'rejected' && (
-                      <div className={`p-4 rounded-lg border ${
-                        darkMode ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-200'
-                      }`}>
-                        <p className={`text-sm ${darkMode ? 'text-red-200' : 'text-red-800'}`}>
+                      <div className="p-4 rounded-lg border bg-red-50 border-red-200">
+                        <p className="text-sm text-red-800">
                           <strong>Rejected:</strong> Your claim was not approved.
                         </p>
                       </div>
@@ -662,7 +616,7 @@ const Profile = () => {
               {/* Pagination */}
               {pagination.totalPages > 1 && (
                 <div className="mt-6 flex justify-between items-center">
-                  <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <div className={`text-sm text-gray-600`}>
                     Page {page} of {pagination.totalPages}
                   </div>
                   <div className="flex gap-2">
@@ -671,8 +625,8 @@ const Profile = () => {
                       disabled={!pagination.hasPrev}
                       className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                         pagination.hasPrev
-                          ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                          : darkMode ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                          ? 'bg-gray-900 text-white hover:bg-gray-800'
+                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                       }`}
                     >
                       Previous
@@ -682,8 +636,8 @@ const Profile = () => {
                       disabled={!pagination.hasNext}
                       className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                         pagination.hasNext
-                          ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                          : darkMode ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                          ? 'bg-gray-900 text-white hover:bg-gray-800'
+                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                       }`}
                     >
                       Next
@@ -713,26 +667,24 @@ const Profile = () => {
                   {reports.map((report) => (
                     <div
                       key={report._id}
-                      className={`border rounded-lg p-6 hover:shadow-md transition-shadow ${
-                        darkMode ? 'border-gray-700' : 'border-gray-200'
-                      }`}
+                      className="border rounded-lg p-6 hover:shadow-md transition-shadow border-gray-200"
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-3">
-                            <h3 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                            <h3 className="text-xl font-semibold text-gray-900">
                               {report.itemDescription}
                             </h3>
                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                               report.status === 'active' ? 'bg-green-100 text-green-800' :
-                              report.status === 'resolved' ? 'bg-blue-100 text-blue-800' :
+                              report.status === 'resolved' ? 'bg-gray-100 text-gray-800' :
                               'bg-gray-100 text-gray-800'
                             }`}>
                               {report.status}
                             </span>
                           </div>
 
-                          <div className={`space-y-2 mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                          <div className="space-y-2 mb-4 text-gray-600">
                             <p><strong>Category:</strong> {CATEGORY_DISPLAY_NAMES[report.category]}</p>
                             <p><strong>Location:</strong> {LOCATIONS[report.location] || report.location}</p>
                             <p><strong>Lost on:</strong> {new Date(report.dateLost).toLocaleDateString()}</p>
@@ -760,7 +712,7 @@ const Profile = () => {
                             </div>
                           )}
 
-                          <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                          <p className="text-xs text-gray-500">
                             Reported on: {new Date(report.createdAt).toLocaleString()}
                           </p>
                         </div>
@@ -788,7 +740,7 @@ const Profile = () => {
               {/* Pagination */}
               {pagination.totalPages > 1 && (
                 <div className="mt-6 flex justify-between items-center">
-                  <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <div className={`text-sm text-gray-600`}>
                     Page {page} of {pagination.totalPages}
                   </div>
                   <div className="flex gap-2">
@@ -797,8 +749,8 @@ const Profile = () => {
                       disabled={!pagination.hasPrev}
                       className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                         pagination.hasPrev
-                          ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                          : darkMode ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                          ? 'bg-gray-900 text-white hover:bg-gray-800'
+                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                       }`}
                     >
                       Previous
@@ -808,8 +760,8 @@ const Profile = () => {
                       disabled={!pagination.hasNext}
                       className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                         pagination.hasNext
-                          ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                          : darkMode ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                          ? 'bg-gray-900 text-white hover:bg-gray-800'
+                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                       }`}
                     >
                       Next

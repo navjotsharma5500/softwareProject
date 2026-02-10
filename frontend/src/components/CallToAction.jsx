@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { FileText, Search, Bell } from 'lucide-react';
 
-const CallToAction = ({ darkMode }) => {
+const CallToAction = () => {
   const features = [
     {
       icon: <Search size={32} />,
@@ -29,7 +29,7 @@ const CallToAction = ({ darkMode }) => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6 }}
-        className={`relative overflow-hidden ${darkMode ? 'bg-gradient-to-br from-blue-900 via-slate-900 to-teal-900' : 'bg-gradient-to-br from-blue-600 via-teal-600 to-blue-700'} rounded-3xl p-12 md:p-16 text-center shadow-2xl`}
+        className="relative overflow-hidden bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 rounded-3xl p-12 md:p-16 text-center shadow-2xl"
       >
         {/* Animated background */}
         <div className="absolute inset-0 overflow-hidden">
@@ -59,7 +59,7 @@ const CallToAction = ({ darkMode }) => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="bg-white text-blue-600 px-8 py-4 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all"
+              className="bg-white text-gray-900 px-8 py-4 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all"
             >
               Report Lost Item
             </motion.button>
@@ -84,19 +84,19 @@ const CallToAction = ({ darkMode }) => {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
             whileHover={{ y: -5 }}
-            className={`${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} p-8 rounded-2xl shadow-lg border text-center hover:shadow-xl transition-all duration-300`}
+            className="bg-white border-gray-200 p-8 rounded-2xl shadow-lg border text-center hover:shadow-xl transition-all duration-300"
           >
             <motion.div
               whileHover={{ rotate: 360 }}
               transition={{ duration: 0.6 }}
-              className="inline-block bg-gradient-to-br from-blue-600 to-teal-600 p-4 rounded-2xl text-white mb-4"
+              className="inline-block bg-gradient-to-br from-gray-800 to-gray-900 p-4 rounded-2xl text-white mb-4"
             >
               {feature.icon}
             </motion.div>
-            <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            <h3 className="text-xl font-bold mb-2 text-gray-900">
               {feature.title}
             </h3>
-            <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            <p className="text-gray-600">
               {feature.description}
             </p>
           </motion.div>

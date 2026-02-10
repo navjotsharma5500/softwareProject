@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDarkMode } from '../context/DarkModeContext';
 import { toast } from 'react-toastify';
 import { reportApi } from '../utils/api';
 import { FileText, Calendar, MapPin, Tag, Trash2, AlertCircle } from 'lucide-react';
@@ -9,7 +8,6 @@ import ImageLightbox from '../components/ImageLightbox';
 
 const MyReports = () => {
   const navigate = useNavigate();
-  const { darkMode } = useDarkMode();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
@@ -57,50 +55,46 @@ const MyReports = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'active':
-        return darkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800';
       case 'resolved':
-        return darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-800';
+        return 'bg-gray-100 text-gray-800';
       case 'closed':
-        return darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800';
       default:
-        return darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   return (
-    <div className={`min-h-screen py-8 px-4 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className="min-h-screen py-8 px-4 bg-gray-50">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div>
-            <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            <h1 className="text-3xl font-bold text-gray-900">
               My Reports
             </h1>
-            <p className={`mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            <p className="mt-1 text-gray-600">
               Track all your lost item reports
             </p>
           </div>
           <button
             onClick={() => navigate('/report-lost-item')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
           >
             + New Report
           </button>
         </div>
 
         {/* Filters */}
-        <div className={`p-4 rounded-lg mb-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-          <label className={`block mb-2 font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+        <div className={`p-4 rounded-lg mb-6 bg-white`}>
+          <label className={`block mb-2 font-medium text-gray-700`}>
             Filter by Status
           </label>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className={`px-4 py-2 rounded-lg border ${
-              darkMode
-                ? 'bg-gray-700 border-gray-600 text-white'
-                : 'bg-white border-gray-300 text-gray-900'
-            }`}
+            className={`px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900`}
           >
             <option value="">All Reports</option>
             <option value="active">Active</option>
@@ -112,19 +106,19 @@ const MyReports = () => {
         {/* Reports List */}
         {loading ? (
           <div className="text-center py-12">
-            <div className={`text-lg ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            <div className="text-lg text-gray-600">
               Loading reports...
             </div>
           </div>
         ) : reports.length === 0 ? (
-          <div className={`text-center py-12 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-            <FileText className={`w-16 h-16 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
-            <p className={`text-lg ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          <div className="text-center py-12 rounded-lg bg-white">
+            <FileText className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+            <p className="text-lg text-gray-600">
               No reports found
             </p>
             <button
               onClick={() => navigate('/report-lost-item')}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="mt-4 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
             >
               Create Your First Report
             </button>
@@ -134,13 +128,13 @@ const MyReports = () => {
             {reports.map((report) => (
               <div
                 key={report._id}
-                className={`p-6 rounded-lg shadow-md ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
+                className="p-6 rounded-lg shadow-md bg-white"
               >
                 <div className="flex flex-col md:flex-row justify-between gap-4">
                   <div className="flex-1">
                     {/* Header */}
                     <div className="flex items-start justify-between mb-3">
-                      <h3 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      <h3 className="text-xl font-semibold text-gray-900">
                         {report.itemDescription}
                       </h3>
                       <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(report.status)}`}>
@@ -149,7 +143,7 @@ const MyReports = () => {
                     </div>
 
                     {/* Details */}
-                    <div className={`space-y-2 mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                    <div className="space-y-2 mb-4 text-gray-600">
                       <div className="flex items-center gap-2">
                         <Tag className="w-4 h-4" />
                         <span>{CATEGORY_DISPLAY_NAMES[report.category] || report.category}</span>
@@ -166,7 +160,7 @@ const MyReports = () => {
 
                     {/* Additional Details */}
                     {report.additionalDetails && (
-                      <p className={`text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      <p className="text-sm mb-4 text-gray-600">
                         {report.additionalDetails}
                       </p>
                     )}
@@ -192,7 +186,7 @@ const MyReports = () => {
                     )}
 
                     {/* Timestamps */}
-                    <div className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                    <div className="text-xs text-gray-500">
                       Reported on: {new Date(report.createdAt).toLocaleString()}
                     </div>
                   </div>
@@ -222,12 +216,12 @@ const MyReports = () => {
               className={`px-4 py-2 rounded-lg ${
                 pagination.page === 1
                   ? 'bg-gray-300 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-gray-900 hover:bg-gray-800 text-white'
               }`}
             >
               Previous
             </button>
-            <span className={`px-4 py-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            <span className="px-4 py-2 text-gray-900">
               Page {pagination.page} of {pagination.totalPages}
             </span>
             <button
@@ -236,7 +230,7 @@ const MyReports = () => {
               className={`px-4 py-2 rounded-lg ${
                 pagination.page === pagination.totalPages
                   ? 'bg-gray-300 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-gray-900 hover:bg-gray-800 text-white'
               }`}
             >
               Next
@@ -245,9 +239,7 @@ const MyReports = () => {
         )}
 
         {/* Info Box */}
-        <div className={`mt-6 p-4 rounded-lg ${
-          darkMode ? 'bg-blue-900/20 text-blue-300' : 'bg-blue-50 text-blue-800'
-        }`}>
+        <div className="mt-6 p-4 rounded-lg bg-gray-100 text-gray-800">
           <div className="flex items-start gap-2">
             <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
             <div className="text-sm">

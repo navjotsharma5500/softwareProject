@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useDarkMode } from '../context/DarkModeContext';
 
 /**
  * Secure Image Lightbox Component
@@ -9,7 +8,6 @@ import { useDarkMode } from '../context/DarkModeContext';
  * - Includes navigation for multiple images
  */
 const ImageLightbox = ({ images, initialIndex = 0, onClose }) => {
-  const { darkMode } = useDarkMode();
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
   useEffect(() => {

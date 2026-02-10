@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { useDarkMode } from '../context/DarkModeContext';
 import { toast } from 'react-toastify';
 import { reportApi } from '../utils/api';
 import { uploadMultipleToImageKit } from '../utils/imagekit';
@@ -12,7 +11,6 @@ import useFormPersistence from '../hooks/useFormPersistence.jsx';
 const ReportLostItem = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { darkMode } = useDarkMode();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   
@@ -151,19 +149,17 @@ const ReportLostItem = () => {
   };
 
   return (
-    <div className={`min-h-screen py-8 px-4 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className="min-h-screen py-8 px-4 bg-gray-50">
       <div className="max-w-3xl mx-auto">
-        <h1 className={`text-3xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+        <h1 className="text-3xl font-bold mb-6 text-gray-900">
           Report Lost Item
         </h1>
 
-        <form onSubmit={handleSubmit} className={`p-6 rounded-lg shadow-md ${
-          darkMode ? 'bg-gray-800' : 'bg-white'
-        }`}>
+        <form onSubmit={handleSubmit} className="p-6 rounded-lg shadow-md bg-white">
           {/* Item Description */}
           <div className="mb-4">
-            <label className={`block mb-2 font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
-              Item Description * <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>({formData.itemDescription.length}/100)</span>
+            <label className="block mb-2 font-medium text-gray-700">
+              Item Description * <span className="text-xs text-gray-500">({formData.itemDescription.length}/100)</span>
             </label>
             <input
               type="text"
@@ -171,11 +167,7 @@ const ReportLostItem = () => {
               value={formData.itemDescription}
               onChange={handleInputChange}
               maxLength={100}
-              className={`w-full px-4 py-2 rounded-lg border ${
-                darkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
-              }`}
+              className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
               placeholder="e.g., Black iPhone 13 Pro"
               required
             />
@@ -183,18 +175,14 @@ const ReportLostItem = () => {
 
           {/* Category */}
           <div className="mb-4">
-            <label className={`block mb-2 font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+            <label className="block mb-2 font-medium text-gray-700">
               Category *
             </label>
             <select
               name="category"
               value={formData.category}
               onChange={handleInputChange}
-              className={`w-full px-4 py-2 rounded-lg border ${
-                darkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
-              }`}
+              className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
               required
             >
               <option value="">Select category</option>
@@ -208,18 +196,14 @@ const ReportLostItem = () => {
 
           {/* Location */}
           <div className="mb-4">
-            <label className={`block mb-2 font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+            <label className="block mb-2 font-medium text-gray-700">
               Where did you lose it? *
             </label>
             <select
               name="location"
               value={formData.location}
               onChange={handleInputChange}
-              className={`w-full px-4 py-2 rounded-lg border ${
-                darkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
-              }`}
+              className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
               required
             >
               <option value="">Select location</option>
@@ -233,7 +217,7 @@ const ReportLostItem = () => {
 
           {/* Date Lost */}
           <div className="mb-4">
-            <label className={`block mb-2 font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+            <label className="block mb-2 font-medium text-gray-700">
               When did you lose it? *
             </label>
             <input
@@ -242,19 +226,15 @@ const ReportLostItem = () => {
               value={formData.dateLost}
               onChange={handleInputChange}
               max={new Date().toISOString().split('T')[0]}
-              className={`w-full px-4 py-2 rounded-lg border ${
-                darkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
-              }`}
+              className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
               required
             />
           </div>
 
           {/* Additional Details */}
           <div className="mb-4">
-            <label className={`block mb-2 font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
-              Additional Details <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>({formData.additionalDetails.length}/500)</span>
+            <label className="block mb-2 font-medium text-gray-700">
+              Additional Details <span className="text-xs text-gray-500">({formData.additionalDetails.length}/500)</span>
             </label>
             <textarea
               name="additionalDetails"
@@ -262,30 +242,22 @@ const ReportLostItem = () => {
               onChange={handleInputChange}
               maxLength={500}
               rows="4"
-              className={`w-full px-4 py-2 rounded-lg border ${
-                darkMode
-                  ? 'bg-gray-700 border-gray-600 text-white'
-                  : 'bg-white border-gray-300 text-gray-900'
-              }`}
+              className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
               placeholder="Any distinguishing features, serial numbers, etc."
             />
           </div>
 
           {/* Photo Upload */}
           <div className="mb-6">
-            <label className={`block mb-2 font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+            <label className="block mb-2 font-medium text-gray-700">
               Photos (Max 3)
             </label>
             
             {photos.length < 3 && (
-              <label className={`flex items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer ${
-                darkMode
-                  ? 'border-gray-600 hover:border-gray-500 bg-gray-700'
-                  : 'border-gray-300 hover:border-gray-400 bg-gray-50'
-              }`}>
+              <label className="flex items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer border-gray-300 hover:border-gray-400 bg-gray-50">
                 <div className="flex flex-col items-center">
-                  <Upload className={`w-8 h-8 mb-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
-                  <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <Upload className="w-8 h-8 mb-2 text-gray-500" />
+                  <span className="text-sm text-gray-500">
                     {uploading ? 'Uploading...' : 'Click to upload photos'}
                   </span>
                 </div>
@@ -322,9 +294,7 @@ const ReportLostItem = () => {
           </div>
 
           {/* Info */}
-          <div className={`flex items-start gap-2 p-4 rounded-lg mb-6 ${
-            darkMode ? 'bg-blue-900/20 text-blue-300' : 'bg-blue-50 text-blue-800'
-          }`}>
+          <div className="flex items-start gap-2 p-4 rounded-lg mb-6 bg-gray-100 text-gray-800">
             <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
             <p className="text-sm">
               Your report will be visible only to you and administrators. If someone finds an item matching your description, admin can verify your report.
@@ -335,7 +305,7 @@ const ReportLostItem = () => {
           <button
             type="submit"
             disabled={loading || uploading}
-            className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full py-3 px-4 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? 'Submitting...' : 'Submit Report'}
           </button>

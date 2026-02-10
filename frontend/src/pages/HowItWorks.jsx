@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { useDarkMode } from '../context/DarkModeContext';
 
-const FlashCard = ({ title, icon, children, darkMode }) => {
+const FlashCard = ({ title, icon, children }) => {
   const [isFlipped, setIsFlipped] = useState(false);
 
   return (
@@ -15,9 +14,7 @@ const FlashCard = ({ title, icon, children, darkMode }) => {
       >
         {/* Front of card */}
         <div 
-          className={`absolute inset-0 backface-hidden rounded-xl shadow-lg p-6 flex flex-col items-center justify-center text-center ${
-            darkMode ? 'bg-gradient-to-br from-indigo-900 to-purple-900 border-2 border-indigo-700' : 'bg-gradient-to-br from-indigo-500 to-purple-500 border-2 border-indigo-300'
-          }`}
+          className="absolute inset-0 backface-hidden rounded-xl shadow-lg p-6 flex flex-col items-center justify-center text-center bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-700"
           style={{ backfaceVisibility: 'hidden' }}
         >
           <div className="text-6xl mb-4">{icon}</div>
@@ -27,12 +24,10 @@ const FlashCard = ({ title, icon, children, darkMode }) => {
 
         {/* Back of card */}
         <div 
-          className={`absolute inset-0 backface-hidden rounded-xl shadow-lg p-6 overflow-y-auto ${
-            darkMode ? 'bg-gray-800 border-2 border-indigo-700' : 'bg-white border-2 border-indigo-300'
-          }`}
+          className="absolute inset-0 backface-hidden rounded-xl shadow-lg p-6 overflow-y-auto bg-white border-2 border-gray-700"
           style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
         >
-          <div className={`${darkMode ? 'text-gray-300' : 'text-gray-700'} text-sm leading-relaxed`}>
+          <div className="text-gray-700 text-sm leading-relaxed">
             {children}
           </div>
         </div>
@@ -42,12 +37,10 @@ const FlashCard = ({ title, icon, children, darkMode }) => {
 };
 
 const HowItWorks = () => {
-  const { darkMode } = useDarkMode();
-
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'} py-12 px-4 sm:px-6 lg:px-8`}>
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       {/* Page Title */}
-      <h1 className={`text-4xl md:text-5xl font-bold mb-12 ${darkMode ? 'text-indigo-400' : 'text-indigo-700'} text-center`}>
+      <h1 className="text-4xl md:text-5xl font-bold mb-12 text-gray-900 text-center">
         How the Lost & Found Portal Works
       </h1>
 
@@ -58,8 +51,7 @@ const HowItWorks = () => {
           {/* Why We Built This Card */}
           <FlashCard 
             title="Why We Built This" 
-            icon="🔎" 
-            darkMode={darkMode}
+            icon="🔎"
           >
             <div className="space-y-3">
               <p>
@@ -80,19 +72,18 @@ const HowItWorks = () => {
           {/* Overview Card */}
           <FlashCard 
             title="Overview" 
-            icon="📋" 
-            darkMode={darkMode}
+            icon="📋"
           >
             <div className="space-y-3">
               <p>
-                This portal is managed by Thapar University administration. <span className={`font-semibold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>📌 Only items that have been physically deposited with the campus guard or admin are listed here as found items.</span>
+                This portal is managed by Thapar University administration. <span className="font-semibold text-gray-900">📌 Only items that have been physically deposited with the campus guard or admin are listed here as found items.</span>
               </p>
               <p>
                 If you have lost something, you can file a report here. If you find an item, <span className="font-semibold">please hand it over to the campus guard or admin</span>. The admin will add it to the portal if it is in their possession.
               </p>
-              <div className={`${darkMode ? 'bg-gray-700/50' : 'bg-indigo-50'} p-3 rounded-lg border-l-4 ${darkMode ? 'border-indigo-400' : 'border-indigo-600'} mt-3`}>
-                <p className={`${darkMode ? 'text-gray-300' : 'text-gray-800'} text-xs`}>
-                  <span className={`font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-700'}`}>🔔 Important:</span> It is <span className="font-semibold">not</span> the admin's responsibility to proactively search for your lost item. <span className="font-semibold">It is your responsibility to check the portal and apply for claim if you have lost something.</span>
+              <div className="bg-gray-100 p-3 rounded-lg border-l-4 border-gray-900 mt-3">
+                <p className="text-gray-800 text-xs">
+                  <span className="font-bold text-gray-900">🔔 Important:</span> It is <span className="font-semibold">not</span> the admin's responsibility to proactively search for your lost item. <span className="font-semibold">It is your responsibility to check the portal and apply for claim if you have lost something.</span>
                 </p>
               </div>
             </div>
@@ -101,8 +92,7 @@ const HowItWorks = () => {
           {/* If You Lost an Item Card */}
           <FlashCard 
             title="If You Lost an Item" 
-            icon="🧭" 
-            darkMode={darkMode}
+            icon="🧭"
           >
             <ol className="list-decimal list-inside space-y-2">
               <li className="pl-2">
@@ -110,7 +100,7 @@ const HowItWorks = () => {
                 Click the{' '}
                 <a
                   href="/report-lost-item"
-                  className={`font-semibold underline ${darkMode ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-500'}`}
+                  className="font-semibold underline text-gray-900 hover:text-gray-700"
                 >
                   Report Lost Item
                 </a>{' '}
@@ -138,8 +128,7 @@ const HowItWorks = () => {
           {/* If You Found an Item Card */}
           <FlashCard 
             title="If You Found an Item" 
-            icon="📦" 
-            darkMode={darkMode}
+            icon="📦"
           >
             <ol className="list-decimal list-inside space-y-2">
               <li className="pl-2">
@@ -165,54 +154,54 @@ const HowItWorks = () => {
       </div>
 
       {/* Framed Container - Only for remaining sections */}
-      <div className={`max-w-4xl mx-auto ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-8`}>
+      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
 
         <section className="mb-10">
-          <h2 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-900'} border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'} pb-2`}>
+          <h2 className="text-2xl font-bold mb-4 text-gray-900 border-b border-gray-200 pb-2">
             Why Some Images/Reports Are Not Public <span aria-hidden>🔒</span>
           </h2>
-          <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'} leading-relaxed`}>
+          <p className="text-gray-700 leading-relaxed">
             For privacy and security, images and details of lost item reports are only visible to the report creator and admins. Found items may be shown publicly, but sensitive information is protected.
           </p>
         </section>
 
         <section className="mb-10">
-          <h2 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-900'} border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'} pb-2`}>
+          <h2 className="text-2xl font-bold mb-4 text-gray-900 border-b border-gray-200 pb-2">
             FAQs <span aria-hidden>❓</span>
           </h2>
           <div className="space-y-4">
-            <div className={`${darkMode ? 'bg-gray-700/30' : 'bg-gray-50'} p-4 rounded-lg`}>
-              <p className={`font-semibold ${darkMode ? 'text-indigo-400' : 'text-indigo-700'} mb-2`}>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="font-semibold text-gray-900 mb-2">
                 Do I need to log in? <span aria-hidden>🔑</span>
               </p>
-              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <p className="text-gray-700">
                 Yes, to submit or claim items, you must log in for security and tracking.
               </p>
             </div>
-            <div className={`${darkMode ? 'bg-gray-700/30' : 'bg-gray-50'} p-4 rounded-lg`}>
-              <p className={`font-semibold ${darkMode ? 'text-indigo-400' : 'text-indigo-700'} mb-2`}>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="font-semibold text-gray-900 mb-2">
                 Why can't I see some images? <span aria-hidden>👁️</span>
               </p>
-              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <p className="text-gray-700">
                 Only admins and the report creator can view lost item images for privacy reasons.
               </p>
             </div>
-            <div className={`${darkMode ? 'bg-gray-700/30' : 'bg-gray-50'} p-4 rounded-lg`}>
-              <p className={`font-semibold ${darkMode ? 'text-indigo-400' : 'text-indigo-700'} mb-2`}>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="font-semibold text-gray-900 mb-2">
                 How do I know if my claim/report is approved? <span aria-hidden>✅</span>
               </p>
-              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <p className="text-gray-700">
                 To claim an item, you must first submit a claim for it on the portal. After submitting your claim, visit the admin office in person during working hours (Mon–Fri, 09:00–17:00 on Thapar working days). The admin will ask you questions (a "viva") about the item to verify your ownership and will check if you have filed a missing report. Only after successful verification will the item be handed over to you — check your profile page for status updates.
               </p>
             </div>
           </div>
         </section>
 
-        <section className={`${darkMode ? 'bg-indigo-900/30' : 'bg-indigo-50'} p-6 rounded-lg border ${darkMode ? 'border-indigo-700' : 'border-indigo-200'}`}>
-          <h2 className={`text-2xl font-bold mb-3 ${darkMode ? 'text-indigo-400' : 'text-indigo-700'}`}>
+        <section className="bg-gray-100 p-6 rounded-lg border border-gray-200">
+          <h2 className="text-2xl font-bold mb-3 text-gray-900">
             Need Help? <span aria-hidden>🆘</span>
           </h2>
-          <p className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+          <p className="text-gray-700">
             For assistance, please visit the admin office in person during working hours (Mon–Fri, 09:00–17:00 on Thapar working days). The admin team prefers in-person queries to ensure privacy and accurate verification.
           </p>
         </section>

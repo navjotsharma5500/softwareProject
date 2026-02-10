@@ -5,13 +5,11 @@ import { Search, Filter, X, RefreshCw, Grid, List } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { publicApi } from '../utils/api';
 import { CATEGORIES, LOCATIONS, TIME_PERIODS, CATEGORY_DISPLAY_NAMES } from '../utils/constants';
-import { useDarkMode } from '../context/DarkModeContext';
 import useFormPersistence from '../hooks/useFormPersistence';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const Home = () => {
   const navigate = useNavigate();
-  const { darkMode } = useDarkMode();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -137,7 +135,7 @@ const Home = () => {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
+    <div className="min-h-screen transition-colors duration-300 bg-gray-50">
       {/* Animated How It Works Button - bottom right */}
       <motion.div
         initial={{ x: 100, opacity: 0 }}
@@ -157,11 +155,7 @@ const Home = () => {
             paddingRight: isScrolled ? 12 : 16,
           }}
           transition={{ duration: 0.3 }}
-          className={`group rounded-full shadow-lg transition-all duration-300 py-2.5 sm:py-3 ${
-            darkMode 
-              ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500' 
-              : 'bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-400 hover:to-teal-400'
-          } hover:scale-105 flex items-center justify-center gap-1.5 sm:gap-2`}
+          className="group rounded-full shadow-lg transition-all duration-300 py-2.5 sm:py-3 bg-gradient-to-r from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 hover:scale-105 flex items-center justify-center gap-1.5 sm:gap-2"
           title="How It Works"
         >
           <svg
@@ -195,7 +189,7 @@ const Home = () => {
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`text-4xl md:text-5xl font-bold mb-8 ${darkMode ? 'text-white' : 'text-gray-900'}`}
+            className="text-4xl md:text-5xl font-bold mb-8 text-gray-900"
           >
             <motion.span 
               initial={{ opacity: 0, scale: 0.9 }}
@@ -219,7 +213,7 @@ const Home = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-2`}
+            className="text-lg text-gray-600 mb-2"
           >
             Find your lost items or help others reunite with theirs
           </motion.p>
@@ -230,25 +224,17 @@ const Home = () => {
           {/* Report Lost Item Button */}
           <button
             onClick={() => navigate('/report')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-              darkMode
-                ? 'bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500'
-                : 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-400 hover:to-pink-400'
-            } text-white shadow-lg hover:scale-105`}
+            className="px-6 py-3 rounded-xl font-semibold transition-all bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-400 hover:to-pink-400 text-white shadow-lg hover:scale-105"
           >
             REPORT A LOST ITEM
           </button>
           
-          <div className={`inline-flex rounded-xl p-1 ${
-            darkMode ? 'bg-slate-800' : 'bg-gray-200'
-          }`}>
+          <div className="inline-flex rounded-xl p-1 bg-gray-200">
             <button
               onClick={() => handleTabChange('available')}
               className={`px-8 py-3 rounded-lg font-semibold transition-all ${
                 activeTab === 'available'
-                  ? 'bg-gradient-to-r from-blue-600 to-teal-600 text-white shadow-lg'
-                  : darkMode
-                  ? 'text-gray-300 hover:text-white'
+                  ? 'bg-gradient-to-r from-gray-800 to-gray-900 text-white shadow-lg'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -258,9 +244,7 @@ const Home = () => {
               onClick={() => handleTabChange('claimed')}
               className={`px-8 py-3 rounded-lg font-semibold transition-all ${
                 activeTab === 'claimed'
-                  ? 'bg-gradient-to-r from-blue-600 to-teal-600 text-white shadow-lg'
-                  : darkMode
-                  ? 'text-gray-300 hover:text-white'
+                  ? 'bg-gradient-to-r from-gray-800 to-gray-900 text-white shadow-lg'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -271,14 +255,12 @@ const Home = () => {
           {/* View Mode Toggle and Refresh Button */}
           <div className="flex items-center gap-2">
             {/* View Mode Toggle */}
-            <div className={`flex rounded-lg p-1 ${darkMode ? 'bg-slate-800' : 'bg-gray-200'}`}>
+            <div className="flex rounded-lg p-1 bg-gray-200">
               <button
                 onClick={() => setViewMode('grid')}
                 className={`p-2 rounded-md transition-all ${
                   viewMode === 'grid'
-                    ? 'bg-indigo-600 text-white'
-                    : darkMode
-                    ? 'text-gray-400 hover:text-gray-200'
+                    ? 'bg-gray-900 text-white'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
                 title="Grid view"
@@ -289,9 +271,7 @@ const Home = () => {
                 onClick={() => setViewMode('list')}
                 className={`p-2 rounded-md transition-all ${
                   viewMode === 'list'
-                    ? 'bg-indigo-600 text-white'
-                    : darkMode
-                    ? 'text-gray-400 hover:text-gray-200'
+                    ? 'bg-gray-900 text-white'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
                 title="List view"
@@ -304,11 +284,7 @@ const Home = () => {
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className={`p-3 rounded-xl font-semibold transition-all ${
-                darkMode
-                  ? 'bg-slate-800 text-white hover:bg-slate-700'
-                  : 'bg-white text-gray-900 hover:bg-gray-50'
-              } border ${darkMode ? 'border-slate-700' : 'border-gray-200'} ${
+              className={`p-3 rounded-xl font-semibold transition-all bg-white text-gray-900 hover:bg-gray-50 border border-gray-200 ${
                 refreshing ? 'opacity-50 cursor-not-allowed' : ''
               }`}
               title="Refresh items"
@@ -323,28 +299,20 @@ const Home = () => {
           <div className="flex flex-col md:flex-row gap-4 mb-4">
             {/* Search Bar */}
             <div className="flex-1 relative">
-              <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} size={20} />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={20} />
               <input
                 type="text"
                 placeholder="Search items..."
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
-                className={`w-full pl-10 pr-4 py-3 rounded-xl border ${
-                  darkMode 
-                    ? 'bg-slate-800 border-slate-700 text-white placeholder-gray-400' 
-                    : 'bg-white border-gray-200 text-gray-900'
-                } focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all`}
+                className="w-full pl-10 pr-4 py-3 rounded-xl border bg-white border-gray-200 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-all"
               />
             </div>
             
             {/* Filter Toggle Button */}
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`px-6 py-3 rounded-xl font-semibold flex items-center gap-2 ${
-                darkMode
-                  ? 'bg-slate-800 text-white hover:bg-slate-700'
-                  : 'bg-white text-gray-900 hover:bg-gray-50'
-              } border ${darkMode ? 'border-slate-700' : 'border-gray-200'} transition-all`}
+              className="px-6 py-3 rounded-xl font-semibold flex items-center gap-2 bg-white text-gray-900 hover:bg-gray-50 border border-gray-200 transition-all"
             >
               <Filter size={20} />
               Filters
@@ -358,24 +326,18 @@ const Home = () => {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.2 }}
-              className={`overflow-hidden p-6 rounded-xl ${
-                darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'
-              } border`}
+              className="overflow-hidden p-6 rounded-xl bg-white border-gray-200 border"
             >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Category Filter */}
                 <div>
-                  <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
                     Category
                   </label>
                   <select
                     value={filters.category}
                     onChange={(e) => handleFilterChange('category', e.target.value)}
-                    className={`w-full px-4 py-2 rounded-lg border ${
-                      darkMode
-                        ? 'bg-slate-700 border-slate-600 text-white'
-                        : 'bg-white border-gray-300 text-gray-900'
-                    } focus:ring-2 focus:ring-indigo-500 focus:border-transparent`}
+                    className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:border-transparent"
                   >
                     <option value="">All Categories</option>
                     {CATEGORIES.map(cat => (
@@ -388,17 +350,13 @@ const Home = () => {
 
                 {/* Location Filter */}
                 <div>
-                  <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
                     Location
                   </label>
                   <select
                     value={filters.location}
                     onChange={(e) => handleFilterChange('location', e.target.value)}
-                    className={`w-full px-4 py-2 rounded-lg border ${
-                      darkMode
-                        ? 'bg-slate-700 border-slate-600 text-white'
-                        : 'bg-white border-gray-300 text-gray-900'
-                    } focus:ring-2 focus:ring-indigo-500 focus:border-transparent`}
+                    className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:border-transparent"
                   >
                     <option value="">All Locations</option>
                     {LOCATIONS.map(loc => (
@@ -409,17 +367,13 @@ const Home = () => {
 
                 {/* Time Period Filter */}
                 <div>
-                  <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
                     Time Period
                   </label>
                   <select
                     value={filters.timePeriod}
                     onChange={(e) => handleFilterChange('timePeriod', e.target.value)}
-                    className={`w-full px-4 py-2 rounded-lg border ${
-                      darkMode
-                        ? 'bg-slate-700 border-slate-600 text-white'
-                        : 'bg-white border-gray-300 text-gray-900'
-                    } focus:ring-2 focus:ring-indigo-500 focus:border-transparent`}
+                    className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:border-transparent"
                   >
                     <option value="">All Time</option>
                     {TIME_PERIODS.map(period => (
@@ -446,7 +400,7 @@ const Home = () => {
         </div>
 
         {/* Results Count */}
-        <div className={`mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+        <div className="mb-6 text-gray-600">
           Found <span className="font-semibold">{pagination.total}</span> items
         </div>
 
@@ -477,48 +431,44 @@ const Home = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                   onClick={() => !item.isClaimed && navigate(`/item/${item._id}`)}
-                  className={`group ${
-                    darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'
-                  } rounded-xl shadow-md transition-all duration-300 overflow-hidden border ${
+                  className={`group bg-white border-gray-200 rounded-xl shadow-md transition-all duration-300 overflow-hidden border ${
                     item.isClaimed ? 'opacity-75' : 'hover:shadow-xl cursor-pointer'
                   }`}
                 >
                   {/* Content */}
                   <div className="p-6">
                     <div className="flex justify-between items-start mb-3">
-                      <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} group-hover:text-indigo-600 transition-colors`}>
+                      <h3 className="text-xl font-bold text-gray-900 group-hover:text-gray-700 transition-colors">
                         {item.name}
                       </h3>
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         item.isClaimed 
                           ? 'bg-green-100 text-green-800' 
-                          : 'bg-blue-100 text-blue-800'
+                          : 'bg-gray-100 text-gray-800'
                       }`}>
                         {item.isClaimed ? 'Claimed' : 'Available'}
                       </span>
                     </div>
 
-                    <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium mb-3 ${
-                      darkMode ? 'bg-slate-700 text-indigo-300' : 'bg-indigo-50 text-indigo-600'
-                    }`}>
+                    <div className="inline-block px-3 py-1 rounded-full text-sm font-medium mb-3 bg-gray-100 text-gray-800">
                       {CATEGORY_DISPLAY_NAMES[item.category] || item.category}
                     </div>
 
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center gap-2">
-                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
-                        <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        <span className="text-sm text-gray-600">
                           {item.foundLocation}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        <span className="text-sm text-gray-600">
                           Found: {new Date(item.dateFound).toLocaleDateString('en-US', { 
                             month: 'short', 
                             day: 'numeric', 
@@ -530,7 +480,7 @@ const Home = () => {
 
                     {/* Show claimant info for claimed items to increase credibility */}
                     {item.isClaimed && item.owner ? (
-                      <div className={`mb-4 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      <div className="mb-4 text-sm text-gray-700">
                         <span className="font-medium">Claimed by:</span>{' '}
                         <span className="font-semibold">{item.owner.name}</span>
                         {item.owner.rollNo ? (
@@ -541,7 +491,7 @@ const Home = () => {
 
                     {/* Only show View Details button for available items */}
                     {!item.isClaimed && (
-                      <button className="w-full bg-gradient-to-r from-blue-600 to-teal-600 text-white py-2.5 rounded-lg font-semibold hover:shadow-lg transition-all">
+                      <button className="w-full bg-gradient-to-r from-gray-800 to-gray-900 text-white py-2.5 rounded-lg font-semibold hover:shadow-lg transition-all">
                         View Details
                       </button>
                     )}
@@ -555,9 +505,7 @@ const Home = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.02 }}
                   onClick={() => !item.isClaimed && navigate(`/item/${item._id}`)}
-                  className={`group ${
-                    darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'
-                  } rounded-lg shadow-sm transition-all duration-300 border ${
+                  className={`group bg-white border-gray-200 rounded-lg shadow-sm transition-all duration-300 border ${
                     item.isClaimed ? 'opacity-75' : 'hover:shadow-md cursor-pointer'
                   }`}
                 >
@@ -567,40 +515,38 @@ const Home = () => {
                     {/* Left section - Main info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start gap-3 mb-2">
-                        <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'} group-hover:text-indigo-600 transition-colors truncate`}>
+                        <h3 className="text-lg font-bold text-gray-900 group-hover:text-gray-700 transition-colors truncate">
                           {item.name}
                         </h3>
                         <span className={`flex-shrink-0 px-2 py-1 rounded-full text-xs font-semibold ${
                           item.isClaimed 
                             ? 'bg-green-100 text-green-800' 
-                            : 'bg-blue-100 text-blue-800'
+                            : 'bg-gray-100 text-gray-800'
                         }`}>
                           {item.isClaimed ? 'Claimed' : 'Available'}
                         </span>
                       </div>
                       
                       <div className="flex flex-wrap items-center gap-4 text-sm">
-                        <span className={`px-2 py-1 rounded-md ${
-                          darkMode ? 'bg-slate-700 text-indigo-300' : 'bg-indigo-50 text-indigo-600'
-                        }`}>
+                        <span className="px-2 py-1 rounded-md bg-gray-100 text-gray-800">
                           {CATEGORY_DISPLAY_NAMES[item.category] || item.category}
                         </span>
                         
                         <div className="flex items-center gap-1">
-                          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                           </svg>
-                          <span className={darkMode ? 'text-gray-300' : 'text-gray-600'}>
+                          <span className="text-gray-600">
                             {item.foundLocation}
                           </span>
                         </div>
                         
                         <div className="flex items-center gap-1">
-                          <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
-                          <span className={darkMode ? 'text-gray-300' : 'text-gray-600'}>
+                          <span className="text-gray-600">
                             {new Date(item.dateFound).toLocaleDateString('en-US', { 
                               month: 'short', 
                               day: 'numeric', 
@@ -611,7 +557,7 @@ const Home = () => {
                         
                         {/* Show claimant in list view */}
                         {item.isClaimed && item.owner && (
-                          <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          <div className="text-sm text-gray-700">
                             <span className="font-medium">By:</span>{' '}
                             <span className="font-semibold">{item.owner.name}</span>
                             {item.owner.rollNo && (
@@ -625,7 +571,7 @@ const Home = () => {
                     {/* Right section - Action button (only for available items) */}
                     {!item.isClaimed && (
                       <div className="md:flex-shrink-0">
-                        <button className="w-full md:w-auto px-6 py-2 bg-gradient-to-r from-blue-600 to-teal-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all text-sm">
+                        <button className="w-full md:w-auto px-6 py-2 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-lg font-semibold hover:shadow-lg transition-all text-sm">
                           View Details
                         </button>
                       </div>
@@ -642,7 +588,7 @@ const Home = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`text-center py-20 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}
+            className="text-center py-20 text-gray-500"
           >
             <p className="text-2xl font-semibold mb-2">No items found</p>
             <p>Try adjusting your filters or search terms</p>
@@ -657,14 +603,14 @@ const Home = () => {
               disabled={!pagination.hasPrev}
               className={`px-4 py-2 rounded-lg font-medium ${
                 pagination.hasPrev
-                  ? (darkMode ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-white text-gray-900 hover:bg-gray-50')
+                  ? 'bg-white text-gray-900 hover:bg-gray-50'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               } transition-all`}
             >
               Previous
             </button>
 
-            <span className={`px-4 py-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            <span className="px-4 py-2 text-gray-900">
               Page {filters.page} of {pagination.totalPages}
             </span>
 
@@ -673,7 +619,7 @@ const Home = () => {
               disabled={!pagination.hasNext}
               className={`px-4 py-2 rounded-lg font-medium ${
                 pagination.hasNext
-                  ? (darkMode ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-white text-gray-900 hover:bg-gray-50')
+                  ? 'bg-white text-gray-900 hover:bg-gray-50'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               } transition-all`}
             >

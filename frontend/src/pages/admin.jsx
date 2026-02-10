@@ -4,11 +4,9 @@ import { toast } from 'react-toastify';
 import { adminApi, userApi } from '../utils/api';
 import { CATEGORIES, LOCATIONS, CATEGORY_DISPLAY_NAMES } from '../utils/constants';
 import useFormPersistence from '../hooks/useFormPersistence.jsx';
-import { useDarkMode } from '../context/DarkModeContext';
 import ImageLightbox from '../components/ImageLightbox';
 
 const Admin = () => {
-  const { darkMode } = useDarkMode();
   const [activeTab, setActiveTab] = useState('items'); // items, claims, approved-claims, rejected-claims
   const [items, setItems] = useState([]);
   const [claims, setClaims] = useState([]);
@@ -353,23 +351,23 @@ const Admin = () => {
   };
 
   return (
-    <div className={`min-h-screen py-8 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className="min-h-screen py-8 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className={`text-3xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Admin Dashboard</h1>
-          <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Manage lost and found items and claims</p>
+          <h1 className="text-3xl font-bold mb-2 text-gray-900">Admin Dashboard</h1>
+          <p className="text-gray-600">Manage lost and found items and claims</p>
         </div>
 
         {/* Tabs */}
-        <div className={`rounded-xl shadow-md mb-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-          <div className={`flex border-b overflow-x-auto ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+        <div className="rounded-xl shadow-md mb-8 bg-white">
+          <div className="flex border-b overflow-x-auto border-gray-200">
             <button
               onClick={() => { setActiveTab('items'); setItemsPage(1); }}
               className={`flex items-center gap-2 px-6 py-4 font-semibold transition-colors whitespace-nowrap ${
                 activeTab === 'items'
-                  ? 'text-indigo-600 border-b-2 border-indigo-600'
-                  : darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
+                  ? 'text-gray-900 border-b-2 border-gray-900'
+                  : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               <Package size={20} />
@@ -379,8 +377,8 @@ const Admin = () => {
               onClick={() => { setActiveTab('claims'); setClaimsPage(1); }}
               className={`flex items-center gap-2 px-6 py-4 font-semibold transition-colors whitespace-nowrap ${
                 activeTab === 'claims'
-                  ? 'text-indigo-600 border-b-2 border-indigo-600'
-                  : darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
+                  ? 'text-gray-900 border-b-2 border-gray-900'
+                  : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               <Users size={20} />
@@ -390,8 +388,8 @@ const Admin = () => {
               onClick={() => { setActiveTab('approved-claims'); setClaimsPage(1); }}
               className={`flex items-center gap-2 px-6 py-4 font-semibold transition-colors whitespace-nowrap ${
                 activeTab === 'approved-claims'
-                  ? 'text-indigo-600 border-b-2 border-indigo-600'
-                  : darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
+                  ? 'text-gray-900 border-b-2 border-gray-900'
+                  : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               <CheckCircle size={20} />
@@ -401,8 +399,8 @@ const Admin = () => {
               onClick={() => { setActiveTab('rejected-claims'); setClaimsPage(1); }}
               className={`flex items-center gap-2 px-6 py-4 font-semibold transition-colors whitespace-nowrap ${
                 activeTab === 'rejected-claims'
-                  ? 'text-indigo-600 border-b-2 border-indigo-600'
-                  : darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
+                  ? 'text-gray-900 border-b-2 border-gray-900'
+                  : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               <XCircle size={20} />
@@ -413,14 +411,14 @@ const Admin = () => {
             
             {/* Items Tab */}
             {activeTab === 'items' && (
-              <div className={`rounded-xl shadow-md p-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+              <div className="rounded-xl shadow-md p-6 bg-white">
 
                 {/* Filters for Items */}
                 <div className="mb-2 flex items-center justify-between">
-                  <h3 className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Filters</h3>
+                  <h3 className="text-sm font-medium text-gray-700">Filters</h3>
                   <button
                     onClick={() => setShowItemFilters(prev => !prev)}
-                    className="text-sm text-indigo-600 hover:underline"
+                    className="text-sm text-gray-900 hover:underline"
                   >
                     {showItemFilters ? 'Hide Filters' : 'Show Filters'}
                   </button>
@@ -430,24 +428,20 @@ const Admin = () => {
                   <div className="mb-6">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
                       <div className="relative">
-                        <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} size={18} />
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                         <input
                           type="text"
                           placeholder="Search items..."
                           value={itemFilters.search}
                           onChange={(e) => setItemFilters({...itemFilters, search: e.target.value})}
-                          className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                            darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'
-                          }`}
+                          className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent border-gray-300"
                         />
                       </div>
 
                       <select
                         value={itemFilters.category}
                         onChange={(e) => setItemFilters({...itemFilters, category: e.target.value})}
-                        className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                          darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                        }`}
+                        className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent border-gray-300"
                       >
                         <option value="">All Categories</option>
                         {CATEGORIES.map(cat => (
@@ -458,9 +452,7 @@ const Admin = () => {
                       <select
                         value={itemFilters.location}
                         onChange={(e) => setItemFilters({...itemFilters, location: e.target.value})}
-                        className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                          darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                        }`}
+                        className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent border-gray-300"
                       >
                         <option value="">All Locations</option>
                         {LOCATIONS.map(loc => (
@@ -471,9 +463,7 @@ const Admin = () => {
                       <select
                         value={itemFilters.status}
                         onChange={(e) => setItemFilters({...itemFilters, status: e.target.value})}
-                        className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                          darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'
-                        }`}
+                        className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent border-gray-300"
                       >
                         <option value="">All Status</option>
                         <option value="available">Available</option>
@@ -482,9 +472,7 @@ const Admin = () => {
                     </div>
                     <button
                       onClick={() => setItemFilters({ search: '', category: '', location: '', status: '' })}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                        darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                      }`}
+                      className="px-4 py-2 rounded-lg font-semibold transition-all bg-gray-200 hover:bg-gray-300 text-gray-700"
                     >
                       Clear Filters
                     </button>
@@ -492,7 +480,7 @@ const Admin = () => {
                 )}
 
                 <div className="flex justify-between items-center mb-6">
-              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              <h2 className="text-2xl font-bold text-gray-900">
                 All Items {itemsPagination.total ? `(${itemsPagination.total})` : ''}
               </h2>
               <div className="flex items-center gap-3">
@@ -519,7 +507,7 @@ const Admin = () => {
                 </button>
                 <button
                   onClick={openCreateModal}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
                 >
                   <Plus size={20} />
                   Add New Item
@@ -529,41 +517,41 @@ const Admin = () => {
 
             {loading ? (
               <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className={darkMode ? 'bg-gray-700' : 'bg-gray-50'}>
+                  <thead className="bg-gray-50">
                     <tr>
-                      <th className={`px-4 py-3 text-left text-sm font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Item ID</th>
-                      <th className={`px-4 py-3 text-left text-sm font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Name</th>
-                      <th className={`px-4 py-3 text-left text-sm font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Category</th>
-                      <th className={`px-4 py-3 text-left text-sm font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Location</th>
-                      <th className={`px-4 py-3 text-left text-sm font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Date Found</th>
-                      <th className={`px-4 py-3 text-left text-sm font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Status</th>
-                      <th className={`px-4 py-3 text-right text-sm font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Actions</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Item ID</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Name</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Category</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Location</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Date Found</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className={`divide-y ${darkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
+                  <tbody className="divide-y divide-gray-200">
                     {items.map((item) => (
-                      <tr key={item._id} className={darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
-                        <td className={`px-4 py-3 text-sm font-mono ${darkMode ? 'text-white' : 'text-gray-900'}`}>{item.itemId}</td>
-                        <td className={`px-4 py-3 text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{item.name}</td>
+                      <tr key={item._id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm font-mono text-gray-900">{item.itemId}</td>
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.name}</td>
                         <td className="px-4 py-3 text-sm">
-                          <span className="px-2 py-1 bg-indigo-50 text-indigo-700 rounded text-xs">
+                          <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
                             {CATEGORY_DISPLAY_NAMES[item.category]}
                           </span>
                         </td>
-                        <td className={`px-4 py-3 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>{item.foundLocation}</td>
-                        <td className={`px-4 py-3 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>
+                        <td className={`px-4 py-3 text-sm text-gray-900`}>{item.foundLocation}</td>
+                        <td className={`px-4 py-3 text-sm text-gray-900`}>
                           {new Date(item.dateFound).toLocaleDateString()}
                         </td>
                         <td className="px-4 py-3 text-sm">
                           <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                             item.isClaimed 
                               ? 'bg-green-100 text-green-800' 
-                              : 'bg-blue-100 text-blue-800'
+                              : 'bg-gray-100 text-gray-800'
                           }`}>
                             {item.isClaimed ? 'Claimed' : 'Available'}
                           </span>
@@ -572,7 +560,7 @@ const Admin = () => {
                           <div className="flex justify-end gap-2">
                             <button
                               onClick={() => openEditModal(item)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                              className="p-2 text-gray-600 hover:bg-gray-50 rounded"
                               title="Edit"
                             >
                               <Edit2 size={16} />
@@ -596,7 +584,7 @@ const Admin = () => {
             {/* Pagination Controls for Items */}
             {!loading && items.length > 0 && (
               <div className="mt-6 flex justify-between items-center">
-                <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                <div className={`text-sm text-gray-600`}>
                   Page {itemsPage} of {Math.ceil((itemsPagination.total || 0) / 10)}
                 </div>
                 <div className="flex gap-2">
@@ -605,7 +593,7 @@ const Admin = () => {
                     disabled={!itemsPagination.hasPrev}
                     className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                       itemsPagination.hasPrev
-                        ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                        ? 'bg-gray-900 text-white hover:bg-gray-800'
                         : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     }`}
                   >
@@ -616,7 +604,7 @@ const Admin = () => {
                     disabled={!itemsPagination.hasNext}
                     className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                       itemsPagination.hasNext
-                        ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                        ? 'bg-gray-900 text-white hover:bg-gray-800'
                         : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     }`}
                   >
@@ -630,13 +618,13 @@ const Admin = () => {
 
         {/* Claims Tab */}
         {activeTab === 'claims' && (
-          <div className={`rounded-xl shadow-md p-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+          <div className={`rounded-xl shadow-md p-6 bg-white`}>
             {/* Filters for Claims */}
             <div className="mb-2 flex items-center justify-between">
-              <h3 className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Filters</h3>
+              <h3 className={`text-sm font-medium text-gray-700`}>Filters</h3>
               <button
                 onClick={() => setShowClaimFilters(prev => !prev)}
-                className="text-sm text-indigo-600 hover:underline"
+                className="text-sm text-gray-600 hover:underline"
               >
                 {showClaimFilters ? 'Hide Filters' : 'Show Filters'}
               </button>
@@ -646,23 +634,19 @@ const Admin = () => {
               <div className="mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                   <div className="relative">
-                    <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} size={18} />
+                    <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400`} size={18} />
                     <input
                       type="text"
                       placeholder="Search by claimant name or item..."
                       value={claimFilters.search}
                       onChange={(e) => setClaimFilters({...claimFilters, search: e.target.value})}
-                      className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                        darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'
-                      }`}
+                      className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white border-gray-300"
                     />
                   </div>
                 </div>
                 <button
                   onClick={() => setClaimFilters({ search: '', status: 'all' })}
-                  className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                    darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                  }`}
+                  className="px-4 py-2 rounded-lg font-semibold transition-all bg-gray-200 hover:bg-gray-300 text-gray-700"
                 >
                   Clear Filters
                 </button>
@@ -670,15 +654,13 @@ const Admin = () => {
             )}
             
             <div className="flex justify-between items-center mb-6">
-              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              <h2 className={`text-2xl font-bold text-gray-900`}>
                 Pending Claims {claimsPagination.total ? `(${claimsPagination.total})` : ''}
               </h2>
               <button
                 onClick={handleRefresh}
                 disabled={refreshing}
-                className={`p-2 rounded-lg font-semibold transition-all ${
-                  darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                } ${refreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`p-2 rounded-lg font-semibold transition-all bg-gray-100 hover:bg-gray-200 text-gray-700 ${refreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
                 title="Refresh claims"
               >
                 <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
@@ -687,7 +669,7 @@ const Admin = () => {
 
             {loading ? (
               <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
               </div>
             ) : claims.length === 0 ? (
               <div className="text-center py-12">
@@ -699,39 +681,37 @@ const Admin = () => {
                 {claims.map((claim) => (
                   <div
                     key={claim._id}
-                    className={`border rounded-lg p-6 hover:shadow-md transition-shadow ${
-                      darkMode ? 'border-gray-700 bg-gray-750' : 'border-gray-200'
-                    }`}
+                    className="border rounded-lg p-6 hover:shadow-md transition-shadow border-gray-200"
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <h3 className={`text-xl font-semibold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        <h3 className={`text-xl font-semibold mb-2 text-gray-900`}>
                           {claim.item?.name}
                         </h3>
                         <div className="grid grid-cols-2 gap-4 mb-4">
                           <div>
-                            <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Claimant:</span>
+                            <span className={`text-sm text-gray-500`}>Claimant:</span>
                             <button
                               onClick={() => openUserHistoryModal(claim.claimant?._id, claim.claimant?.name)}
-                              className={`font-medium hover:underline text-blue-600 hover:text-blue-700 flex items-center gap-1`}
+                              className={`font-medium hover:underline text-gray-900 hover:text-gray-700 flex items-center gap-1`}
                             >
                               {claim.claimant?.name}
                               <FileText size={14} />
                             </button>
-                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{claim.claimant?.email}</p>
-                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Roll No/Email ID: {claim.claimant?.rollNo}</p>
+                            <p className={`text-sm text-gray-600`}>{claim.claimant?.email}</p>
+                            <p className={`text-sm text-gray-600`}>Roll No/Email ID: {claim.claimant?.rollNo}</p>
                           </div>
                           <div>
-                            <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Item Details:</span>
-                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>Item ID: {claim.item?.itemId}</p>
-                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>Category: {CATEGORY_DISPLAY_NAMES[claim.item?.category]}</p>
-                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>Location: {claim.item?.foundLocation}</p>
-                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>
+                            <span className={`text-sm text-gray-500`}>Item Details:</span>
+                            <p className={`text-sm text-gray-900`}>Item ID: {claim.item?.itemId}</p>
+                            <p className={`text-sm text-gray-900`}>Category: {CATEGORY_DISPLAY_NAMES[claim.item?.category]}</p>
+                            <p className={`text-sm text-gray-900`}>Location: {claim.item?.foundLocation}</p>
+                            <p className={`text-sm text-gray-900`}>
                               Date: {new Date(claim.item?.dateFound).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
-                        <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        <p className={`text-sm text-gray-500`}>
                           Claimed on: {new Date(claim.createdAt).toLocaleString()}
                         </p>
                       </div>
@@ -769,7 +749,7 @@ const Admin = () => {
                     disabled={!claimsPagination.hasPrev}
                     className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                       claimsPagination.hasPrev
-                        ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                        ? 'bg-gray-900 text-white hover:bg-gray-800'
                         : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     }`}
                   >
@@ -780,7 +760,7 @@ const Admin = () => {
                     disabled={!claimsPagination.hasNext}
                     className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                       claimsPagination.hasNext
-                        ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                        ? 'bg-gray-900 text-white hover:bg-gray-800'
                         : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     }`}
                   >
@@ -794,13 +774,13 @@ const Admin = () => {
 
         {/* Approved Claims Tab */}
         {activeTab === 'approved-claims' && (
-          <div className={`rounded-xl shadow-md p-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+          <div className={`rounded-xl shadow-md p-6 bg-white`}>
             {/* Filters for Approved Claims */}
             <div className="mb-2 flex items-center justify-between">
-              <h3 className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Filters</h3>
+              <h3 className={`text-sm font-medium text-gray-700`}>Filters</h3>
               <button
                 onClick={() => setShowClaimFilters(prev => !prev)}
-                className="text-sm text-indigo-600 hover:underline"
+                className="text-sm text-gray-600 hover:underline"
               >
                 {showClaimFilters ? 'Hide Filters' : 'Show Filters'}
               </button>
@@ -810,23 +790,19 @@ const Admin = () => {
               <div className="mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                   <div className="relative">
-                    <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} size={18} />
+                    <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400`} size={18} />
                     <input
                       type="text"
                       placeholder="Search by claimant name or item..."
                       value={claimFilters.search}
                       onChange={(e) => setClaimFilters({...claimFilters, search: e.target.value})}
-                      className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                        darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'
-                      }`}
+                      className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white border-gray-300"
                     />
                   </div>
                 </div>
                 <button
                   onClick={() => setClaimFilters({ search: '', status: 'all' })}
-                  className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                    darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                  }`}
+                  className="px-4 py-2 rounded-lg font-semibold transition-all bg-gray-200 hover:bg-gray-300 text-gray-700"
                 >
                   Clear Filters
                 </button>
@@ -834,15 +810,13 @@ const Admin = () => {
             )}
             
             <div className="flex justify-between items-center mb-6">
-              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              <h2 className={`text-2xl font-bold text-gray-900`}>
                 Approved Claims {claimsPagination.total ? `(${claimsPagination.total})` : ''}
               </h2>
               <button
                 onClick={handleRefresh}
                 disabled={refreshing}
-                className={`p-2 rounded-lg font-semibold transition-all ${
-                  darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                } ${refreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`p-2 rounded-lg font-semibold transition-all bg-gray-100 hover:bg-gray-200 text-gray-700 ${refreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
                 title="Refresh approved claims"
               >
                 <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
@@ -851,26 +825,24 @@ const Admin = () => {
 
             {loading ? (
               <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
               </div>
             ) : claims.length === 0 ? (
               <div className="text-center py-12">
-                <CheckCircle className={`mx-auto mb-4 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} size={48} />
-                <p className={`text-xl ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>No approved claims</p>
+                <CheckCircle className={`mx-auto mb-4 text-gray-400`} size={48} />
+                <p className={`text-xl text-gray-500`}>No approved claims</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {claims.map((claim) => (
                   <div
                     key={claim._id}
-                    className={`border rounded-lg p-6 ${
-                      darkMode ? 'border-green-800 bg-green-900/20' : 'border-green-200 bg-green-50'
-                    }`}
+                    className="border rounded-lg p-6 border-green-200 bg-green-50"
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <h3 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                          <h3 className={`text-xl font-semibold text-gray-900`}>
                             {claim.item?.name}
                           </h3>
                           <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
@@ -879,22 +851,22 @@ const Admin = () => {
                         </div>
                         <div className="grid grid-cols-2 gap-4 mb-4">
                           <div>
-                            <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Claimant:</span>
-                            <p className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>{claim.claimant?.name}</p>
-                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{claim.claimant?.email}</p>
-                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Roll No/Email ID: {claim.claimant?.rollNo}</p>
+                            <span className={`text-sm text-gray-500`}>Claimant:</span>
+                            <p className={`font-medium text-gray-900`}>{claim.claimant?.name}</p>
+                            <p className={`text-sm text-gray-600`}>{claim.claimant?.email}</p>
+                            <p className={`text-sm text-gray-600`}>Roll No/Email ID: {claim.claimant?.rollNo}</p>
                           </div>
                           <div>
-                            <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Item Details:</span>
-                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>Item ID: {claim.item?.itemId}</p>
-                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>Category: {CATEGORY_DISPLAY_NAMES[claim.item?.category]}</p>
-                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>Location: {claim.item?.foundLocation}</p>
-                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>
+                            <span className={`text-sm text-gray-500`}>Item Details:</span>
+                            <p className={`text-sm text-gray-900`}>Item ID: {claim.item?.itemId}</p>
+                            <p className={`text-sm text-gray-900`}>Category: {CATEGORY_DISPLAY_NAMES[claim.item?.category]}</p>
+                            <p className={`text-sm text-gray-900`}>Location: {claim.item?.foundLocation}</p>
+                            <p className={`text-sm text-gray-900`}>
                               Date: {new Date(claim.item?.dateFound).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
-                        <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        <p className={`text-sm text-gray-500`}>
                           Approved on: {new Date(claim.updatedAt).toLocaleString()}
                         </p>
                       </div>
@@ -907,7 +879,7 @@ const Admin = () => {
             {/* Pagination Controls for Approved Claims */}
             {!loading && claims.length > 0 && (
               <div className="mt-6 flex justify-between items-center">
-                <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                <div className={`text-sm text-gray-600`}>
                   Page {claimsPage} of {Math.ceil((claimsPagination.total || 0) / 10)}
                 </div>
                 <div className="flex gap-2">
@@ -916,7 +888,7 @@ const Admin = () => {
                     disabled={!claimsPagination.hasPrev}
                     className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                       claimsPagination.hasPrev
-                        ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                        ? 'bg-gray-900 text-white hover:bg-gray-800'
                         : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     }`}
                   >
@@ -927,7 +899,7 @@ const Admin = () => {
                     disabled={!claimsPagination.hasNext}
                     className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                       claimsPagination.hasNext
-                        ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                        ? 'bg-gray-900 text-white hover:bg-gray-800'
                         : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     }`}
                   >
@@ -941,13 +913,13 @@ const Admin = () => {
 
         {/* Rejected Claims Tab */}
         {activeTab === 'rejected-claims' && (
-          <div className={`rounded-xl shadow-md p-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+          <div className={`rounded-xl shadow-md p-6 bg-white`}>
             {/* Filters for Rejected Claims */}
             <div className="mb-2 flex items-center justify-between">
-              <h3 className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Filters</h3>
+              <h3 className={`text-sm font-medium text-gray-700`}>Filters</h3>
               <button
                 onClick={() => setShowClaimFilters(prev => !prev)}
-                className="text-sm text-indigo-600 hover:underline"
+                className="text-sm text-gray-600 hover:underline"
               >
                 {showClaimFilters ? 'Hide Filters' : 'Show Filters'}
               </button>
@@ -957,23 +929,19 @@ const Admin = () => {
               <div className="mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                   <div className="relative">
-                    <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} size={18} />
+                    <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400`} size={18} />
                     <input
                       type="text"
                       placeholder="Search by claimant name or item..."
                       value={claimFilters.search}
                       onChange={(e) => setClaimFilters({...claimFilters, search: e.target.value})}
-                      className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                        darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'
-                      }`}
+                      className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white border-gray-300"
                     />
                   </div>
                 </div>
                 <button
                   onClick={() => setClaimFilters({ search: '', status: 'all' })}
-                  className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                    darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                  }`}
+                  className="px-4 py-2 rounded-lg font-semibold transition-all bg-gray-200 hover:bg-gray-300 text-gray-700"
                 >
                   Clear Filters
                 </button>
@@ -981,15 +949,13 @@ const Admin = () => {
             )}
             
             <div className="flex justify-between items-center mb-6">
-              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              <h2 className={`text-2xl font-bold text-gray-900`}>
                 Rejected Claims {claimsPagination.total ? `(${claimsPagination.total})` : ''}
               </h2>
               <button
                 onClick={handleRefresh}
                 disabled={refreshing}
-                className={`p-2 rounded-lg font-semibold transition-all ${
-                  darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                } ${refreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`p-2 rounded-lg font-semibold transition-all bg-gray-100 hover:bg-gray-200 text-gray-700 ${refreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
                 title="Refresh rejected claims"
               >
                 <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
@@ -998,26 +964,24 @@ const Admin = () => {
 
             {loading ? (
               <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
               </div>
             ) : claims.length === 0 ? (
               <div className="text-center py-12">
-                <XCircle className={`mx-auto mb-4 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} size={48} />
-                <p className={`text-xl ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>No rejected claims</p>
+                <XCircle className={`mx-auto mb-4 text-gray-400`} size={48} />
+                <p className={`text-xl text-gray-500`}>No rejected claims</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {claims.map((claim) => (
                   <div
                     key={claim._id}
-                    className={`border rounded-lg p-6 ${
-                      darkMode ? 'border-red-800 bg-red-900/20' : 'border-red-200 bg-red-50'
-                    }`}
+                    className="border rounded-lg p-6 border-red-200 bg-red-50"
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <h3 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                          <h3 className={`text-xl font-semibold text-gray-900`}>
                             {claim.item?.name}
                           </h3>
                           <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">
@@ -1026,22 +990,22 @@ const Admin = () => {
                         </div>
                         <div className="grid grid-cols-2 gap-4 mb-4">
                           <div>
-                            <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Claimant:</span>
-                            <p className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>{claim.claimant?.name}</p>
-                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{claim.claimant?.email}</p>
-                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Roll No/Email ID: {claim.claimant?.rollNo}</p>
+                            <span className={`text-sm text-gray-500`}>Claimant:</span>
+                            <p className={`font-medium text-gray-900`}>{claim.claimant?.name}</p>
+                            <p className={`text-sm text-gray-600`}>{claim.claimant?.email}</p>
+                            <p className={`text-sm text-gray-600`}>Roll No/Email ID: {claim.claimant?.rollNo}</p>
                           </div>
                           <div>
-                            <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Item Details:</span>
-                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>Item ID: {claim.item?.itemId}</p>
-                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>Category: {CATEGORY_DISPLAY_NAMES[claim.item?.category]}</p>
-                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>Location: {claim.item?.foundLocation}</p>
-                            <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>
+                            <span className={`text-sm text-gray-500`}>Item Details:</span>
+                            <p className={`text-sm text-gray-900`}>Item ID: {claim.item?.itemId}</p>
+                            <p className={`text-sm text-gray-900`}>Category: {CATEGORY_DISPLAY_NAMES[claim.item?.category]}</p>
+                            <p className={`text-sm text-gray-900`}>Location: {claim.item?.foundLocation}</p>
+                            <p className={`text-sm text-gray-900`}>
                               Date: {new Date(claim.item?.dateFound).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
-                        <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        <p className={`text-sm text-gray-500`}>
                           Rejected on: {new Date(claim.updatedAt).toLocaleString()}
                         </p>
                       </div>
@@ -1054,7 +1018,7 @@ const Admin = () => {
             {/* Pagination Controls for Rejected Claims */}
             {!loading && claims.length > 0 && (
               <div className="mt-6 flex justify-between items-center">
-                <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                <div className={`text-sm text-gray-600`}>
                   Page {claimsPage} of {Math.ceil((claimsPagination.total || 0) / 10)}
                 </div>
                 <div className="flex gap-2">
@@ -1063,7 +1027,7 @@ const Admin = () => {
                     disabled={!claimsPagination.hasPrev}
                     className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                       claimsPagination.hasPrev
-                        ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                        ? 'bg-gray-900 text-white hover:bg-gray-800'
                         : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     }`}
                   >
@@ -1074,7 +1038,7 @@ const Admin = () => {
                     disabled={!claimsPagination.hasNext}
                     className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                       claimsPagination.hasNext
-                        ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                        ? 'bg-gray-900 text-white hover:bg-gray-800'
                         : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     }`}
                   >
@@ -1091,53 +1055,47 @@ const Admin = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className={`rounded-xl shadow-2xl w-full max-h-[90vh] overflow-y-auto ${
               modalType === 'userHistory' ? 'max-w-6xl' : 'max-w-2xl'
-            } ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            } bg-white`}>
               {/* Create/Edit Item Modal */}
               {(modalType === 'create' || modalType === 'edit') && (
                 <form onSubmit={modalType === 'create' ? handleCreateItem : handleUpdateItem} className="p-6">
-                  <h3 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  <h3 className={`text-2xl font-bold mb-6 text-gray-900`}>
                     {modalType === 'create' ? 'Add New Item' : 'Edit Item'}
                   </h3>
                   
                   <div className="space-y-4">
                     {modalType === 'edit' && (
                       <div>
-                        <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Item ID</label>
+                        <label className={`block text-sm font-medium mb-2 text-gray-700`}>Item ID</label>
                         <input
                           type="text"
                           value={formData.itemId}
                           disabled
-                          className={`w-full px-4 py-2 border rounded-lg ${
-                            darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'
-                          } opacity-60 cursor-not-allowed`}
+                          className="w-full px-4 py-2 border rounded-lg bg-gray-100 border-gray-300 text-gray-900 opacity-60 cursor-not-allowed"
                         />
-                        <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Item ID is auto-generated and cannot be changed</p>
+                        <p className={`text-xs mt-1 text-gray-500`}>Item ID is auto-generated and cannot be changed</p>
                       </div>
                     )}
 
                     <div>
-                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Name *</label>
+                      <label className={`block text-sm font-medium mb-2 text-gray-700`}>Name *</label>
                       <input
                         type="text"
                         required
                         value={formData.name}
                         onChange={(e) => setFormData({...formData, name: e.target.value})}
-                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
-                          darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'
-                        }`}
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 bg-white border-gray-300 text-gray-900"
                         placeholder="Phone"
                       />
                     </div>
 
                     <div>
-                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Category *</label>
+                      <label className={`block text-sm font-medium mb-2 text-gray-700`}>Category *</label>
                       <select
                         required
                         value={formData.category}
                         onChange={(e) => setFormData({...formData, category: e.target.value})}
-                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
-                          darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                        }`}
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 bg-white border-gray-300 text-gray-900"
                       >
                         <option value="">Select Category</option>
                         {CATEGORIES.map(cat => (
@@ -1147,14 +1105,12 @@ const Admin = () => {
                     </div>
 
                     <div>
-                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Found Location *</label>
+                      <label className={`block text-sm font-medium mb-2 text-gray-700`}>Found Location *</label>
                       <select
                         required
                         value={formData.foundLocation}
                         onChange={(e) => setFormData({...formData, foundLocation: e.target.value})}
-                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
-                          darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                        }`}
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 bg-white border-gray-300 text-gray-900"
                       >
                         <option value="">Select Location</option>
                         {LOCATIONS.map(loc => (
@@ -1164,28 +1120,24 @@ const Admin = () => {
                     </div>
 
                     <div>
-                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Date Found *</label>
+                      <label className={`block text-sm font-medium mb-2 text-gray-700`}>Date Found *</label>
                       <input
                         type="date"
                         required
                         max={new Date().toISOString().split('T')[0]}
                         value={formData.dateFound}
                         onChange={(e) => setFormData({...formData, dateFound: e.target.value})}
-                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
-                          darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
-                        }`}
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 bg-white border-gray-300 text-gray-900"
                       />
-                      <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Date cannot be in the future</p>
+                      <p className={`text-xs mt-1 text-gray-500`}>Date cannot be in the future</p>
                     </div>
 
                     <div>
-                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Description (optional)</label>
+                      <label className={`block text-sm font-medium mb-2 text-gray-700`}>Description (optional)</label>
                       <textarea
                         value={formData.description}
                         onChange={(e) => setFormData({...formData, description: e.target.value})}
-                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
-                          darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'
-                        }`}
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 bg-white border-gray-300 text-gray-900"
                         rows="3"
                         placeholder="Additional details..."
                       />
@@ -1196,8 +1148,8 @@ const Admin = () => {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className={`flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                        submitting ? 'opacity-70 cursor-not-allowed' : 'hover:bg-indigo-700'
+                      className={`flex-1 px-4 py-2 bg-gray-900 text-white rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                        submitting ? 'opacity-70 cursor-not-allowed' : 'hover:bg-gray-800'
                       }`}
                     >
                       {submitting && (
@@ -1212,10 +1164,8 @@ const Admin = () => {
                       type="button"
                       onClick={() => setShowModal(false)}
                       disabled={submitting}
-                      className={`px-4 py-2 border rounded-lg transition-colors ${
+                      className={`px-4 py-2 border rounded-lg transition-colors border-gray-300 text-gray-700 hover:bg-gray-50 ${
                         submitting ? 'opacity-50 cursor-not-allowed' : ''
-                      } ${
-                        darkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                       }`}
                     >
                       Cancel
@@ -1263,23 +1213,21 @@ const Admin = () => {
               {/* Approve/Reject Claim */}
               {(modalType === 'approve' || modalType === 'reject') && (
                 <div className="p-6">
-                  <h3 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  <h3 className={`text-2xl font-bold mb-4 text-gray-900`}>
                     {modalType === 'approve' ? 'Approve Claim' : 'Reject Claim'}
                   </h3>
-                  <p className={`mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <p className={`mb-4 text-gray-600`}>
                     {modalType === 'approve' 
                       ? `Approve claim by ${selectedItem?.claimant?.name} for "${selectedItem?.item?.name}"?`
                       : `Reject claim by ${selectedItem?.claimant?.name} for "${selectedItem?.item?.name}"?`
                     }
                   </p>
                   <div className="mb-4">
-                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Remarks (optional)</label>
+                    <label className={`block text-sm font-medium mb-2 text-gray-700`}>Remarks (optional)</label>
                     <textarea
                       value={remarkText}
                       onChange={(e) => setRemarkText(e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                        darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900'
-                      }`}
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white border-gray-300 text-gray-900"
                       rows="3"
                       placeholder="Add remarks..."
                     />
@@ -1300,9 +1248,7 @@ const Admin = () => {
                     </button>
                     <button
                       onClick={() => setShowModal(false)}
-                      className={`px-4 py-2 border rounded-lg transition-colors ${
-                        darkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                      }`}
+                      className="px-4 py-2 border rounded-lg transition-colors border-gray-300 text-gray-700 hover:bg-gray-50"
                     >
                       Cancel
                     </button>
@@ -1312,36 +1258,32 @@ const Admin = () => {
 
               {/* User History Modal - Enhanced */}
               {modalType === 'userHistory' && selectedUser && (
-                <div className={`p-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                <div className={`p-8 bg-white`}>
                   {/* Header */}
-                  <div className={`mb-6 pb-4 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                    <h2 className={`text-3xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  <div className={`mb-6 pb-4 border-b border-gray-200`}>
+                    <h2 className={`text-3xl font-bold mb-2 text-gray-900`}>
                       User Activity History
                     </h2>
-                    <p className={`text-lg ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    <p className={`text-lg text-gray-600`}>
                       {selectedUser.name}
                     </p>
                   </div>
                   
                   {loadingHistory ? (
                     <div className="flex flex-col items-center justify-center py-16">
-                      <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mb-4"></div>
-                      <p className={`text-lg ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Loading history...</p>
+                      <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-gray-900 mb-4"></div>
+                      <p className={`text-lg text-gray-600`}>Loading history...</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Lost Item Reports Section */}
-                      <div className={`rounded-lg border p-6 ${
-                        darkMode ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-gray-50'
-                      }`}>
+                      <div className="rounded-lg border p-6 border-gray-200 bg-gray-50">
                         <div className="flex items-center justify-between mb-4">
-                          <h3 className={`text-xl font-bold flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                          <h3 className={`text-xl font-bold flex items-center gap-2 text-gray-900`}>
                             <AlertCircle size={24} className="text-orange-500" />
                             Lost Item Reports
                           </h3>
-                          <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                            darkMode ? 'bg-orange-900/30 text-orange-300' : 'bg-orange-100 text-orange-800'
-                          }`}>
+                          <span className="px-3 py-1 rounded-full text-sm font-bold bg-orange-100 text-orange-800">
                             {userHistory.reports?.length || 0}
                           </span>
                         </div>
@@ -1349,21 +1291,19 @@ const Admin = () => {
                         <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
                           {userHistory.reports && userHistory.reports.length > 0 ? (
                             userHistory.reports.map((report) => (
-                              <div key={report._id} className={`p-5 rounded-lg border transition-all hover:shadow-md ${
-                                darkMode ? 'border-gray-600 bg-gray-800 hover:bg-gray-750' : 'border-gray-200 bg-white hover:bg-gray-50'
-                              }`}>
+                              <div key={report._id} className="p-5 rounded-lg border transition-all hover:shadow-md border-gray-200 bg-white hover:bg-gray-50">
                                 <div className="flex justify-between items-start mb-3">
                                   <div className="flex-1">
-                                    <h4 className={`font-bold text-lg mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                    <h4 className={`font-bold text-lg mb-1 text-gray-900`}>
                                       {report.itemDescription}
                                     </h4>
                                     <div className="flex flex-wrap gap-2 mb-2">
-                                      <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs font-semibold">
+                                      <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-semibold">
                                         {CATEGORY_DISPLAY_NAMES[report.category]}
                                       </span>
                                       <span className={`px-2 py-1 rounded text-xs font-semibold ${
                                         report.status === 'active' ? 'bg-green-100 text-green-800' :
-                                        report.status === 'resolved' ? 'bg-blue-100 text-blue-800' :
+                                        report.status === 'resolved' ? 'bg-gray-100 text-gray-800' :
                                         'bg-gray-100 text-gray-800'
                                       }`}>
                                         {report.status.toUpperCase()}
@@ -1372,13 +1312,13 @@ const Admin = () => {
                                   </div>
                                 </div>
                                 
-                                <div className={`space-y-1 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                <div className={`space-y-1 text-sm text-gray-600`}>
                                   <div className="flex items-center gap-2">
                                     <MapPin size={14} className="text-red-500" />
                                     <span><strong>Location:</strong> {report.location}</span>
                                   </div>
                                   <div className="flex items-center gap-2">
-                                    <Clock size={14} className="text-blue-500" />
+                                    <Clock size={14} className="text-gray-500" />
                                     <span><strong>Lost on:</strong> {new Date(report.dateLost).toLocaleDateString('en-US', {
                                       year: 'numeric',
                                       month: 'long',
@@ -1396,8 +1336,8 @@ const Admin = () => {
                                 </div>
                                 
                                 {report.additionalDetails && (
-                                  <div className={`mt-3 pt-3 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                  <div className={`mt-3 pt-3 border-t border-gray-200`}>
+                                    <p className={`text-sm text-gray-600`}>
                                       <strong>Details:</strong> {report.additionalDetails}
                                     </p>
                                   </div>
@@ -1425,25 +1365,21 @@ const Admin = () => {
                             ))
                           ) : (
                             <div className="text-center py-12">
-                              <AlertCircle className={`mx-auto mb-3 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} size={48} />
-                              <p className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>No lost item reports</p>
+                              <AlertCircle className={`mx-auto mb-3 text-gray-400`} size={48} />
+                              <p className={`text-sm text-gray-500`}>No lost item reports</p>
                             </div>
                           )}
                         </div>
                       </div>
 
                       {/* Claim Requests Section */}
-                      <div className={`rounded-lg border p-6 ${
-                        darkMode ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-gray-50'
-                      }`}>
+                      <div className="rounded-lg border p-6 border-gray-200 bg-gray-50">
                         <div className="flex items-center justify-between mb-4">
-                          <h3 className={`text-xl font-bold flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                            <Package size={24} className="text-blue-500" />
+                          <h3 className={`text-xl font-bold flex items-center gap-2 text-gray-900`}>
+                            <Package size={24} className="text-gray-500" />
                             Claim Requests
                           </h3>
-                          <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                            darkMode ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-100 text-blue-800'
-                          }`}>
+                          <span className="px-3 py-1 rounded-full text-sm font-bold bg-gray-100 text-gray-800">
                             {userHistory.claims?.length || 0}
                           </span>
                         </div>
@@ -1451,12 +1387,10 @@ const Admin = () => {
                         <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
                           {userHistory.claims && userHistory.claims.length > 0 ? (
                             userHistory.claims.map((claim) => (
-                              <div key={claim._id} className={`p-5 rounded-lg border transition-all hover:shadow-md ${
-                                darkMode ? 'border-gray-600 bg-gray-800 hover:bg-gray-750' : 'border-gray-200 bg-white hover:bg-gray-50'
-                              }`}>
+                              <div key={claim._id} className="p-5 rounded-lg border transition-all hover:shadow-md border-gray-200 bg-white hover:bg-gray-50">
                                 <div className="flex justify-between items-start mb-3">
                                   <div className="flex-1">
-                                    <h4 className={`font-bold text-lg mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                    <h4 className={`font-bold text-lg mb-1 text-gray-900`}>
                                       {claim.item?.name}
                                     </h4>
                                     <div className="flex flex-wrap gap-2 mb-2">
@@ -1474,13 +1408,13 @@ const Admin = () => {
                                   </div>
                                 </div>
                                 
-                                <div className={`space-y-1 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                <div className={`space-y-1 text-sm text-gray-600`}>
                                   <div className="flex items-center gap-2">
                                     <MapPin size={14} className="text-green-500" />
                                     <span><strong>Found at:</strong> {claim.item?.foundLocation}</span>
                                   </div>
                                   <div className="flex items-center gap-2">
-                                    <Calendar size={14} className="text-teal-500" />
+                                    <Calendar size={14} className="text-gray-500" />
                                     <span><strong>Item ID:</strong> {claim.item?.itemId}</span>
                                   </div>
                                   <div className="flex items-center gap-2">
@@ -1496,21 +1430,21 @@ const Admin = () => {
                                 </div>
                                 
                                 {claim.remarks && (
-                                  <div className={`mt-3 pt-3 border-t ${
+                                  <div className={`mt-3 pt-3 border-t p-3 rounded ${
                                     claim.status === 'approved' 
-                                      ? darkMode ? 'border-green-800 bg-green-900/20' : 'border-green-200 bg-green-50'
+                                      ? 'border-green-200 bg-green-50'
                                       : claim.status === 'rejected'
-                                      ? darkMode ? 'border-red-800 bg-red-900/20' : 'border-red-200 bg-red-50'
-                                      : darkMode ? 'border-gray-700' : 'border-gray-200'
-                                  } p-3 rounded`}>
+                                      ? 'border-red-200 bg-red-50'
+                                      : 'border-gray-200'
+                                  }`}>
                                     <p className={`text-sm font-semibold mb-1 ${
-                                      claim.status === 'approved' ? 'text-green-700 dark:text-green-400' :
-                                      claim.status === 'rejected' ? 'text-red-700 dark:text-red-400' :
-                                      darkMode ? 'text-gray-400' : 'text-gray-700'
+                                      claim.status === 'approved' ? 'text-green-700' :
+                                      claim.status === 'rejected' ? 'text-red-700' :
+                                      'text-gray-700'
                                     }`}>
                                       Admin Remarks:
                                     </p>
-                                    <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    <p className={`text-sm text-gray-600`}>
                                       {claim.remarks}
                                     </p>
                                   </div>
@@ -1519,8 +1453,8 @@ const Admin = () => {
                             ))
                           ) : (
                             <div className="text-center py-12">
-                              <Package className={`mx-auto mb-3 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} size={48} />
-                              <p className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>No claim requests</p>
+                              <Package className={`mx-auto mb-3 text-gray-400`} size={48} />
+                              <p className={`text-sm text-gray-500`}>No claim requests</p>
                             </div>
                           )}
                         </div>
@@ -1530,39 +1464,31 @@ const Admin = () => {
 
                   {/* Summary Stats */}
                   {!loadingHistory && (
-                    <div className={`mt-6 pt-6 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                    <div className={`mt-6 pt-6 border-t border-gray-200`}>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className={`p-4 rounded-lg text-center ${
-                          darkMode ? 'bg-orange-900/20' : 'bg-orange-50'
-                        }`}>
-                          <p className={`text-2xl font-bold ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
+                        <div className="p-4 rounded-lg text-center bg-orange-50">
+                          <p className={`text-2xl font-bold text-orange-600`}>
                             {userHistory.reports?.length || 0}
                           </p>
-                          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Reports</p>
+                          <p className={`text-sm text-gray-600`}>Total Reports</p>
                         </div>
-                        <div className={`p-4 rounded-lg text-center ${
-                          darkMode ? 'bg-blue-900/20' : 'bg-blue-50'
-                        }`}>
-                          <p className={`text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                        <div className="p-4 rounded-lg text-center bg-gray-50">
+                          <p className={`text-2xl font-bold text-gray-900`}>
                             {userHistory.claims?.length || 0}
                           </p>
-                          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Claims</p>
+                          <p className={`text-sm text-gray-600`}>Total Claims</p>
                         </div>
-                        <div className={`p-4 rounded-lg text-center ${
-                          darkMode ? 'bg-green-900/20' : 'bg-green-50'
-                        }`}>
-                          <p className={`text-2xl font-bold ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
+                        <div className="p-4 rounded-lg text-center bg-green-50">
+                          <p className={`text-2xl font-bold text-green-600`}>
                             {userHistory.claims?.filter(c => c.status === 'approved').length || 0}
                           </p>
-                          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Approved</p>
+                          <p className={`text-sm text-gray-600`}>Approved</p>
                         </div>
-                        <div className={`p-4 rounded-lg text-center ${
-                          darkMode ? 'bg-red-900/20' : 'bg-red-50'
-                        }`}>
-                          <p className={`text-2xl font-bold ${darkMode ? 'text-red-400' : 'text-red-600'}`}>
+                        <div className="p-4 rounded-lg text-center bg-red-50">
+                          <p className="text-2xl font-bold text-red-600">
                             {userHistory.claims?.filter(c => c.status === 'rejected').length || 0}
                           </p>
-                          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Rejected</p>
+                          <p className={`text-sm text-gray-600`}>Rejected</p>
                         </div>
                       </div>
                     </div>
@@ -1571,9 +1497,7 @@ const Admin = () => {
                   <div className="flex justify-end mt-6">
                     <button
                       onClick={() => setShowModal(false)}
-                      className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-                        darkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                      }`}
+                      className="px-6 py-3 rounded-lg font-semibold transition-colors bg-gray-200 hover:bg-gray-300 text-gray-700"
                     >
                       Close
                     </button>
@@ -1598,3 +1522,8 @@ const Admin = () => {
 };
 
 export default Admin;
+
+
+
+
+

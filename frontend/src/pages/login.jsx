@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useDarkMode } from '../context/DarkModeContext';
 import { LogIn, AlertCircle } from 'lucide-react';
 
 const Login = () => {
-  const { darkMode } = useDarkMode();
   const [searchParams] = useSearchParams();
   const [error, setError] = useState('');
   const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
@@ -50,41 +48,25 @@ const Login = () => {
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center px-4 ${
-      darkMode ? 'bg-gray-900' : 'bg-gray-50'
-    }`}>
-      <div className={`max-w-md w-full space-y-8 p-8 rounded-lg shadow-lg ${
-        darkMode ? 'bg-gray-800' : 'bg-white'
-      }`}>
+    <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
+      <div className="max-w-md w-full space-y-8 p-8 rounded-lg shadow-lg bg-white">
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <div className={`p-4 rounded-full ${
-              darkMode ? 'bg-blue-900' : 'bg-blue-100'
-            }`}>
-              <LogIn className={`h-12 w-12 ${
-                darkMode ? 'text-blue-400' : 'text-blue-600'
-              }`} />
+            <div className="p-4 rounded-full bg-gray-100">
+              <LogIn className="h-12 w-12 text-gray-900" />
             </div>
           </div>
-          <h2 className={`text-3xl font-bold ${
-            darkMode ? 'text-white' : 'text-gray-900'
-          }`}>
+          <h2 className="text-3xl font-bold text-gray-900">
             Welcome Back
           </h2>
-          <p className={`mt-2 text-sm ${
-            darkMode ? 'text-gray-400' : 'text-gray-600'
-          }`}>
+          <p className="mt-2 text-sm text-gray-600">
             Sign in to Thapar Lost & Found Portal
           </p>
         </div>
 
         {/* Error Alert */}
         {error && (
-          <div className={`p-4 rounded-lg border ${
-            darkMode 
-              ? 'bg-red-900/20 border-red-800 text-red-300' 
-              : 'bg-red-50 border-red-200 text-red-800'
-          }`}>
+          <div className="p-4 rounded-lg border bg-red-50 border-red-200 text-red-800">
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <div>
@@ -98,11 +80,7 @@ const Login = () => {
         <div className="mt-8">
           <button
             onClick={handleGoogleLogin}
-            className={`w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
-              darkMode
-                ? 'bg-white text-gray-900 hover:bg-gray-100'
-                : 'bg-white text-gray-900 hover:bg-gray-50 border-2 border-gray-300'
-            }`}
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg font-medium transition-all bg-white text-gray-900 hover:bg-gray-50 border-2 border-gray-300"
           >
             <svg className="w-6 h-6" viewBox="0 0 24 24">
               <path
@@ -125,9 +103,7 @@ const Login = () => {
             Sign in with Google (@thapar.edu)
           </button>
 
-          <p className={`mt-4 text-xs text-center ${
-            darkMode ? 'text-gray-500' : 'text-gray-600'
-          }`}>
+          <p className="mt-4 text-xs text-center text-gray-600">
             Only @thapar.edu email accounts are allowed
           </p>
         </div>
