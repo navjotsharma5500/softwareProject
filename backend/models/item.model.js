@@ -60,7 +60,7 @@ itemSchema.index({ isClaimed: 1, createdAt: -1 }); // PRIMARY - default query
 itemSchema.index({ category: 1, isClaimed: 1, createdAt: -1 }); // With category filter
 itemSchema.index({ foundLocation: 1, isClaimed: 1, createdAt: -1 }); // With location filter
 itemSchema.index({ dateFound: -1, isClaimed: 1 }); // Time-based queries
-itemSchema.index({ name: "text" }); // Text search on item name
+itemSchema.index({ name: "text", itemId: "text" }); // Text search optimization
 
 const Item = mongoose.model("Item", itemSchema);
 export default Item;

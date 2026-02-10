@@ -6,6 +6,7 @@ import { getNextSequence } from "../models/counter.model.js";
 import { sendEmail, getClaimStatusEmailBody } from "../utils/email.utils.js";
 import User from "../models/user.model.js";
 import { clearCachePattern } from "../utils/redisClient.js";
+import { withQueryTimeout } from "../middlewares/queryTimeout.middleware.js";
 
 // Valid categories (must match frontend constants.js and models)
 const VALID_CATEGORIES = [
@@ -155,10 +156,12 @@ export const updateItem = async (req, res) => {
     updates.category = categoryResult.category;
   }
   try {
-    const item = await Item.findByIdAndUpdate(id, updates, {
-      new: true,
-      runValidators: true,
-    });
+    const item = await withQueryTimeout(
+      Item.findByIdAndUpdate(id, updates, {
+        new: true,
+        runValidators: true,
+      })
+    );
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
     }
@@ -180,7 +183,7 @@ export const deleteItem = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const item = await Item.findByIdAndDelete(id);
+    const item = await withQueryTimeout(Item.findByIdAndDelete(id));
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
     }
@@ -204,9 +207,9 @@ export const getItemById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const item = await Item.findById(id)
-      .populate("owner", "name email rollNo")
-      .lean();
+    const item = await withQueryTimeout(
+      Item.findById(id).populate("owner", "name email rollNo").lean()
+    );
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
     }
@@ -222,10 +225,12 @@ export const getItemClaims = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const claims = await Claim.find({ item: id })
-      .populate("claimant", "name email rollNo")
-      .sort({ createdAt: -1 })
-      .lean();
+    const claims = await withQueryTimeout(
+      Claim.find({ item: id })
+        .populate("claimant", "name email rollNo")
+        .sort({ createdAt: -1 })
+        .lean()
+    );
     return res.status(200).json({ claims });
   } catch (error) {
     console.error(error);
@@ -275,15 +280,17 @@ export const listPendingClaims = async (req, res) => {
       total = filteredClaims.length;
       claims = filteredClaims.slice(skip, skip + limit);
     } else {
-      [claims, total] = await Promise.all([
-        Claim.find(query)
-          .populate("claimant", "name email rollNo")
-          .populate("item")
-          .skip(skip)
-          .limit(limit)
-          .sort({ createdAt: -1 }),
-        Claim.countDocuments(query),
-      ]);
+      [claims, total] = await withQueryTimeout(
+        Promise.all([
+          Claim.find(query)
+            .populate("claimant", "name email rollNo")
+            .populate("item")
+            .skip(skip)
+            .limit(limit)
+            .sort({ createdAt: -1 }),
+          Claim.countDocuments(query),
+        ])
+      );
     }
 
     const totalPages = Math.ceil(total / limit);
@@ -317,15 +324,15 @@ export const approveClaim = async (req, res) => {
   const { id } = req.params; // claim ID
   const { remarks } = req.body;
   try {
-    const claim = await Claim.findById(id)
-      .populate("claimant")
-      .populate("item");
+    const claim = await withQueryTimeout(
+      Claim.findById(id).populate("claimant").populate("item")
+    );
     if (!claim) return res.status(404).json({ message: "Claim not found" });
     claim.status = "approved";
     if (remarks) claim.remarks = remarks;
     await claim.save();
     // Update the item to set isClaimed = true and owner
-    const item = await Item.findById(claim.item._id);
+    const item = await withQueryTimeout(Item.findById(claim.item._id));
     if (item) {
       item.isClaimed = true;
       item.owner = claim.claimant._id;
@@ -369,9 +376,9 @@ export const rejectClaim = async (req, res) => {
   const { id } = req.params; // claim ID
   const { remarks } = req.body;
   try {
-    const claim = await Claim.findById(id)
-      .populate("claimant")
-      .populate("item");
+    const claim = await withQueryTimeout(
+      Claim.findById(id).populate("claimant").populate("item")
+    );
     if (!claim) return res.status(404).json({ message: "Claim not found" });
     claim.status = "rejected";
     if (remarks) claim.remarks = remarks;

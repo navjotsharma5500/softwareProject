@@ -3,6 +3,7 @@ import User from "../models/user.model.js";
 import Claim from "../models/claim.model.js";
 import Report from "../models/report.model.js";
 import { getCache, setCache, clearCachePattern } from "../utils/redisClient.js";
+import { withQueryTimeout } from "../middlewares/queryTimeout.middleware.js";
 
 // User claims an item: creates a new claim record
 export const claimItem = async (req, res) => {
@@ -11,7 +12,7 @@ export const claimItem = async (req, res) => {
   if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
   try {
-    const item = await Item.findById(id);
+    const item = await withQueryTimeout(Item.findById(id));
     if (!item) return res.status(404).json({ message: "Item not found" });
 
     if (item.isClaimed) {
@@ -21,11 +22,13 @@ export const claimItem = async (req, res) => {
     }
 
     // Check if user already has a pending claim for this item
-    const existingClaim = await Claim.findOne({
-      item: id,
-      claimant: userId,
-      status: "pending",
-    });
+    const existingClaim = await withQueryTimeout(
+      Claim.findOne({
+        item: id,
+        claimant: userId,
+        status: "pending",
+      })
+    );
 
     if (existingClaim) {
       return res
@@ -37,11 +40,13 @@ export const claimItem = async (req, res) => {
     }
 
     // Check if user has a rejected claim for this item (prevent re-claiming)
-    const rejectedClaim = await Claim.findOne({
-      item: id,
-      claimant: userId,
-      status: "rejected",
-    });
+    const rejectedClaim = await withQueryTimeout(
+      Claim.findOne({
+        item: id,
+        claimant: userId,
+        status: "rejected",
+      })
+    );
 
     if (rejectedClaim) {
       return res.status(403).json({
@@ -66,9 +71,11 @@ export const claimItem = async (req, res) => {
     // Clear items list cache
     await clearCachePattern("items:list:*");
 
-    const populatedClaim = await Claim.findById(newClaim._id)
-      .populate("claimant", "name email rollNo")
-      .populate("item");
+    const populatedClaim = await withQueryTimeout(
+      Claim.findById(newClaim._id)
+        .populate("claimant", "name email rollNo")
+        .populate("item")
+    );
 
     return res
       .status(200)
@@ -87,7 +94,7 @@ export const deleteClaim = async (req, res) => {
   if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
   try {
-    const claim = await Claim.findById(claimId);
+    const claim = await withQueryTimeout(Claim.findById(claimId));
 
     if (!claim) {
       return res.status(404).json({ message: "Claim not found" });
@@ -129,7 +136,7 @@ export const deleteReport = async (req, res) => {
   if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
   try {
-    const report = await Report.findById(reportId);
+    const report = await withQueryTimeout(Report.findById(reportId));
 
     if (!report) {
       return res.status(404).json({ message: "Report not found" });
@@ -174,19 +181,21 @@ export const myClaims = async (req, res) => {
 
     const query = { claimant: userId };
 
-    const [claims, total] = await Promise.all([
-      Claim.find(query)
-        .select("item claimant status remarks createdAt")
-        .populate(
-          "item",
-          "itemId name category foundLocation dateFound isClaimed",
-        )
-        .skip(skip)
-        .limit(limit)
-        .sort({ createdAt: -1 })
-        .lean(), // Faster read-only queries
-      Claim.countDocuments(query),
-    ]);
+    const [claims, total] = await withQueryTimeout(
+      Promise.all([
+        Claim.find(query)
+          .select("item claimant status remarks createdAt")
+          .populate(
+            "item",
+            "itemId name category foundLocation dateFound isClaimed",
+          )
+          .skip(skip)
+          .limit(limit)
+          .sort({ createdAt: -1 })
+          .lean(), // Faster read-only queries
+        Claim.countDocuments(query),
+      ])
+    );
 
     const totalPages = Math.ceil(total / limit);
 
@@ -294,16 +303,18 @@ export const listItems = async (req, res) => {
     }
 
     // Execute queries in parallel for better performance
-    const [items, total] = await Promise.all([
-      Item.find(query)
-        .select("itemId name category foundLocation dateFound isClaimed owner")
-        .populate("owner", "name rollNo") // Don't show email to public
-        .skip(skip)
-        .limit(limit)
-        .sort({ createdAt: -1 })
-        .lean(), // Faster read-only queries
-      Item.countDocuments(query),
-    ]);
+    const [items, total] = await withQueryTimeout(
+      Promise.all([
+        Item.find(query)
+          .select("itemId name category foundLocation dateFound isClaimed owner")
+          .populate("owner", "name rollNo") // Don't show email to public
+          .skip(skip)
+          .limit(limit)
+          .sort({ createdAt: -1 })
+          .lean(), // Faster read-only queries
+        Item.countDocuments(query),
+      ])
+    );
 
     const totalPages = Math.ceil(total / limit);
 
@@ -342,10 +353,12 @@ export const getItemById = async (req, res) => {
       return res.status(200).json(cachedItem);
     }
 
-    const item = await Item.findById(id)
-      .select("itemId name category foundLocation dateFound isClaimed owner")
-      .populate("owner", "name rollNo") // Don't show email to public
-      .lean(); // Faster read-only queries
+    const item = await withQueryTimeout(
+      Item.findById(id)
+        .select("itemId name category foundLocation dateFound isClaimed owner")
+        .populate("owner", "name rollNo") // Don't show email to public
+        .lean() // Faster read-only queries
+    );
 
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
@@ -418,9 +431,9 @@ export const getProfile = async (req, res) => {
       return res.status(200).json(cachedProfile);
     }
 
-    const user = await User.findById(userId)
-      .select("name email rollNo phone profilePicture isAdmin createdAt")
-      .lean();
+    const user = await withQueryTimeout(
+      User.findById(userId).select("name email rollNo phone profilePicture isAdmin createdAt").lean()
+    );
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });

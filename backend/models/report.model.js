@@ -64,9 +64,11 @@ const reportSchema = new mongoose.Schema(
   },
 );
 
-// Index for faster queries (minimal for EC2 efficiency)
+// Index for faster queries (optimized for EC2 efficiency)
 reportSchema.index({ user: 1, createdAt: -1 }); // User's reports
 reportSchema.index({ status: 1, createdAt: -1 }); // Admin queries by status
+reportSchema.index({ category: 1, status: 1 }); // Category + status filtering
+reportSchema.index({ dateLost: -1 }); // Date-based queries
 
 const Report = mongoose.model("Report", reportSchema);
 

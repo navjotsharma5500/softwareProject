@@ -10,6 +10,7 @@ import authRoutes from "./routes/auth.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import reportRoutes from "./routes/report.routes.js";
+import healthRoutes from "./routes/health.routes.js";
 
 import {
   apiLimiter,
@@ -118,30 +119,13 @@ app.set("etag", "strong");
 
 connectDB();
 
-// Request timeout middleware - prevent hanging requests
-app.use((req, res, next) => {
-  // Set timeout to 25 seconds (well under Cloudflare's 100s)
-  req.setTimeout(25000, () => {
-    console.error(`⏱️  Request timeout: ${req.method} ${req.url}`);
-    if (!res.headersSent) {
-      res.status(408).json({
-        message: "Request timeout",
-        error: "The server took too long to process your request",
-      });
-    }
-  });
-  next();
-});
-
 // Apply rate limiters to routes
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/admin", adminLimiter, adminRoutes);
 app.use("/api/user", apiLimiter, userRoutes);
 app.use("/api/reports", apiLimiter, reportRoutes);
+app.use("/health", healthRoutes); // No rate limiting on health checks
 
-app.get("/health", (req, res) => {
-  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
-});
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Lost & Found API", version: "1.0.0" });
 });

@@ -288,3 +288,25 @@ resume.tex
 
 EC2*.md
 EXTERNAL*.md
+
+# Load testing files and reports (contain server IPs and test data)
+load-test.yml
+load-test-abuse.yml
+load-test.js
+run-load-test.sh
+LOAD_TESTING.md
+report.json
+abuse-report.json
+report.html
+abuse-report.html
+artillery-report-*.json
+artillery-report-*.html
+k6-results.json
+
+# Server credentials and IPs (SENSITIVE)
+server-info.txt
+*.pem
+ubuntu@*
+ec2-user@*
+load-testing-README.md
+IMPROVEMENTS_SUMMARY.md

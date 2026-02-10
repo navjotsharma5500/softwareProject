@@ -9,6 +9,7 @@ import {
   sendEmail,
   getReportSubmissionEmailBody,
 } from "../utils/email.utils.js";
+import { withQueryTimeout } from "../middlewares/queryTimeout.middleware.js";
 
 // Generate ImageKit authentication parameters for photo uploads
 export const getUploadUrls = async (req, res) => {
@@ -223,7 +224,17 @@ export const getAllReports = async (req, res) => {
       Report.countDocuments(query),
     ]);
 
-    const [reports, count] = await Promise.race([queryPromise, queryTimeout]);
+    const [reports, count] = await withQueryTimeout(
+      Promise.all([
+        Report.find(query)
+          .populate("user", "name email rollNo")
+          .sort({ createdAt: -1 })
+          .limit(limit)
+          .skip(skip)
+          .lean(),
+        Report.countDocuments(query),
+      ])
+    );
 
     res.status(200).json({
       reports,
@@ -258,10 +269,12 @@ export const getMyReports = async (req, res) => {
     const query = { user: req.user.id };
     if (status) query.status = status;
 
-    const [reports, count] = await Promise.all([
-      Report.find(query).sort({ createdAt: -1 }).limit(limit).skip(skip).lean(),
-      Report.countDocuments(query),
-    ]);
+    const [reports, count] = await withQueryTimeout(
+      Promise.all([
+        Report.find(query).sort({ createdAt: -1 }).limit(limit).skip(skip).lean(),
+        Report.countDocuments(query),
+      ])
+    );
 
     res.status(200).json({
       reports,
@@ -277,9 +290,8 @@ export const getMyReports = async (req, res) => {
 // Get a single report by ID
 export const getReportById = async (req, res) => {
   try {
-    const report = await Report.findById(req.params.id).populate(
-      "user",
-      "name email rollNo",
+    const report = await withQueryTimeout(
+      Report.findById(req.params.id).populate("user", "name email rollNo")
     );
 
     if (!report) {
