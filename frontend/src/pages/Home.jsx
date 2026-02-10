@@ -189,7 +189,7 @@ const Home = () => {
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-5xl font-bold mb-8 text-gray-900"
+            className="text-3xl md:text-4xl font-bold mb-8 text-gray-900"
           >
             <motion.span 
               initial={{ opacity: 0, scale: 0.9 }}
@@ -223,10 +223,10 @@ const Home = () => {
         <div className="flex justify-center items-center gap-4 mb-8 flex-wrap">
           {/* Report Lost Item Button */}
           <button
-            onClick={() => navigate('/report')}
-            className="px-6 py-3 rounded-xl font-semibold transition-all bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-400 hover:to-pink-400 text-white shadow-lg hover:scale-105"
+            onClick={() => navigate('/report-lost-item')}
+            className="px-6 py-3 rounded-xl font-semibold transition-all bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-white shadow-lg hover:scale-105 border-2 border-red-400"
           >
-            REPORT A LOST ITEM
+            Report Lost Item
           </button>
           
           <div className="inline-flex rounded-xl p-1 bg-gray-200">
