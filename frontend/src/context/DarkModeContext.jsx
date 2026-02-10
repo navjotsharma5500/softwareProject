@@ -14,7 +14,7 @@ export const DarkModeProvider = ({ children }) => {
   const [darkMode, setDarkMode] = useState(() => {
     // Check localStorage for saved preference
     const saved = localStorage.getItem('darkMode');
-    const isDark = saved ? JSON.parse(saved) : true; // Default to dark mode
+    const isDark = saved ? JSON.parse(saved) : false; // Default to light mode
     
     // Apply initial dark class immediately
     if (isDark) {

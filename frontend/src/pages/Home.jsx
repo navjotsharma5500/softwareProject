@@ -138,9 +138,9 @@ const Home = () => {
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
-      {/* Animated How It Works Button - slides in from left */}
+      {/* Animated How It Works Button - bottom right */}
       <motion.div
-        initial={{ x: -100, opacity: 0 }}
+        initial={{ x: 100, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ 
           type: "spring",
@@ -148,20 +148,20 @@ const Home = () => {
           damping: 20,
           delay: 0.5
         }}
-        className="fixed top-16 sm:top-20 left-2 sm:left-4 z-40"
+        className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40"
       >
         <motion.button
           onClick={() => navigate('/how-it-works')}
           animate={{
-            paddingLeft: isScrolled ? 10 : 12,
-            paddingRight: isScrolled ? 10 : 12,
+            paddingLeft: isScrolled ? 12 : 16,
+            paddingRight: isScrolled ? 12 : 16,
           }}
           transition={{ duration: 0.3 }}
-          className={`group rounded-full shadow-lg transition-all duration-300 py-2 sm:py-3 ${
+          className={`group rounded-full shadow-lg transition-all duration-300 py-2.5 sm:py-3 ${
             darkMode 
               ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500' 
               : 'bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-400 hover:to-teal-400'
-          } hover:scale-105 flex items-center justify-center gap-1 sm:gap-2`}
+          } hover:scale-105 flex items-center justify-center gap-1.5 sm:gap-2`}
           title="How It Works"
         >
           <svg
@@ -201,7 +201,7 @@ const Home = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="bg-gradient-to-r from-blue-600 to-teal-600 bg-clip-text text-transparent block mb-2 pb-2 leading-tight"
+              className="bg-gradient-to-r from-red-700 to-red-600 bg-clip-text text-transparent block mb-2 pb-2 leading-tight"
               style={{ WebkitBoxDecorationBreak: 'clone' }}
             >
               Thapar Institute of Engineering and Technology
@@ -225,8 +225,20 @@ const Home = () => {
           </motion.p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex justify-center items-center gap-4 mb-8">
+        {/* Tab Switcher with Report Button */}
+        <div className="flex justify-center items-center gap-4 mb-8 flex-wrap">
+          {/* Report Lost Item Button */}
+          <button
+            onClick={() => navigate('/report')}
+            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+              darkMode
+                ? 'bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500'
+                : 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-400 hover:to-pink-400'
+            } text-white shadow-lg hover:scale-105`}
+          >
+            REPORT A LOST ITEM
+          </button>
+          
           <div className={`inline-flex rounded-xl p-1 ${
             darkMode ? 'bg-slate-800' : 'bg-gray-200'
           }`}>

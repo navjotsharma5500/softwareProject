@@ -13,9 +13,11 @@ const Footer = () => {
           {/* Brand Section */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center mb-4">
-              <svg className="h-8 w-8 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7l6 6-6 6M21 7l-6 6 6 6"></path>
-              </svg>
+              <img 
+                src="/Thapar_Logo-Photoroom.png" 
+                alt="Thapar Institute Logo" 
+                className="h-10 w-auto mr-3"
+              />
               <span className="text-gray-900 dark:text-white font-bold text-xl">Lost & Found</span>
             </div>
             <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-md">
@@ -35,16 +37,37 @@ const Footer = () => {
               <ul className="space-y-2">
                 <li><Link to="/profile" className="hover:text-gray-900 dark:hover:text-white transition-colors">Profile</Link></li>
                 <li><Link to="/login" className="hover:text-gray-900 dark:hover:text-white transition-colors">Login</Link></li>
+                <li><Link to="/dev" className="hover:text-gray-900 dark:hover:text-white transition-colors">Developers</Link></li>
               </ul>
             </div>
           </div>
 
           {/* Account & Support */}
           <div>
-            <h3 className="text-gray-900 dark:text-white font-semibold mb-4">Support</h3>
-            <ul className="space-y-2">
-              <li><Link to="/how-it-works" className="hover:text-gray-900 dark:hover:text-white transition-colors">How It Works</Link></li>
-              <li><Link to="/dev" className="hover:text-gray-900 dark:hover:text-white transition-colors">Developers</Link></li>
+            <h3 className="text-gray-900 dark:text-white font-semibold mb-4">SUPPORT</h3>
+            <ul className="space-y-3">
+              <li>
+                <div className="text-sm">
+                  <p className="font-medium mb-1">Technical/Item Glitches:</p>
+                  <a 
+                    href="mailto:itmh@thapar.edu" 
+                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors break-all"
+                  >
+                    itmh@thapar.edu
+                  </a>
+                </div>
+              </li>
+              <li>
+                <div className="text-sm">
+                  <p className="font-medium mb-1">Website Glitches:</p>
+                  <a 
+                    href="mailto:adminofficer@thapar.edu" 
+                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors break-all"
+                  >
+                    adminofficer@thapar.edu
+                  </a>
+                </div>
+              </li>
             </ul>
           </div>
         </div>
