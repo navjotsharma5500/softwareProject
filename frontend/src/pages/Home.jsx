@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, X, RefreshCw, Grid, List } from 'lucide-react';
@@ -18,6 +18,15 @@ const Home = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const isInitialLoad = useRef(true);
   const itemsContainerRef = useRef(null);
+
+  // Rate limiting state
+  const lastRefreshTime = useRef(0);
+  const lastClearFiltersTime = useRef(0);
+  const lastPageChangeTime = useRef(0);
+  const searchTimeoutRef = useRef(null);
+  const abortControllerRef = useRef(null);
+  const [refreshCooldown, setRefreshCooldown] = useState(false);
+  const [clearCooldown, setClearCooldown] = useState(false);
 
   // Tab state (persisted)
   const [activeTab, setActiveTab] = useFormPersistence('home_activeTab', 'available'); // 'available' or 'claimed'
@@ -40,7 +49,14 @@ const Home = () => {
   });
 
   const fetchItems = async () => {
+    // Cancel any existing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    abortControllerRef.current = new AbortController();
     setLoading(true);
+    
     try {
       // Remove empty filters and add status based on active tab
       const params = Object.entries(filters).reduce((acc, [key, value]) => {
@@ -51,15 +67,20 @@ const Home = () => {
       // Add isClaimed filter based on active tab
       params.isClaimed = activeTab === 'claimed';
       
-      const response = await publicApi.getItems(params);
+      const response = await publicApi.getItems(params, {
+        signal: abortControllerRef.current.signal
+      });
       setItems(response.data.items);
       setPagination(response.data.pagination);
     } catch (error) {
-      toast.error('Failed to load items');
-      console.error(error);
+      if (error.name !== 'AbortError') {
+        toast.error('Failed to load items');
+        console.error(error);
+      }
     } finally {
       setLoading(false);
       isInitialLoad.current = false;
+      abortControllerRef.current = null;
     }
   };
 
@@ -77,13 +98,42 @@ const Home = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value,
-      page: 1 // Reset to page 1 when filters change
-    }));
-  };
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Cancel any pending requests
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      // Clear search timeout
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleFilterChange = useCallback((key, value) => {
+    // Debouncing for search input
+    if (key === 'search') {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+      
+      searchTimeoutRef.current = setTimeout(() => {
+        setFilters(prev => ({
+          ...prev,
+          [key]: value,
+          page: 1 // Reset to page 1 when filters change
+        }));
+      }, 300); // 300ms debounce
+    } else {
+      setFilters(prev => ({
+        ...prev,
+        [key]: value,
+        page: 1 // Reset to page 1 when filters change
+      }));
+    }
+  }, [setFilters]);
 
   const scrollToItems = () => {
     if (!itemsContainerRef.current) return;
@@ -105,7 +155,19 @@ const Home = () => {
   };
 
   const handleRefresh = async () => {
+    const now = Date.now();
+    const REFRESH_COOLDOWN = 2000; // 2 seconds
+    
+    // Check if still in cooldown
+    if (now - lastRefreshTime.current < REFRESH_COOLDOWN) {
+      toast.warning('Please wait before refreshing again');
+      return;
+    }
+    
+    lastRefreshTime.current = now;
+    setRefreshCooldown(true);
     setRefreshing(true);
+    
     try {
       await fetchItems();
       toast.success('Items refreshed!');
@@ -113,10 +175,24 @@ const Home = () => {
       toast.error('Failed to refresh items');
     } finally {
       setRefreshing(false);
+      // Remove cooldown after delay
+      setTimeout(() => setRefreshCooldown(false), REFRESH_COOLDOWN);
     }
   };
 
   const clearFilters = () => {
+    const now = Date.now();
+    const CLEAR_COOLDOWN = 1000; // 1 second
+    
+    // Check if still in cooldown
+    if (now - lastClearFiltersTime.current < CLEAR_COOLDOWN) {
+      toast.warning('Please wait before clearing filters again');
+      return;
+    }
+    
+    lastClearFiltersTime.current = now;
+    setClearCooldown(true);
+    
     // Clear persisted filters as well
     if (filtersControls && typeof filtersControls.clear === 'function') filtersControls.clear();
     else setFilters({
@@ -127,9 +203,21 @@ const Home = () => {
       page: 1,
       limit: 12
     });
+    
+    // Remove cooldown after delay
+    setTimeout(() => setClearCooldown(false), CLEAR_COOLDOWN);
   };
 
   const handlePageChange = (newPage) => {
+    const now = Date.now();
+    const PAGE_CHANGE_COOLDOWN = 500; // 500ms
+    
+    // Check if still in cooldown
+    if (now - lastPageChangeTime.current < PAGE_CHANGE_COOLDOWN) {
+      return; // Silently ignore rapid pagination clicks
+    }
+    
+    lastPageChangeTime.current = now;
     setFilters(prev => ({ ...prev, page: newPage }));
     scrollToItems();
   };
@@ -283,11 +371,11 @@ const Home = () => {
             {/* Refresh Button */}
             <button
               onClick={handleRefresh}
-              disabled={refreshing}
+              disabled={refreshing || refreshCooldown}
               className={`p-3 rounded-xl font-semibold transition-all bg-white text-gray-900 hover:bg-gray-50 border border-gray-200 ${
-                refreshing ? 'opacity-50 cursor-not-allowed' : ''
+                refreshing || refreshCooldown ? 'opacity-50 cursor-not-allowed' : ''
               }`}
-              title="Refresh items"
+              title={refreshCooldown ? 'Please wait...' : 'Refresh items'}
             >
               <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
             </button>
@@ -389,10 +477,15 @@ const Home = () => {
               <div className="mt-4 flex justify-end">
                 <button
                   onClick={clearFilters}
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:text-red-700 font-medium"
+                  disabled={clearCooldown}
+                  className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all ${
+                    clearCooldown 
+                      ? 'opacity-50 cursor-not-allowed text-gray-400'
+                      : 'text-red-600 hover:text-red-700'
+                  }`}
                 >
                   <X size={16} />
-                  Clear Filters
+                  {clearCooldown ? 'Please wait...' : 'Clear Filters'}
                 </button>
               </div>
             </motion.div>

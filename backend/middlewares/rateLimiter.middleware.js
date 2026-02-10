@@ -44,3 +44,39 @@ export const feedbackLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+// File upload rate limiter - strict to prevent abuse
+export const uploadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 20, // Max 20 upload requests per hour
+  message: "Too many file upload requests, please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Search rate limiter - moderate protection
+export const searchLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 30, // Max 30 search requests per minute
+  message: "Too many search requests, please slow down.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// CSV download rate limiter - strict to prevent abuse
+export const csvDownloadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // Max 10 CSV downloads per hour
+  message: "Too many download requests, please try again later.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Report creation rate limiter - prevent spam
+export const reportLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000, // 24 hours
+  max: 10, // Max 10 reports per day per IP
+  message: "Too many report submissions, please try again tomorrow.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});

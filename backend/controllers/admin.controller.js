@@ -256,9 +256,11 @@ export const listPendingClaims = async (req, res) => {
 
     if (req.query.search) {
       // If search is provided, we need to populate first then filter
+      // Limit to prevent memory issues
       const allClaims = await Claim.find(query)
         .populate("claimant", "name email rollNo")
         .populate("item")
+        .limit(1000) // Prevent loading too many records
         .sort({ createdAt: -1 });
 
       const searchLower = req.query.search.toLowerCase();
@@ -395,8 +397,14 @@ export const rejectClaim = async (req, res) => {
 export const listAllItems = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = Math.min(parseInt(req.query.limit) || 10, 50); // Max 50 items per page
     const skip = (page - 1) * limit;
+
+    // Set timeout for query to prevent long-running requests
+    const timeout = 10000; // 10 seconds
+    const queryTimeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Query timeout")), timeout),
+    );
 
     // Build query object based on filters
     const query = {};
@@ -424,7 +432,7 @@ export const listAllItems = async (req, res) => {
       query.isClaimed = req.query.isClaimed === "true";
     }
 
-    const [items, total] = await Promise.all([
+    const queryPromise = Promise.all([
       Item.find(query)
         .select(
           "itemId name category foundLocation dateFound isClaimed owner createdAt",
@@ -436,6 +444,8 @@ export const listAllItems = async (req, res) => {
         .lean(),
       Item.countDocuments(query),
     ]);
+
+    const [items, total] = await Promise.race([queryPromise, queryTimeout]);
 
     const totalPages = Math.ceil(total / limit);
 
@@ -451,7 +461,12 @@ export const listAllItems = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error(error);
+    console.error("List all items error:", error.message);
+    if (error.message === "Query timeout") {
+      return res
+        .status(504)
+        .json({ message: "Request timeout, please try again" });
+    }
     return res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -459,15 +474,27 @@ export const listAllItems = async (req, res) => {
 // Download all data as CSV
 export const downloadDataAsCSV = async (req, res) => {
   try {
-    // Get all data from the database
-    const [items, claims, users, reports] = await Promise.all([
-      Item.find({}).populate("owner", "name email rollNo").lean(),
+    // Set timeout for CSV generation to prevent long-running requests
+    const timeout = 30000; // 30 seconds
+    const csvTimeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("CSV generation timeout")), timeout),
+    );
+
+    // Get all data from the database with limits to prevent memory overload
+    const dataPromise = Promise.all([
+      Item.find({}).populate("owner", "name email rollNo").limit(10000).lean(),
       Claim.find({})
         .populate("claimant", "name email rollNo")
         .populate("item", "itemId name category foundLocation dateFound")
+        .limit(10000)
         .lean(),
-      User.find({}).lean(),
-      Report.find({}).populate("user", "name email rollNo").lean(),
+      User.find({}).limit(5000).lean(),
+      Report.find({}).populate("user", "name email rollNo").limit(10000).lean(),
+    ]);
+
+    const [items, claims, users, reports] = await Promise.race([
+      dataPromise,
+      csvTimeout,
     ]);
 
     // Set response headers for CSV download
@@ -580,6 +607,13 @@ export const downloadDataAsCSV = async (req, res) => {
     res.end();
   } catch (error) {
     console.error("CSV download error:", error.message);
-    res.status(500).json({ message: "Failed to generate CSV download" });
+    if (error.message === "CSV generation timeout") {
+      return res
+        .status(504)
+        .json({ message: "CSV generation timeout. Please contact admin." });
+    }
+    if (!res.headersSent) {
+      res.status(500).json({ message: "Failed to generate CSV download" });
+    }
   }
 };

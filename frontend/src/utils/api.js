@@ -17,7 +17,7 @@ const generateUUID = () => {
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
 
-// Create axios instance
+// Create axios instance with timeout for EC2 optimization
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -25,6 +25,7 @@ const api = axios.create({
   },
   withCredentials: true, // Send cookies with requests
   maxRedirects: 0, // Don't follow redirects - API should respond directly
+  timeout: 30000, // 30 second timeout to prevent hanging requests
 });
 
 // Add token and idempotency key to requests
@@ -64,11 +65,12 @@ api.interceptors.response.use(
 
 // Public API calls (no auth required)
 export const publicApi = {
-  // Get all items with filters
-  getItems: (params) => api.get("/user/items", { params }),
+  // Get all items with filters (with request cancellation support)
+  getItems: (params, config = {}) =>
+    api.get("/user/items", { params, ...config }),
 
   // Get single item
-  getItem: (id) => api.get(`/user/items/${id}`),
+  getItem: (id, config = {}) => api.get(`/user/items/${id}`, config),
 };
 
 // User API calls (auth required)
@@ -76,8 +78,9 @@ export const userApi = {
   // Claim an item
   claimItem: (itemId) => api.post(`/user/items/${itemId}/claim`),
 
-  // Get my claims
-  getMyClaims: (params) => api.get("/user/my-claims", { params }),
+  // Get my claims (with request cancellation support)
+  getMyClaims: (params, config = {}) =>
+    api.get("/user/my-claims", { params, ...config }),
 
   // Delete own claim
   deleteClaim: (claimId) => api.delete(`/user/my-claims/${claimId}`),
@@ -94,9 +97,9 @@ export const userApi = {
 
 // Report API calls (auth required)
 export const reportApi = {
-  // Get upload URLs for photos
+  // Get upload URLs for photos (with timeout protection)
   getUploadUrls: (count, fileTypes) =>
-    api.post("/reports/upload-urls", { count, fileTypes }),
+    api.post("/reports/upload-urls", { count, fileTypes }, { timeout: 10000 }),
 
   // Create a report
   createReport: (data) => api.post("/reports", data),

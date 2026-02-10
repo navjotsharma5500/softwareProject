@@ -11,7 +11,7 @@ if (process.env.REDIS_URL) {
     commandTimeout: 3000, // 3s command timeout - prevents hanging
     retryStrategy(times) {
       if (times > 3) {
-        console.error('Redis: Max retries reached, falling back to DB');
+        console.error("Redis: Max retries reached, falling back to DB");
         return null; // Stop retrying
       }
       const delay = Math.min(times * 50, 2000);
@@ -51,7 +51,7 @@ export const clearCachePattern = async (pattern) => {
       await redis.unlink(...keys);
       if (process.env.NODE_ENV !== "production") {
         console.log(
-          `🗑️  Cleared ${keys.length} cache keys matching: ${pattern}`
+          `🗑️  Cleared ${keys.length} cache keys matching: ${pattern}`,
         );
       }
     }
@@ -83,14 +83,19 @@ export const getCache = async (key) => {
   }
 };
 
-// Helper function to set cached data
-export const setCache = async (key, data, expirationInSeconds = 3600) => {
+// Helper function to set cached data with proper memory-friendly TTL
+export const setCache = async (key, data, expirationInSeconds = 600) => {
   if (!redis) return;
 
   try {
-    await redis.set(key, JSON.stringify(data), "EX", expirationInSeconds);
+    // Ensure max TTL of 1 hour for EC2 memory management
+    const ttl = Math.min(expirationInSeconds, 3600);
+
+    // Use SETEX for atomic set with expiration
+    await redis.setex(key, ttl, JSON.stringify(data));
+
     if (process.env.NODE_ENV !== "production") {
-      console.log(`💾 Cache SET: ${key} (expires in ${expirationInSeconds}s)`);
+      console.log(`💾 Cache SET: ${key} (expires in ${ttl}s)`);
     }
   } catch (err) {
     console.error("Error setting cache:", err.message);

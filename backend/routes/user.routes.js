@@ -1,7 +1,15 @@
 import express from "express";
 import { isAuthenticated, adminOnly } from "../middlewares/auth.middleware.js";
-import { claimLimiter } from "../middlewares/rateLimiter.middleware.js";
+import {
+  claimLimiter,
+  searchLimiter,
+} from "../middlewares/rateLimiter.middleware.js";
 import { idempotencyMiddleware } from "../middlewares/idempotency.middleware.js";
+import {
+  validatePagination,
+  validateObjectId,
+  sanitizeSearchQuery,
+} from "../middlewares/requestValidator.middleware.js";
 import {
   claimItem,
   myClaims,
@@ -16,34 +24,47 @@ import {
 
 const router = express.Router();
 
-// Public routes (no authentication required)
-router.get("/items", listItems);
-router.get("/items/:id", getItemById);
+// Public routes (with rate limiting for search and validation)
+router.get(
+  "/items",
+  searchLimiter,
+  validatePagination,
+  sanitizeSearchQuery,
+  listItems,
+);
+router.get("/items/:id", validateObjectId("id"), getItemById);
 
 // Protected routes (authentication required)
 router.post(
   "/items/:id/claim",
   isAuthenticated,
   claimLimiter,
-  idempotencyMiddleware(86400),
+  idempotencyMiddleware(86400, true), // Strict mode - prevent duplicate claims
   claimItem,
 );
-router.get("/my-claims", isAuthenticated, myClaims);
+router.get("/my-claims", isAuthenticated, searchLimiter, myClaims);
 router.delete(
   "/my-claims/:claimId",
   isAuthenticated,
-  idempotencyMiddleware(3600),
+  claimLimiter,
+  idempotencyMiddleware(3600, true), // Strict mode
   deleteClaim,
 );
 router.get("/profile", isAuthenticated, getProfile);
 router.patch(
   "/profile",
   isAuthenticated,
-  idempotencyMiddleware(3600),
+  idempotencyMiddleware(3600, true), // Strict mode
   updateProfile,
 );
 
 // Admin only routes
-router.get("/history/:userId", isAuthenticated, adminOnly, getUserHistory);
+router.get(
+  "/history/:userId",
+  isAuthenticated,
+  adminOnly,
+  validateObjectId("userId"),
+  getUserHistory,
+);
 
 export default router;

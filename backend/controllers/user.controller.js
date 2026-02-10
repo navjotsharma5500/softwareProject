@@ -30,7 +30,10 @@ export const claimItem = async (req, res) => {
     if (existingClaim) {
       return res
         .status(400)
-        .json({ message: "You have already claimed this item. Please wait for admin approval." });
+        .json({
+          message:
+            "You have already claimed this item. Please wait for admin approval.",
+        });
     }
 
     // Check if user has a rejected claim for this item (prevent re-claiming)
@@ -199,8 +202,8 @@ export const myClaims = async (req, res) => {
       },
     };
 
-    // Cache for 10 minutes (600 seconds) - claims change less frequently
-    await setCache(cacheKey, responseData, 600);
+    // Cache for 5 minutes (300 seconds) - balance between freshness and performance
+    await setCache(cacheKey, responseData, 300);
 
     return res.status(200).json(responseData);
   } catch (error) {
@@ -316,8 +319,8 @@ export const listItems = async (req, res) => {
       },
     };
 
-    // Cache for 1 hour (3600 seconds)
-    await setCache(cacheKey, responseData, 3600);
+    // Cache for 10 minutes (600 seconds) - items list changes frequently
+    await setCache(cacheKey, responseData, 600);
 
     return res.status(200).json(responseData);
   } catch (error) {
@@ -365,13 +368,25 @@ export const getUserHistory = async (req, res) => {
   const { userId } = req.params;
 
   try {
-    const [user, claims, reports] = await Promise.all([
-      User.findById(userId).select("name email rollNo createdAt"),
+    // Set timeout for user history to prevent long-running queries
+    const timeout = 5000; // 5 seconds
+    const historyTimeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("User history timeout")), timeout),
+    );
+
+    const historyPromise = Promise.all([
+      User.findById(userId).select("name email rollNo createdAt").lean(),
       Claim.find({ claimant: userId })
         .populate("item", "itemId name category foundLocation dateFound")
         .sort({ createdAt: -1 })
-        .limit(20),
-      Report.find({ user: userId }).sort({ createdAt: -1 }).limit(20),
+        .limit(50)
+        .lean(), // Increased from 20 for better history
+      Report.find({ user: userId }).sort({ createdAt: -1 }).limit(50).lean(),
+    ]);
+
+    const [user, claims, reports] = await Promise.race([
+      historyPromise,
+      historyTimeout,
     ]);
 
     if (!user) {

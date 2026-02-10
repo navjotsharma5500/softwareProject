@@ -2,6 +2,15 @@ import express from "express";
 import { isAuthenticated, adminOnly } from "../middlewares/auth.middleware.js";
 import { idempotencyMiddleware } from "../middlewares/idempotency.middleware.js";
 import {
+  uploadLimiter,
+  reportLimiter,
+} from "../middlewares/rateLimiter.middleware.js";
+import {
+  validatePagination,
+  validateObjectId,
+  validateBodySize,
+} from "../middlewares/requestValidator.middleware.js";
+import {
   getUploadUrls,
   createReport,
   getAllReports,
@@ -15,46 +24,76 @@ import {
 
 const router = express.Router();
 
-// Generate presigned URLs for photo uploads
-router.post("/upload-urls", isAuthenticated, getUploadUrls);
+// Generate presigned URLs for photo uploads (with rate limiting and validation)
+router.post(
+  "/upload-urls",
+  isAuthenticated,
+  uploadLimiter,
+  validateBodySize(50),
+  getUploadUrls,
+);
 
-// Create a new report (with idempotency to prevent duplicate submissions)
-router.post("/", isAuthenticated, idempotencyMiddleware(86400), createReport);
+// Create a new report (with idempotency, rate limiting, and validation to prevent spam)
+router.post(
+  "/",
+  isAuthenticated,
+  reportLimiter,
+  validateBodySize(200),
+  idempotencyMiddleware(86400, true),
+  createReport,
+);
 
 // Get all reports (admin only)
-router.get("/all", isAuthenticated, adminOnly, getAllReports);
+router.get(
+  "/all",
+  isAuthenticated,
+  adminOnly,
+  validatePagination,
+  getAllReports,
+);
 
 // Get my reports
-router.get("/my-reports", isAuthenticated, getMyReports);
+router.get("/my-reports", isAuthenticated, validatePagination, getMyReports);
 
 // Get reports by user ID (admin only)
-router.get("/user/:userId", isAuthenticated, adminOnly, getReportsByUserId);
+router.get(
+  "/user/:userId",
+  isAuthenticated,
+  adminOnly,
+  validateObjectId("userId"),
+  getReportsByUserId,
+);
 
 // Get a single report by ID
-router.get("/:id", isAuthenticated, getReportById);
+router.get("/:id", isAuthenticated, validateObjectId("id"), getReportById);
 
-// Update a report (with idempotency)
+// Update a report (with strict idempotency and validation)
 router.patch(
   "/:id",
   isAuthenticated,
-  idempotencyMiddleware(3600),
+  uploadLimiter,
+  validateObjectId("id"),
+  validateBodySize(200),
+  idempotencyMiddleware(3600, true), // Strict mode
   updateReport,
 );
 
-// Delete a report (with idempotency)
+// Delete a report (with strict idempotency and validation)
 router.delete(
   "/:id",
   isAuthenticated,
-  idempotencyMiddleware(3600),
+  validateObjectId("id"),
+  idempotencyMiddleware(3600, true), // Strict mode
   deleteReport,
 );
 
-// Update report status (admin only, with idempotency)
+// Update report status (admin only, with strict idempotency and validation)
 router.patch(
   "/:id/status",
   isAuthenticated,
   adminOnly,
-  idempotencyMiddleware(3600),
+  validateObjectId("id"),
+  idempotencyMiddleware(3600, true), // Strict mode
   updateReportStatus,
 );
 

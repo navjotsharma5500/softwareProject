@@ -16,6 +16,7 @@ import {
   authLimiter,
   adminLimiter,
 } from "./middlewares/rateLimiter.middleware.js";
+import { requestTimeout } from "./middlewares/queryTimeout.middleware.js";
 import securityMiddleware from "./security.js";
 
 dotenv.config();
@@ -67,10 +68,13 @@ app.use((req, res, next) => {
   })(req, res, next);
 });
 
-// Request body parsers with size limits
+// Request body parsers with size limits for abuse protection
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
+
+// Apply global request timeout middleware (30 seconds)
+app.use(requestTimeout(30000));
 
 // Apply security middleware
 securityMiddleware(app);

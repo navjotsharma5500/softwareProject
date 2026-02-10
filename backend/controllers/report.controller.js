@@ -15,21 +15,58 @@ export const getUploadUrls = async (req, res) => {
   try {
     const { count = 1, fileTypes = [] } = req.body;
 
+    // Validate count
+    if (!count || count < 1) {
+      return res.status(400).json({ message: "Invalid count parameter" });
+    }
+
     if (count > 3) {
       return res.status(400).json({ message: "Maximum 3 photos allowed" });
     }
 
-    // Generate ImageKit auth params for each file
-    const uploadParams = await Promise.all(
+    // Validate file types if provided
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (fileTypes.length > 0) {
+      const invalidTypes = fileTypes.filter(
+        (type) => !allowedTypes.includes(type),
+      );
+      if (invalidTypes.length > 0) {
+        return res.status(400).json({
+          message: `Invalid file types. Allowed: ${allowedTypes.join(", ")}`,
+        });
+      }
+    }
+
+    // Set timeout for upload URL generation
+    const uploadTimeout = new Promise((_, reject) =>
+      setTimeout(
+        () => reject(new Error("Upload URL generation timeout")),
+        5000,
+      ),
+    );
+
+    // Generate ImageKit auth params for each file with timeout
+    const uploadParamsPromise = Promise.all(
       Array.from({ length: count }).map((_, index) =>
         generateUploadUrl("reports", fileTypes[index] || "image/jpeg"),
       ),
     );
 
+    const uploadParams = await Promise.race([
+      uploadParamsPromise,
+      uploadTimeout,
+    ]);
+
     // Return authentication parameters for client-side upload
     res.status(200).json({ uploadParams });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Upload URL generation error:", error);
+    if (error.message === "Upload URL generation timeout") {
+      return res
+        .status(504)
+        .json({ message: "Upload service timeout, please try again" });
+    }
+    res.status(500).json({ message: "Failed to generate upload URLs" });
   }
 };
 
@@ -161,27 +198,51 @@ export const createReport = async (req, res) => {
 // Get all reports (admin only)
 export const getAllReports = async (req, res) => {
   try {
-    const { page = 1, limit = 10, status, category } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = Math.min(parseInt(req.query.limit) || 10, 50); // Max 50
+    const skip = (page - 1) * limit;
+    const { status, category } = req.query;
 
     const query = {};
     if (status) query.status = status;
     if (category) query.category = category;
 
-    const reports = await Report.find(query)
-      .populate("user", "name email rollNo")
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+    // Add timeout protection
+    const timeout = 10000; // 10 seconds
+    const queryTimeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Query timeout")), timeout),
+    );
 
-    const count = await Report.countDocuments(query);
+    const queryPromise = Promise.all([
+      Report.find(query)
+        .populate("user", "name email rollNo")
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .skip(skip)
+        .lean(),
+      Report.countDocuments(query),
+    ]);
+
+    const [reports, count] = await Promise.race([queryPromise, queryTimeout]);
 
     res.status(200).json({
       reports,
-      totalPages: Math.ceil(count / limit),
-      currentPage: page,
-      total: count,
+      pagination: {
+        page,
+        limit,
+        total: count,
+        totalPages: Math.ceil(count / limit),
+        hasNext: page < Math.ceil(count / limit),
+        hasPrev: page > 1,
+      },
     });
   } catch (error) {
+    console.error("Get all reports error:", error.message);
+    if (error.message === "Query timeout") {
+      return res
+        .status(504)
+        .json({ message: "Request timeout, please try again" });
+    }
     res.status(500).json({ message: error.message });
   }
 };
@@ -189,17 +250,18 @@ export const getAllReports = async (req, res) => {
 // Get my reports (user)
 export const getMyReports = async (req, res) => {
   try {
-    const { page = 1, limit = 10, status } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = Math.min(parseInt(req.query.limit) || 10, 50); // Max 50
+    const skip = (page - 1) * limit;
+    const { status } = req.query;
 
     const query = { user: req.user.id };
     if (status) query.status = status;
 
-    const reports = await Report.find(query)
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-
-    const count = await Report.countDocuments(query);
+    const [reports, count] = await Promise.all([
+      Report.find(query).sort({ createdAt: -1 }).limit(limit).skip(skip).lean(),
+      Report.countDocuments(query),
+    ]);
 
     res.status(200).json({
       reports,
