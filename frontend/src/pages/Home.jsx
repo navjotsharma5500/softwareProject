@@ -40,6 +40,13 @@ const Home = () => {
     page: 1,
     limit: 12
   });
+  // Local state for search input to avoid lag
+  const [searchInput, setSearchInput] = useState(filters.search || '');
+  
+  // Sync searchInput with filters.search when filters change externally
+  useEffect(() => {
+    setSearchInput(filters.search || '');
+  }, [filters.search]);
   
   const [pagination, setPagination] = useState({
     total: 0,
@@ -113,24 +120,23 @@ const Home = () => {
   }, []);
 
   const handleFilterChange = useCallback((key, value) => {
-    // Debouncing for search input
     if (key === 'search') {
+      setSearchInput(value); // Update local input immediately
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
       }
-      
       searchTimeoutRef.current = setTimeout(() => {
         setFilters(prev => ({
           ...prev,
-          [key]: value,
-          page: 1 // Reset to page 1 when filters change
+          search: value,
+          page: 1
         }));
-      }, 300); // 300ms debounce
+      }, 300);
     } else {
       setFilters(prev => ({
         ...prev,
         [key]: value,
-        page: 1 // Reset to page 1 when filters change
+        page: 1
       }));
     }
   }, [setFilters]);
@@ -203,6 +209,9 @@ const Home = () => {
       page: 1,
       limit: 12
     });
+    
+    // Clear search input state as well
+    setSearchInput('');
     
     // Remove cooldown after delay
     setTimeout(() => setClearCooldown(false), CLEAR_COOLDOWN);
@@ -391,7 +400,7 @@ const Home = () => {
               <input
                 type="text"
                 placeholder="Search items..."
-                value={filters.search}
+                value={searchInput}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
                 className="w-full pl-10 pr-4 py-3 rounded-xl border bg-white border-gray-200 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-all"
               />
