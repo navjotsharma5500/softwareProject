@@ -57,7 +57,7 @@ const Footer = () => {
               </li>
               <li>
                 <div className="text-sm">
-                  <p className="font-medium mb-1">Item Glitches:</p>
+                  <p className="font-medium mb-1">Item Related Queries:</p>
                   <a 
                     href="mailto:adminofficer@thapar.edu" 
                     className="text-gray-900 hover:text-gray-700 transition-colors break-all"
@@ -74,7 +74,7 @@ const Footer = () => {
         <div className="border-t border-gray-300 mt-8 pt-8">
           <div className="flex flex-col items-center space-y-2">
             <p className="text-gray-600 text-sm text-center">
-              © {currentYear} Lost & Found. All rights reserved.
+            Managed by DOSA office 
             </p>
             <div className="flex items-center text-gray-600 text-sm space-x-4">
               <span>Crafted by</span>

@@ -17,14 +17,14 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex items-center text-gray-900 font-semibold text-sm sm:text-base lg:text-lg">
+            <Link to="/" className="flex items-center text-gray-900 font-bold text-sm sm:text-base lg:text-lg">
               <img 
                 src="/Thapar_Logo-Photoroom.png" 
                 alt="Thapar Institute Logo" 
                 className="h-8 w-auto sm:h-10 mr-2 sm:mr-3"
               />
-              <span className="hidden sm:inline">Thapar University - Lost & Found</span>
-              <span className="sm:hidden">Thapar L&F</span>
+              <span className="hidden sm:inline ">TIET</span>
+              <span className="sm:hidden">TIET L&F</span>
             </Link>
           </div>
 

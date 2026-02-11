@@ -309,13 +309,13 @@ const Home = () => {
               Lost & Found
             </motion.span>
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-lg text-gray-600 mb-2"
+            transition={{ delay: 0.2 }}
+            className="text-lg text-gray-900 font-extrabold mt-4"
           >
-            Find your lost items or help others reunite with theirs
+            To collect the lost item → Visit admin office near street cafe | Submit found items → Guard or admin office
           </motion.p>
         </div>
 
