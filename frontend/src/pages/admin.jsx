@@ -495,7 +495,7 @@ const Admin = () => {
                       />
                       <datalist id="filter-category-options">
                         {CATEGORIES.map(cat => (
-                          <option key={cat} value={cat}>{CATEGORY_DISPLAY_NAMES[cat]}</option>
+                          <option key={cat} value={cat} />
                         ))}
                       </datalist>
 
@@ -509,7 +509,7 @@ const Admin = () => {
                       />
                       <datalist id="filter-location-options">
                         {LOCATIONS.map(loc => (
-                          <option key={loc} value={loc}>{loc}</option>
+                          <option key={loc} value={loc} />
                         ))}
                       </datalist>
 
@@ -1167,7 +1167,7 @@ const Admin = () => {
                       />
                       <datalist id="admin-category-options">
                         {CATEGORIES.map(cat => (
-                          <option key={cat} value={cat}>{CATEGORY_DISPLAY_NAMES[cat]}</option>
+                          <option key={cat} value={cat} />
                         ))}
                       </datalist>
                       <p className="text-xs mt-1 text-gray-500">Select from list or type your own</p>
@@ -1186,7 +1186,7 @@ const Admin = () => {
                       />
                       <datalist id="admin-location-options">
                         {LOCATIONS.map(loc => (
-                          <option key={loc} value={loc}>{loc}</option>
+                          <option key={loc} value={loc} />
                         ))}
                       </datalist>
                       <p className="text-xs mt-1 text-gray-500">Select from list or type your own</p>

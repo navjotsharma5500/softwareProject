@@ -116,10 +116,6 @@ const ReportLostItem = () => {
         photos,
       };
 
-      // debug: show payload in console to help diagnose server errors
-      // eslint-disable-next-line no-console
-      console.debug('Creating report payload:', payload);
-
       await reportApi.createReport(payload);
       
       toast.success('Report submitted successfully! Redirecting to your profile...');
@@ -191,9 +187,7 @@ const ReportLostItem = () => {
             />
             <datalist id="category-options">
               {CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>
-                  {CATEGORY_DISPLAY_NAMES[cat] || cat}
-                </option>
+                <option key={cat} value={cat} />
               ))}
             </datalist>
             <p className="text-xs mt-1 text-gray-500">Select from list or type your own</p>
@@ -216,9 +210,7 @@ const ReportLostItem = () => {
             />
             <datalist id="location-options">
               {LOCATIONS.map((loc) => (
-                <option key={loc} value={loc}>
-                  {loc}
-                </option>
+                <option key={loc} value={loc} />
               ))}
             </datalist>
             <p className="text-xs mt-1 text-gray-500">Select from list or type your own</p>

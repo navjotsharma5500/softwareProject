@@ -444,9 +444,7 @@ const Home = () => {
                   />
                   <datalist id="home-category-options">
                     {CATEGORIES.map(cat => (
-                      <option key={cat} value={cat}>
-                        {CATEGORY_DISPLAY_NAMES[cat]}
-                      </option>
+                      <option key={cat} value={cat} />
                     ))}
                   </datalist>
                 </div>
@@ -466,7 +464,7 @@ const Home = () => {
                   />
                   <datalist id="home-location-options">
                     {LOCATIONS.map(loc => (
-                      <option key={loc} value={loc}>{loc}</option>
+                      <option key={loc} value={loc} />
                     ))}
                   </datalist>
                 </div>
