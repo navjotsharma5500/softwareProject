@@ -303,9 +303,13 @@ export const listItems = async (req, res) => {
       }
     }
 
-    // Search by name only (minimal info)
+    // Search by name or itemId
     if (req.query.search) {
-      query.name = { $regex: req.query.search, $options: "i" };
+      const searchValue = req.query.search.trim();
+      query.$or = [
+        { name: { $regex: searchValue, $options: "i" } },
+        { itemId: { $regex: searchValue, $options: "i" } },
+      ];
     }
 
     // Execute queries in parallel for better performance

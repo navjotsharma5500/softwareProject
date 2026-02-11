@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { reportApi } from '../utils/api';
 import { uploadMultipleToImageKit } from '../utils/imagekit';
-import { Upload, X, AlertCircle } from 'lucide-react';
+import { Upload, X, AlertCircle, ArrowLeft } from 'lucide-react';
 import { CATEGORIES, LOCATIONS, CATEGORY_DISPLAY_NAMES } from '../utils/constants';
 import useFormPersistence from '../hooks/useFormPersistence.jsx';
 
@@ -148,6 +148,15 @@ const ReportLostItem = () => {
   return (
     <div className="min-h-screen py-8 px-4 bg-gray-50">
       <div className="max-w-3xl mx-auto">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Back</span>
+        </button>
+
         <h1 className="text-3xl font-bold mb-6 text-gray-900">
           Report Lost Item
         </h1>
