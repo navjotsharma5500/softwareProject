@@ -29,8 +29,8 @@ const Home = () => {
   const [refreshCooldown, setRefreshCooldown] = useState(false);
   const [clearCooldown, setClearCooldown] = useState(false);
 
-  // Tab state (persisted)
-  const [activeTab, setActiveTab] = useFormPersistence('home_activeTab', 'available'); // 'available' or 'claimed'
+  // Tab state (not persisted - always start on available)
+  const [activeTab, setActiveTab] = useState('available'); // 'available' or 'claimed'
 
   // Filters (persisted)
   const [filters, setFilters, filtersControls] = useFormPersistence('home_filters', {
