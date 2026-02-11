@@ -44,7 +44,7 @@ const Profile = () => {
   const handleBack = () => {
     window.history.length > 1 ? window.history.back() : window.location.href = '/';
   };
-  });
+  
   const [pagination, setPagination] = useState({
     total: 0,
     totalPages: 0,
@@ -511,6 +511,11 @@ const Profile = () => {
                           <h3 className="text-xl font-semibold text-gray-900">
                             {claim.item?.name || 'Item'}
                           </h3>
+                          {claim.claimId && (
+                            <span className="text-xs font-mono bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                              {claim.claimId}
+                            </span>
+                          )}
                           {getStatusBadge(claim.status)}
                         </div>
                         
@@ -590,9 +595,16 @@ const Profile = () => {
                     {claim.status === 'pending' && (
                       <div className="p-4 rounded-lg border bg-yellow-50 border-yellow-200">
                         <div className="flex justify-between items-center">
-                          <p className="text-sm text-yellow-800">
-                            <strong>Pending:</strong> Please visit the admin office during office hours to collect your item.
-                          </p>
+                          <div className="text-sm text-yellow-800">
+                            <p className="mb-1">
+                              <strong>Pending:</strong> Please visit the admin office during office hours to collect your item.
+                            </p>
+                            {claim.claimId && (
+                              <p className="text-xs mt-2">
+                                📋 Provide Claim ID <span className="font-mono font-semibold bg-yellow-200 px-2 py-0.5 rounded">{claim.claimId}</span> to the admin for easier tracking.
+                              </p>
+                            )}
+                          </div>
                           <button
                             onClick={() => handleRemoveClaim(claim._id, claim.item?.name || 'this item')}
                             disabled={deletingClaim === claim._id}
@@ -689,6 +701,11 @@ const Profile = () => {
                             <h3 className="text-xl font-semibold text-gray-900">
                               {report.itemDescription}
                             </h3>
+                            {report.reportId && (
+                              <span className="text-xs font-mono bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                                {report.reportId}
+                              </span>
+                            )}
                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                               report.status === 'active' ? 'bg-green-100 text-green-800' :
                               report.status === 'resolved' ? 'bg-gray-100 text-gray-800' :

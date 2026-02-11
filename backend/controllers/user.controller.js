@@ -2,6 +2,7 @@ import Item from "../models/item.model.js";
 import User from "../models/user.model.js";
 import Claim from "../models/claim.model.js";
 import Report from "../models/report.model.js";
+import { getNextSequence } from "../models/counter.model.js";
 import { getCache, setCache, clearCachePattern } from "../utils/redisClient.js";
 import { withQueryTimeout } from "../middlewares/queryTimeout.middleware.js";
 
@@ -54,7 +55,11 @@ export const claimItem = async (req, res) => {
     }
 
     // Create new claim
+    const sequence = await getNextSequence("claimId");
+    const claimId = `CLAIM${String(sequence).padStart(6, "0")}`;
+
     const newClaim = new Claim({
+      claimId,
       item: id,
       claimant: userId,
       status: "pending",

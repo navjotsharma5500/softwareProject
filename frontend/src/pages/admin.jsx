@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Edit2, Trash2, CheckCircle, XCircle, Package, Users, RefreshCw, Search, Filter, FileText, AlertCircle, MapPin, Clock, Calendar, MessageSquare, Star, Download } from 'lucide-react';
+import { Plus, Edit2, Trash2, CheckCircle, XCircle, Package, Users, RefreshCw, Search, Filter, FileText, AlertCircle, MapPin, Clock, Calendar, MessageSquare, Star, Download, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { adminApi, userApi } from '../utils/api';
 import axios from 'axios';
@@ -8,6 +9,7 @@ import useFormPersistence from '../hooks/useFormPersistence.jsx';
 import ImageLightbox from '../components/ImageLightbox';
 
 const Admin = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('items'); // items, claims, approved-claims, rejected-claims
   const [items, setItems] = useState([]);
   const [claims, setClaims] = useState([]);
@@ -400,6 +402,15 @@ const Admin = () => {
   return (
     <div className="min-h-screen py-8 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Back</span>
+        </button>
+        
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2 text-gray-900">Admin Dashboard</h1>
@@ -693,7 +704,7 @@ const Admin = () => {
                     <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400`} size={18} />
                     <input
                       type="text"
-                      placeholder="Search by claimant name or item..."
+                      placeholder="Search by Claim ID, Item ID, claimant name..."
                       value={claimSearchInput}
                       onChange={(e) => handleClaimSearchChange(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white border-gray-300"
@@ -744,9 +755,16 @@ const Admin = () => {
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <h3 className={`text-xl font-semibold mb-2 text-gray-900`}>
-                          {claim.item?.name}
-                        </h3>
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className={`text-xl font-semibold text-gray-900`}>
+                            {claim.item?.name}
+                          </h3>
+                          {claim.claimId && (
+                            <span className="text-xs font-mono bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                              {claim.claimId}
+                            </span>
+                          )}
+                        </div>
                         <div className="grid grid-cols-2 gap-4 mb-4">
                           <div>
                             <span className={`text-sm text-gray-500`}>Claimant:</span>
@@ -852,7 +870,7 @@ const Admin = () => {
                     <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400`} size={18} />
                     <input
                       type="text"
-                      placeholder="Search by claimant name or item..."
+                      placeholder="Search by Claim ID, Item ID, claimant name..."
                       value={claimSearchInput}
                       onChange={(e) => handleClaimSearchChange(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white border-gray-300"
@@ -907,6 +925,11 @@ const Admin = () => {
                           <h3 className={`text-xl font-semibold text-gray-900`}>
                             {claim.item?.name}
                           </h3>
+                          {claim.claimId && (
+                            <span className="text-xs font-mono bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                              {claim.claimId}
+                            </span>
+                          )}
                           <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
                             Approved
                           </span>
@@ -994,7 +1017,7 @@ const Admin = () => {
                     <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400`} size={18} />
                     <input
                       type="text"
-                      placeholder="Search by claimant name or item..."
+                      placeholder="Search by Claim ID, Item ID, claimant name..."
                       value={claimSearchInput}
                       onChange={(e) => handleClaimSearchChange(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white border-gray-300"
@@ -1049,6 +1072,11 @@ const Admin = () => {
                           <h3 className={`text-xl font-semibold text-gray-900`}>
                             {claim.item?.name}
                           </h3>
+                          {claim.claimId && (
+                            <span className="text-xs font-mono bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                              {claim.claimId}
+                            </span>
+                          )}
                           <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">
                             Rejected
                           </span>
@@ -1367,9 +1395,16 @@ const Admin = () => {
                               <div key={report._id} className="p-5 rounded-lg border transition-all hover:shadow-md border-gray-200 bg-white hover:bg-gray-50">
                                 <div className="flex justify-between items-start mb-3">
                                   <div className="flex-1">
-                                    <h4 className={`font-bold text-lg mb-1 text-gray-900`}>
-                                      {report.itemDescription}
-                                    </h4>
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <h4 className={`font-bold text-lg text-gray-900`}>
+                                        {report.itemDescription}
+                                      </h4>
+                                      {report.reportId && (
+                                        <span className="text-xs font-mono bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                                          {report.reportId}
+                                        </span>
+                                      )}
+                                    </div>
                                     <div className="flex flex-wrap gap-2 mb-2">
                                       <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-semibold">
                                         {CATEGORY_DISPLAY_NAMES[report.category] || report.category}

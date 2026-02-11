@@ -1,4 +1,5 @@
 import Report from "../models/report.model.js";
+import { getNextSequence } from "../models/counter.model.js";
 import {
   generateUploadUrl, // Now returns ImageKit auth params instead of S3 presigned URLs
   deleteFile,
@@ -174,7 +175,12 @@ export const createReport = async (req, res) => {
       return res.status(400).json({ message: "Maximum 3 photos allowed" });
     }
 
+    // Auto-generate Report ID using atomic counter
+    const sequence = await getNextSequence("reportId");
+    const reportId = `REPORT${String(sequence).padStart(6, "0")}`;
+
     const report = await Report.create({
+      reportId,
       user: req.user.id,
       itemDescription,
       category: sanitizedCategory,

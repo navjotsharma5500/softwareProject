@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { reportApi } from '../utils/api';
-import { FileText, Calendar, MapPin, Tag, Trash2, AlertCircle } from 'lucide-react';
+import { FileText, Calendar, MapPin, Tag, Trash2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { CATEGORY_DISPLAY_NAMES, LOCATIONS } from '../utils/constants';
 import ImageLightbox from '../components/ImageLightbox';
 
@@ -68,6 +68,15 @@ const MyReports = () => {
   return (
     <div className="min-h-screen py-8 px-4 bg-gray-50">
       <div className="max-w-6xl mx-auto">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Back</span>
+        </button>
+        
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div>

@@ -1,4 +1,6 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 
 const StaticCard = ({ title, icon, children }) => {
   return (
@@ -20,8 +22,21 @@ const StaticCard = ({ title, icon, children }) => {
 };
 
 const HowItWorks = () => {
+  const navigate = useNavigate();
+  
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      {/* Back Button */}
+      <div className="max-w-7xl mx-auto mb-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Back</span>
+        </button>
+      </div>
+      
       {/* Page Title */}
       <h1 className="text-4xl md:text-5xl font-bold mb-12 text-gray-900 text-center">
         How the Lost & Found Portal Works

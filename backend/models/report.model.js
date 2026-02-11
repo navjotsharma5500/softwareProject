@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const reportSchema = new mongoose.Schema(
   {
+    reportId: { type: String, required: true, unique: true },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -51,6 +52,7 @@ reportSchema.index({ user: 1, createdAt: -1 }); // User's reports
 reportSchema.index({ status: 1, createdAt: -1 }); // Admin queries by status
 reportSchema.index({ category: 1, status: 1 }); // Category + status filtering
 reportSchema.index({ dateLost: -1 }); // Date-based queries
+reportSchema.index({ reportId: 1 }); // Search by report ID
 
 const Report = mongoose.model("Report", reportSchema);
 

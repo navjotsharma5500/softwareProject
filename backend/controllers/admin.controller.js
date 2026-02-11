@@ -281,6 +281,7 @@ export const listPendingClaims = async (req, res) => {
       const searchLower = req.query.search.toLowerCase();
       const filteredClaims = allClaims.filter(
         (claim) =>
+          claim.claimId?.toLowerCase().includes(searchLower) ||
           claim.claimant?.name?.toLowerCase().includes(searchLower) ||
           claim.claimant?.email?.toLowerCase().includes(searchLower) ||
           claim.item?.name?.toLowerCase().includes(searchLower) ||

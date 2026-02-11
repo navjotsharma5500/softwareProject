@@ -86,13 +86,13 @@ const NotFound = () => {
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
             <button
-              onClick={() => navigate('/items')}
+              onClick={() => navigate('/')}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors bg-gray-100 hover:bg-gray-200 text-gray-700`}
             >
               🔍 Browse Found Items
             </button>
             <button
-              onClick={() => navigate('/report')}
+              onClick={() => navigate('/report-lost-item')}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors bg-gray-100 hover:bg-gray-200 text-gray-700`}
             >
               📝 Report Lost Item
