@@ -434,14 +434,22 @@ export const listAllItems = async (req, res) => {
       ];
     }
 
-    // Category filter
+    // Category filter (case-insensitive with escaped regex)
     if (req.query.category) {
-      query.category = req.query.category;
+      const escapedCategory = req.query.category.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&",
+      );
+      query.category = { $regex: escapedCategory, $options: "i" };
     }
 
-    // Location filter
+    // Location filter (case-insensitive with escaped regex)
     if (req.query.location) {
-      query.foundLocation = req.query.location;
+      const escapedLocation = req.query.location.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&",
+      );
+      query.foundLocation = { $regex: escapedLocation, $options: "i" };
     }
 
     // Status filter (claimed/available)

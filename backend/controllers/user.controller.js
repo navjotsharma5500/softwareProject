@@ -27,16 +27,14 @@ export const claimItem = async (req, res) => {
         item: id,
         claimant: userId,
         status: "pending",
-      })
+      }),
     );
 
     if (existingClaim) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "You have already claimed this item. Please wait for admin approval.",
-        });
+      return res.status(400).json({
+        message:
+          "You have already claimed this item. Please wait for admin approval.",
+      });
     }
 
     // Check if user has a rejected claim for this item (prevent re-claiming)
@@ -45,7 +43,7 @@ export const claimItem = async (req, res) => {
         item: id,
         claimant: userId,
         status: "rejected",
-      })
+      }),
     );
 
     if (rejectedClaim) {
@@ -74,7 +72,7 @@ export const claimItem = async (req, res) => {
     const populatedClaim = await withQueryTimeout(
       Claim.findById(newClaim._id)
         .populate("claimant", "name email rollNo")
-        .populate("item")
+        .populate("item"),
     );
 
     return res
@@ -194,7 +192,7 @@ export const myClaims = async (req, res) => {
           .sort({ createdAt: -1 })
           .lean(), // Faster read-only queries
         Claim.countDocuments(query),
-      ])
+      ]),
     );
 
     const totalPages = Math.ceil(total / limit);
@@ -249,14 +247,22 @@ export const listItems = async (req, res) => {
     // Build filter query
     const query = {};
 
-    // Filter by category
+    // Filter by category (case-insensitive with escaped regex)
     if (req.query.category) {
-      query.category = req.query.category;
+      const escapedCategory = req.query.category.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&",
+      );
+      query.category = { $regex: escapedCategory, $options: "i" };
     }
 
-    // Filter by location
+    // Filter by location (case-insensitive with escaped regex)
     if (req.query.location) {
-      query.foundLocation = req.query.location;
+      const escapedLocation = req.query.location.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&",
+      );
+      query.foundLocation = { $regex: escapedLocation, $options: "i" };
     }
 
     // Filter by claimed status (support both 'claimed' and 'isClaimed' params)
@@ -306,14 +312,16 @@ export const listItems = async (req, res) => {
     const [items, total] = await withQueryTimeout(
       Promise.all([
         Item.find(query)
-          .select("itemId name category foundLocation dateFound isClaimed owner")
+          .select(
+            "itemId name category foundLocation dateFound isClaimed owner",
+          )
           .populate("owner", "name rollNo") // Don't show email to public
           .skip(skip)
           .limit(limit)
           .sort({ createdAt: -1 })
           .lean(), // Faster read-only queries
         Item.countDocuments(query),
-      ])
+      ]),
     );
 
     const totalPages = Math.ceil(total / limit);
@@ -357,7 +365,7 @@ export const getItemById = async (req, res) => {
       Item.findById(id)
         .select("itemId name category foundLocation dateFound isClaimed owner")
         .populate("owner", "name rollNo") // Don't show email to public
-        .lean() // Faster read-only queries
+        .lean(), // Faster read-only queries
     );
 
     if (!item) {
@@ -432,7 +440,9 @@ export const getProfile = async (req, res) => {
     }
 
     const user = await withQueryTimeout(
-      User.findById(userId).select("name email rollNo phone profilePicture isAdmin createdAt").lean()
+      User.findById(userId)
+        .select("name email rollNo phone profilePicture isAdmin createdAt")
+        .lean(),
     );
 
     if (!user) {
