@@ -1,35 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-const FlashCard = ({ title, icon, children }) => {
-  const [isFlipped, setIsFlipped] = useState(false);
-
+const StaticCard = ({ title, icon, children }) => {
   return (
-    <div 
-      className="perspective-1000 h-full cursor-pointer"
-      onClick={() => setIsFlipped(!isFlipped)}
-    >
-      <div 
-        className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}
-        style={{ transformStyle: 'preserve-3d' }}
-      >
-        {/* Front of card */}
-        <div 
-          className="absolute inset-0 backface-hidden rounded-xl shadow-lg p-6 flex flex-col items-center justify-center text-center bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-700"
-          style={{ backfaceVisibility: 'hidden' }}
-        >
-          <div className="text-6xl mb-4">{icon}</div>
-          <h3 className="text-2xl font-bold text-white">{title}</h3>
-          <p className="text-sm text-gray-200 mt-4">Click to learn more</p>
-        </div>
-
-        {/* Back of card */}
-        <div 
-          className="absolute inset-0 backface-hidden rounded-xl shadow-lg p-6 overflow-y-auto bg-white border-2 border-gray-700"
-          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
-        >
-          <div className="text-gray-700 text-sm leading-relaxed">
-            {children}
-          </div>
+    <div className="rounded-xl shadow-lg overflow-hidden bg-white h-full">
+      {/* Black header section */}
+      <div className="bg-gray-900 p-6 flex items-center justify-center gap-3">
+        <div className="text-5xl">{icon}</div>
+        <h3 className="text-2xl font-bold text-white">{title}</h3>
+      </div>
+      
+      {/* White content section */}
+      <div className="p-6 bg-white">
+        <div className="text-gray-700 text-sm leading-relaxed">
+          {children}
         </div>
       </div>
     </div>
@@ -44,12 +27,12 @@ const HowItWorks = () => {
         How the Lost & Found Portal Works
       </h1>
 
-      {/* Flashcard Grid - Outside Frame */}
+      {/* Static Card Grid */}
       <div className="max-w-7xl mx-auto mb-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
           
           {/* Why We Built This Card */}
-          <FlashCard 
+          <StaticCard 
             title="Why We Built This" 
             icon="🔎"
           >
@@ -67,10 +50,10 @@ const HowItWorks = () => {
                 <strong>⚠️ Important safety note:</strong> Avoid sharing detailed photos or precise locations of lost items in mass emails. Use this portal so sensitive information stays within controlled, verifiable channels.
               </p>
             </div>
-          </FlashCard>
+          </StaticCard>
 
           {/* Overview Card */}
-          <FlashCard 
+          <StaticCard 
             title="Overview" 
             icon="📋"
           >
@@ -87,10 +70,10 @@ const HowItWorks = () => {
                 </p>
               </div>
             </div>
-          </FlashCard>
+          </StaticCard>
 
           {/* If You Lost an Item Card */}
-          <FlashCard 
+          <StaticCard 
             title="If You Lost an Item" 
             icon="🧭"
           >
@@ -123,10 +106,10 @@ const HowItWorks = () => {
                 If your item is found and deposited with the admin, it will appear in the portal's found items list and you can submit a claim.
               </li>
             </ol>
-          </FlashCard>
+          </StaticCard>
 
           {/* If You Found an Item Card */}
-          <FlashCard 
+          <StaticCard 
             title="If You Found an Item" 
             icon="📦"
           >
@@ -148,7 +131,7 @@ const HowItWorks = () => {
                 This process ensures all listed found items are actually in the admin's possession, making the portal credible and secure.
               </li>
             </ol>
-          </FlashCard>
+          </StaticCard>
 
         </div>
       </div>

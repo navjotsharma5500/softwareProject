@@ -46,7 +46,7 @@ const Footer = () => {
             <ul className="space-y-3">
               <li>
                 <div className="text-sm">
-                  <p className="font-medium mb-1">Technical/Item Glitches:</p>
+                  <p className="font-medium mb-1">Technical Glitches:</p>
                   <a 
                     href="mailto:itmh@thapar.edu" 
                     className="text-gray-900 hover:text-gray-700 transition-colors break-all"
@@ -57,7 +57,7 @@ const Footer = () => {
               </li>
               <li>
                 <div className="text-sm">
-                  <p className="font-medium mb-1">Website Glitches:</p>
+                  <p className="font-medium mb-1">Item Glitches:</p>
                   <a 
                     href="mailto:adminofficer@thapar.edu" 
                     className="text-gray-900 hover:text-gray-700 transition-colors break-all"
