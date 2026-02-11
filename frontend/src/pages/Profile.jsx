@@ -685,8 +685,8 @@ const Profile = () => {
                           </div>
 
                           <div className="space-y-2 mb-4 text-gray-600">
-                            <p><strong>Category:</strong> {CATEGORY_DISPLAY_NAMES[report.category]}</p>
-                            <p><strong>Location:</strong> {LOCATIONS[report.location] || report.location}</p>
+                            <p><strong>Category:</strong> {CATEGORY_DISPLAY_NAMES[report.category] || report.category}</p>
+                            <p><strong>Location:</strong> {report.location}</p>
                             <p><strong>Lost on:</strong> {new Date(report.dateLost).toLocaleDateString()}</p>
                             {report.additionalDetails && (
                               <p className="text-sm"><strong>Details:</strong> {report.additionalDetails}</p>

@@ -129,45 +129,45 @@ export const createReport = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Sanitize category: handle numeric indices or display names
+    // Sanitize category: handle numeric indices or display names, but also accept custom values
     let sanitizedCategory = category;
 
-    // If numeric (string or number), treat as index into VALID_CATEGORIES
-    if (
-      typeof sanitizedCategory === "number" ||
-      /^\d+$/.test(String(sanitizedCategory))
-    ) {
-      const idx = parseInt(String(sanitizedCategory), 10);
+    if (!sanitizedCategory || typeof sanitizedCategory !== "string") {
+      return res
+        .status(400)
+        .json({ message: "Category must be a non-empty string" });
+    }
+
+    sanitizedCategory = sanitizedCategory.trim();
+
+    if (sanitizedCategory.length === 0) {
+      return res.status(400).json({ message: "Category cannot be empty" });
+    }
+
+    // If numeric (string or number), treat as index into VALID_CATEGORIES (backward compatibility)
+    if (/^\d+$/.test(sanitizedCategory)) {
+      const idx = parseInt(sanitizedCategory, 10);
       if (!isNaN(idx) && VALID_CATEGORIES[idx]) {
         sanitizedCategory = VALID_CATEGORIES[idx];
-      } else {
-        return res.status(400).json({
-          message: `Invalid category index: ${category}. Expected 0-${
-            VALID_CATEGORIES.length - 1
-          }`,
-        });
       }
     }
 
-    // If a display name (e.g., "Electronics"), map back to the key
-    if (typeof sanitizedCategory === "string") {
-      const foundKey = Object.keys(CATEGORY_DISPLAY_NAMES).find(
-        (k) =>
-          CATEGORY_DISPLAY_NAMES[k].toLowerCase() ===
-          sanitizedCategory.toLowerCase(),
-      );
-      if (foundKey) {
-        sanitizedCategory = foundKey;
-      }
+    // If a display name (e.g., "Electronics"), map back to the key (backward compatibility)
+    const foundKey = Object.keys(CATEGORY_DISPLAY_NAMES).find(
+      (k) =>
+        CATEGORY_DISPLAY_NAMES[k].toLowerCase() ===
+        sanitizedCategory.toLowerCase(),
+    );
+    if (foundKey) {
+      sanitizedCategory = foundKey;
     }
 
-    // Final validation: ensure sanitizedCategory is valid
-    if (!VALID_CATEGORIES.includes(sanitizedCategory)) {
-      return res.status(400).json({
-        message: `Invalid category: "${category}". Must be one of: ${VALID_CATEGORIES.join(
-          ", ",
-        )}`,
-      });
+    // Accept any non-empty string (no strict validation)
+
+    // Trim and validate location
+    location = location.trim();
+    if (!location) {
+      return res.status(400).json({ message: "Location cannot be empty" });
     }
 
     if (photos && photos.length > 3) {
@@ -233,7 +233,7 @@ export const getAllReports = async (req, res) => {
           .skip(skip)
           .lean(),
         Report.countDocuments(query),
-      ])
+      ]),
     );
 
     res.status(200).json({
@@ -271,9 +271,13 @@ export const getMyReports = async (req, res) => {
 
     const [reports, count] = await withQueryTimeout(
       Promise.all([
-        Report.find(query).sort({ createdAt: -1 }).limit(limit).skip(skip).lean(),
+        Report.find(query)
+          .sort({ createdAt: -1 })
+          .limit(limit)
+          .skip(skip)
+          .lean(),
         Report.countDocuments(query),
-      ])
+      ]),
     );
 
     res.status(200).json({
@@ -291,7 +295,7 @@ export const getMyReports = async (req, res) => {
 export const getReportById = async (req, res) => {
   try {
     const report = await withQueryTimeout(
-      Report.findById(req.params.id).populate("user", "name email rollNo")
+      Report.findById(req.params.id).populate("user", "name email rollNo"),
     );
 
     if (!report) {
@@ -348,33 +352,45 @@ export const updateReport = async (req, res) => {
     if (category) {
       // Sanitize category on update too
       let sanitizedCategory = category;
-      if (
-        typeof sanitizedCategory === "number" ||
-        /^\d+$/.test(String(sanitizedCategory))
-      ) {
-        const idx = parseInt(String(sanitizedCategory), 10);
+
+      if (!sanitizedCategory || typeof sanitizedCategory !== "string") {
+        return res
+          .status(400)
+          .json({ message: "Category must be a non-empty string" });
+      }
+
+      sanitizedCategory = sanitizedCategory.trim();
+
+      if (sanitizedCategory.length === 0) {
+        return res.status(400).json({ message: "Category cannot be empty" });
+      }
+
+      // If numeric (string or number), treat as index into VALID_CATEGORIES (backward compatibility)
+      if (/^\d+$/.test(sanitizedCategory)) {
+        const idx = parseInt(sanitizedCategory, 10);
         if (!isNaN(idx) && VALID_CATEGORIES[idx]) {
           sanitizedCategory = VALID_CATEGORIES[idx];
-        } else {
-          return res.status(400).json({
-            message: `Invalid category index: ${category}`,
-          });
         }
       }
+
+      // If a display name, map back to the key (backward compatibility)
       const foundKey = Object.keys(CATEGORY_DISPLAY_NAMES).find(
         (k) =>
           CATEGORY_DISPLAY_NAMES[k].toLowerCase() ===
           sanitizedCategory.toLowerCase(),
       );
       if (foundKey) sanitizedCategory = foundKey;
-      if (!VALID_CATEGORIES.includes(sanitizedCategory)) {
-        return res.status(400).json({
-          message: `Invalid category: "${category}"`,
-        });
-      }
+
+      // Accept any non-empty string (no strict validation)
       report.category = sanitizedCategory;
     }
-    if (location) report.location = location;
+    if (location) {
+      location = location.trim();
+      if (!location) {
+        return res.status(400).json({ message: "Location cannot be empty" });
+      }
+      report.location = location;
+    }
     if (dateLost) report.dateLost = dateLost;
     if (additionalDetails !== undefined)
       report.additionalDetails = additionalDetails;

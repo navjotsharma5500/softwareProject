@@ -33,6 +33,7 @@ export const LOCATIONS = [
   "Auditorium",
   "Main Gate",
   "Jaggi",
+  "B Block",
   "Other",
 ];
 

@@ -434,18 +434,21 @@ const Home = () => {
                   <label className="block text-sm font-medium mb-2 text-gray-700">
                     Category
                   </label>
-                  <select
+                  <input
+                    type="text"
+                    list="home-category-options"
                     value={filters.category}
                     onChange={(e) => handleFilterChange('category', e.target.value)}
                     className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:border-transparent"
-                  >
-                    <option value="">All Categories</option>
+                    placeholder="All Categories"
+                  />
+                  <datalist id="home-category-options">
                     {CATEGORIES.map(cat => (
                       <option key={cat} value={cat}>
                         {CATEGORY_DISPLAY_NAMES[cat]}
                       </option>
                     ))}
-                  </select>
+                  </datalist>
                 </div>
 
                 {/* Location Filter */}
@@ -453,16 +456,19 @@ const Home = () => {
                   <label className="block text-sm font-medium mb-2 text-gray-700">
                     Location
                   </label>
-                  <select
+                  <input
+                    type="text"
+                    list="home-location-options"
                     value={filters.location}
                     onChange={(e) => handleFilterChange('location', e.target.value)}
                     className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:border-transparent"
-                  >
-                    <option value="">All Locations</option>
+                    placeholder="All Locations"
+                  />
+                  <datalist id="home-location-options">
                     {LOCATIONS.map(loc => (
                       <option key={loc} value={loc}>{loc}</option>
                     ))}
-                  </select>
+                  </datalist>
                 </div>
 
                 {/* Time Period Filter */}

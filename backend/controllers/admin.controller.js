@@ -49,41 +49,35 @@ const CATEGORY_DISPLAY_NAMES = {
   other: "Other",
 };
 
-// Helper to sanitize category input
+// Helper to sanitize category input (now accepts custom categories)
 const sanitizeCategory = (category) => {
-  let sanitized = category;
+  if (!category || typeof category !== "string") {
+    return { valid: false, error: "Category must be a non-empty string" };
+  }
 
-  // Handle numeric indices
-  if (typeof sanitized === "number" || /^\d+$/.test(String(sanitized))) {
-    const idx = parseInt(String(sanitized), 10);
+  let sanitized = category.trim();
+
+  if (sanitized.length === 0) {
+    return { valid: false, error: "Category cannot be empty" };
+  }
+
+  // Handle numeric indices (backward compatibility)
+  if (/^\d+$/.test(sanitized)) {
+    const idx = parseInt(sanitized, 10);
     if (!isNaN(idx) && VALID_CATEGORIES[idx]) {
       sanitized = VALID_CATEGORIES[idx];
-    } else {
-      return { valid: false, error: `Invalid category index: ${category}` };
     }
   }
 
-  // Handle display names
-  if (typeof sanitized === "string") {
-    const foundKey = Object.keys(CATEGORY_DISPLAY_NAMES).find(
-      (k) =>
-        CATEGORY_DISPLAY_NAMES[k].toLowerCase() === sanitized.toLowerCase(),
-    );
-    if (foundKey) {
-      sanitized = foundKey;
-    }
+  // Handle display names (backward compatibility)
+  const foundKey = Object.keys(CATEGORY_DISPLAY_NAMES).find(
+    (k) => CATEGORY_DISPLAY_NAMES[k].toLowerCase() === sanitized.toLowerCase(),
+  );
+  if (foundKey) {
+    sanitized = foundKey;
   }
 
-  // Final validation
-  if (!VALID_CATEGORIES.includes(sanitized)) {
-    return {
-      valid: false,
-      error: `Invalid category: "${category}". Must be one of: ${VALID_CATEGORIES.join(
-        ", ",
-      )}`,
-    };
-  }
-
+  // Accept any non-empty string (no strict validation)
   return { valid: true, category: sanitized };
 };
 
@@ -95,12 +89,18 @@ export const createItem = async (req, res) => {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
-  // Sanitize category
+  // Sanitize and trim category
   const categoryResult = sanitizeCategory(category);
   if (!categoryResult.valid) {
     return res.status(400).json({ message: categoryResult.error });
   }
   category = categoryResult.category;
+
+  // Trim and validate location
+  foundLocation = foundLocation.trim();
+  if (!foundLocation) {
+    return res.status(400).json({ message: "Location cannot be empty" });
+  }
 
   try {
     // Auto-generate Item ID using atomic counter to prevent race conditions
@@ -137,16 +137,17 @@ export const updateItem = async (req, res) => {
   const Joi = (await import("joi")).default;
   const schema = Joi.object({
     name: Joi.string().min(2).max(100),
-    category: Joi.string().min(2).max(50),
-    foundLocation: Joi.string().min(2).max(100),
+    category: Joi.string().min(1).max(100), // Allow longer custom categories
+    foundLocation: Joi.string().min(1).max(100), // Allow longer custom locations
     dateFound: Joi.date().iso(),
     isClaimed: Joi.boolean(),
     owner: Joi.string().hex().length(24),
-  });
+  }).unknown(true); // Allow unknown fields (they will be stripped)
   const { error } = schema.validate(req.body);
   if (error) return res.status(400).json({ message: error.details[0].message });
   const { id } = req.params;
   const updates = req.body;
+
   // Sanitize category if present in updates
   if (updates.category) {
     const categoryResult = sanitizeCategory(updates.category);
@@ -155,12 +156,21 @@ export const updateItem = async (req, res) => {
     }
     updates.category = categoryResult.category;
   }
+
+  // Trim and validate location if present
+  if (updates.foundLocation) {
+    updates.foundLocation = updates.foundLocation.trim();
+    if (!updates.foundLocation) {
+      return res.status(400).json({ message: "Location cannot be empty" });
+    }
+  }
+
   try {
     const item = await withQueryTimeout(
       Item.findByIdAndUpdate(id, updates, {
         new: true,
         runValidators: true,
-      })
+      }),
     );
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
@@ -208,7 +218,7 @@ export const getItemById = async (req, res) => {
 
   try {
     const item = await withQueryTimeout(
-      Item.findById(id).populate("owner", "name email rollNo").lean()
+      Item.findById(id).populate("owner", "name email rollNo").lean(),
     );
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
@@ -229,7 +239,7 @@ export const getItemClaims = async (req, res) => {
       Claim.find({ item: id })
         .populate("claimant", "name email rollNo")
         .sort({ createdAt: -1 })
-        .lean()
+        .lean(),
     );
     return res.status(200).json({ claims });
   } catch (error) {
@@ -289,7 +299,7 @@ export const listPendingClaims = async (req, res) => {
             .limit(limit)
             .sort({ createdAt: -1 }),
           Claim.countDocuments(query),
-        ])
+        ]),
       );
     }
 
@@ -325,7 +335,7 @@ export const approveClaim = async (req, res) => {
   const { remarks } = req.body;
   try {
     const claim = await withQueryTimeout(
-      Claim.findById(id).populate("claimant").populate("item")
+      Claim.findById(id).populate("claimant").populate("item"),
     );
     if (!claim) return res.status(404).json({ message: "Claim not found" });
     claim.status = "approved";
@@ -377,7 +387,7 @@ export const rejectClaim = async (req, res) => {
   const { remarks } = req.body;
   try {
     const claim = await withQueryTimeout(
-      Claim.findById(id).populate("claimant").populate("item")
+      Claim.findById(id).populate("claimant").populate("item"),
     );
     if (!claim) return res.status(404).json({ message: "Claim not found" });
     claim.status = "rejected";

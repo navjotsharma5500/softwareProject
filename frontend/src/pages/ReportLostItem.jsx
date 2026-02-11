@@ -102,10 +102,11 @@ const ReportLostItem = () => {
         if (foundKey) categoryToSend = foundKey;
       }
 
-      // Final validation: ensure categoryToSend is one of CATEGORIES
-      if (!CATEGORIES.includes(categoryToSend)) {
-        toast.error('Invalid category selected');
+      // Final validation: ensure categoryToSend is not empty
+      if (!categoryToSend || categoryToSend.trim() === '') {
+        toast.error('Category cannot be empty');
         setLoading(false);
+        isSubmittingRef.current = false;
         return;
       }
 
@@ -178,20 +179,24 @@ const ReportLostItem = () => {
             <label className="block mb-2 font-medium text-gray-700">
               Category *
             </label>
-            <select
+            <input
+              type="text"
               name="category"
+              list="category-options"
               value={formData.category}
               onChange={handleInputChange}
               className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
+              placeholder="Select or type a category"
               required
-            >
-              <option value="">Select category</option>
+            />
+            <datalist id="category-options">
               {CATEGORIES.map((cat) => (
                 <option key={cat} value={cat}>
                   {CATEGORY_DISPLAY_NAMES[cat] || cat}
                 </option>
               ))}
-            </select>
+            </datalist>
+            <p className="text-xs mt-1 text-gray-500">Select from list or type your own</p>
           </div>
 
           {/* Location */}
@@ -199,20 +204,24 @@ const ReportLostItem = () => {
             <label className="block mb-2 font-medium text-gray-700">
               Where did you lose it? *
             </label>
-            <select
+            <input
+              type="text"
               name="location"
+              list="location-options"
               value={formData.location}
               onChange={handleInputChange}
               className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
+              placeholder="Select or type a location"
               required
-            >
-              <option value="">Select location</option>
+            />
+            <datalist id="location-options">
               {LOCATIONS.map((loc) => (
                 <option key={loc} value={loc}>
                   {loc}
                 </option>
               ))}
-            </select>
+            </datalist>
+            <p className="text-xs mt-1 text-gray-500">Select from list or type your own</p>
           </div>
 
           {/* Date Lost */}
