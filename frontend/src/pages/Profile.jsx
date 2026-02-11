@@ -276,6 +276,14 @@ const Profile = () => {
   return (
     <div className="min-h-screen py-8 bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Back Button */}
+        <button
+          onClick={handleBack}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+          <span>Back</span>
+        </button>
         {/* Profile Header */}
         <div className="rounded-2xl shadow-lg p-8 mb-8 bg-white">
           <div className="flex items-start gap-6 mb-6">
