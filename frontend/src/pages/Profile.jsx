@@ -39,6 +39,12 @@ const Profile = () => {
     rollNo: 'ADD YOUR ROLL NO', // rollNo stored as string (may be alphanumeric)
     phone: '',
   });
+
+  // Back button
+  const handleBack = () => {
+    window.history.length > 1 ? window.history.back() : window.location.href = '/';
+  };
+  });
   const [pagination, setPagination] = useState({
     total: 0,
     totalPages: 0,
