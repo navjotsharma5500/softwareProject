@@ -24,7 +24,7 @@ dotenv.config();
 
 const app = express();
 
-// ✅ CRITICAL: Trust proxy - MUST be at the top for Cloudflare + Nginx
+//  CRITICAL: Trust proxy - MUST be at the top for Cloudflare + Nginx
 // Fixes HTTPS redirect loops and ensures req.secure, req.protocol work correctly
 app.set("trust proxy", 1);
 

@@ -5,6 +5,7 @@ import {
   deleteFile,
   extractKeyFromUrl,
 } from "../utils/s3.utils.js"; // Keeping filename for backwards compatibility
+import { getCache, setCache, clearCachePattern } from "../utils/redisClient.js";
 
 import {
   sendEmail,
@@ -423,7 +424,7 @@ export const deleteReport = async (req, res) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    // Delete photos from ImageKit
+    // Delete photos from ImageKit (cascading delete)
     for (const photo of report.photos) {
       const fileId = extractKeyFromUrl(photo);
       if (fileId) {
@@ -436,6 +437,9 @@ export const deleteReport = async (req, res) => {
     }
 
     await Report.findByIdAndDelete(req.params.id);
+
+    // Clear relevant caches (cascading cache cleanup)
+    await clearCachePattern(`user:${report.user}:reports:*`);
 
     res.status(200).json({ message: "Report deleted successfully" });
   } catch (error) {

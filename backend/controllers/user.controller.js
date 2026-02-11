@@ -146,10 +146,27 @@ export const deleteReport = async (req, res) => {
     }
 
     // Check if the report belongs to the user
-    if (report.reporter.toString() !== userId) {
+    if (report.user.toString() !== userId) {
       return res.status(403).json({
         message: "Access denied. You can only delete your own reports.",
       });
+    }
+
+    // Delete associated ImageKit photos (cascading delete)
+    if (report.photos && report.photos.length > 0) {
+      const { deleteFile, extractKeyFromUrl } =
+        await import("../utils/s3.utils.js");
+      for (const photoUrl of report.photos) {
+        try {
+          const fileId = extractKeyFromUrl(photoUrl);
+          if (fileId) {
+            await deleteFile(fileId);
+          }
+        } catch (error) {
+          console.error(`Failed to delete photo ${photoUrl}:`, error);
+          // Continue even if image deletion fails
+        }
+      }
     }
 
     await Report.findByIdAndDelete(reportId);
@@ -187,7 +204,7 @@ export const myClaims = async (req, res) => {
     const [claims, total] = await withQueryTimeout(
       Promise.all([
         Claim.find(query)
-          .select("item claimant status remarks createdAt")
+          .select("claimId item claimant status remarks createdAt")
           .populate(
             "item",
             "itemId name category foundLocation dateFound isClaimed",

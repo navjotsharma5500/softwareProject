@@ -193,12 +193,26 @@ export const deleteItem = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const item = await withQueryTimeout(Item.findByIdAndDelete(id));
+    const item = await withQueryTimeout(Item.findById(id));
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
     }
-    // Also delete all claims associated with this item
+
+    // Get all claims for this item to clear user caches (cascading cache cleanup)
+    const claims = await withQueryTimeout(
+      Claim.find({ item: id }).select("claimant").lean(),
+    );
+
+    // Delete all claims associated with this item (cascading delete)
     await Claim.deleteMany({ item: id });
+
+    // Delete the item
+    await Item.findByIdAndDelete(id);
+
+    // Clear user caches for all claimants (cascading cache cleanup)
+    for (const claim of claims) {
+      await clearCachePattern(`user:${claim.claimant}:claims:*`);
+    }
 
     // Clear items cache after deleting an item
     await clearCachePattern("items:list:*");
@@ -349,11 +363,25 @@ export const approveClaim = async (req, res) => {
       item.owner = claim.claimant._id;
       await item.save();
     }
+
+    // Get all other pending claims for this item before rejecting them (for cache cleanup)
+    const otherPendingClaims = await withQueryTimeout(
+      Claim.find({ item: claim.item._id, _id: { $ne: id }, status: "pending" })
+        .select("claimant")
+        .lean(),
+    );
+
     // Reject all other pending claims for this item
     await Claim.updateMany(
       { item: claim.item._id, _id: { $ne: id }, status: "pending" },
       { status: "rejected", remarks: "Another claim was approved" },
     );
+
+    // Clear caches for users whose claims were auto-rejected (cascading cache cleanup)
+    for (const otherClaim of otherPendingClaims) {
+      await clearCachePattern(`user:${otherClaim.claimant}:claims:*`);
+    }
+
     // Send email notification to claimant
     if (claim.claimant && claim.claimant.email) {
       const subject = "Your claim has been approved";

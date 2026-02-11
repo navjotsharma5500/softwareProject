@@ -228,7 +228,7 @@ const Admin = () => {
       // eslint-disable-next-line no-unused-vars
       const { itemId, ...itemData } = formData;
       await adminApi.createItem(itemData);
-      toast.success('✅ Item created successfully!');
+      toast.success(' Item created successfully!');
       setShowModal(false);
       resetForm();
       fetchItems();
@@ -253,7 +253,7 @@ const Admin = () => {
     setSubmitting(true);
     try {
       await adminApi.updateItem(selectedItem._id, formData);
-      toast.success('✅ Item updated successfully!');
+      toast.success('Item updated successfully!');
       setShowModal(false);
       resetForm();
       fetchItems();
@@ -276,7 +276,7 @@ const Admin = () => {
     setSubmitting(true);
     try {
       await adminApi.deleteItem(selectedItem._id);
-      toast.success('✅ Item deleted successfully!');
+      toast.success(' Item deleted successfully!');
       setShowModal(false);
       fetchItems();
     } catch (error) {
@@ -290,7 +290,7 @@ const Admin = () => {
   const handleApproveClaim = async (claimId) => {
     try {
       await adminApi.approveClaim(claimId, remarkText);
-      toast.success('✅ Claim approved successfully!');
+      toast.success(' Claim approved successfully!');
       setShowModal(false);
       setRemarkText('');
       setSelectedItem(null);
