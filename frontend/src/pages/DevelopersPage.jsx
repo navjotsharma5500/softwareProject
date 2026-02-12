@@ -17,7 +17,9 @@ const DevelopersPage = () => {
         "Backend API Development",
         "Database Architecture",
         "Authentication & Security",
-        "Server Deployment"
+        "Server Deployment",
+        "I lost something once...",
+        "Turns out, the portal can't recover lost love 💔",
       ],
      
     },
