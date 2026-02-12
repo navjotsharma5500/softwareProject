@@ -11,25 +11,25 @@ const DevelopersPage = () => {
   const developersData = [
     {
       name: "Surya",
-      role: "Lead Developer",
+      role: "Full Stack Developer",
       github: "SuryaKTiwari11",
       contributions: [
-        "Portal Architecture & Design",
-        "Backend Development",
-        "Database Design",
-        "Authentication System"
+        "Backend API Development",
+        "Database Architecture",
+        "Authentication & Security",
+        "Server Deployment"
       ],
      
     },
     {
       name: "Akshat Kakkar",
-      role: "Ideator / Thinker",
+      role: "Full Stack Developer",
       github: "akshatkakkar1",
       contributions: [
-        "Original Idea & Vision",
-        "Conceptualization of Portal",
-        "Brainstorming Features",
-        "Frontend Expertise"
+        "Frontend Development",
+        "UI/UX Implementation",
+        "React Components & State",
+        "API Integration"
       ],
     }
     // Add more developers here as needed:
@@ -227,35 +227,6 @@ const DevelopersPage = () => {
             ))}
           </div>
         )}
-
-        {/* Call to Action for Future Contributors */}
-        <div className="mt-16 text-center bg-white rounded-xl shadow-lg p-8 max-w-3xl mx-auto">
-          <h3 className="text-2xl font-bold mb-4 text-gray-900">
-            Want to Contribute?
-          </h3>
-          <p className="mb-6 text-gray-600">
-            This project is open for contributions! If you'd like to help improve the Thapar Lost & Found Portal, 
-            check out our GitHub repository and submit a pull request.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="https://github.com/SuryaKTiwari11/softwareProject"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-6 py-3 rounded-lg font-semibold transition-all duration-200 bg-gray-900 hover:bg-gray-800 text-white"
-            >
-              View Repository on GitHub
-            </a>
-            <a
-              href="mailto:admin@thapar.edu"
-              className="px-6 py-3 rounded-lg font-semibold transition-all duration-200 bg-gray-200 hover:bg-gray-300 text-gray-800"
-            >
-              Contact Team
-            </a>
-          </div>
-        </div>
-
-       
       </div>
     </div>
   );

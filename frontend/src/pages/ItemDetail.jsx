@@ -394,6 +394,12 @@ const ItemDetail = () => {
               </span>
               <span>If approved, you'll receive your item immediately</span>
             </li>
+            <li className="flex gap-3">
+              <span className="flex-shrink-0 w-6 h-6 bg-gray-900 text-white rounded-full flex items-center justify-center text-sm font-semibold">
+                5
+              </span>
+              <span>To make admin's job easier, provide your Claim ID from your <button onClick={() => navigate('/profile')} className="font-semibold underline hover:text-gray-900">profile page</button> when you visit the office.</span>
+            </li>
           </ol>
         </motion.div>
       </div>
