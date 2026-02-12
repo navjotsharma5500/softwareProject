@@ -378,45 +378,31 @@ const Profile = () => {
               </div>
             )}
             <div className="flex-1">
-              <h1 className="text-3xl font-bold mb-2 text-gray-900">
-                {profileData?.name || user?.name}
-              </h1>
-              <p className="text-sm text-gray-600">
-                {profileData?.email || user?.email}
-              </p>
-              {user?.isAdmin && (
-                <span className="inline-block mt-2 px-3 py-1 bg-purple-100 text-purple-800 rounded-lg font-semibold text-sm">
-                  Admin
-                </span>
-              )}
-            </div>
-            {!editing ? (
-              <button
-                onClick={() => setEditing(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors w-full sm:w-auto justify-center"
-              >
-                <Edit2 size={18} />
-                Edit Profile
-              </button>
-            ) : (
-              <div className="flex gap-2">
-                <button
-                  onClick={handleCancel}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors bg-gray-200 hover:bg-gray-300 text-gray-700"
-                >
-                  <X size={18} />
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-                >
-                  <Save size={18} />
-                  {saving ? 'Saving...' : 'Save'}
-                </button>
+              <div className="flex justify-between items-start">
+                <div>
+                  <h1 className="text-3xl font-bold mb-2 text-gray-900">
+                    {profileData?.name || user?.name}
+                  </h1>
+                  <p className="text-sm text-gray-600">
+                    {profileData?.email || user?.email}
+                  </p>
+                  {user?.isAdmin && (
+                    <span className="inline-block mt-2 px-3 py-1 bg-purple-100 text-purple-800 rounded-lg font-semibold text-sm">
+                      Admin
+                    </span>
+                  )}
+                </div>
+                {!editing ? (
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
+                  >
+                    <Edit2 size={18} />
+                    Edit Profile
+                  </button>
+                ) : null}
               </div>
-            )}
+            </div>
           </div>
 
           {/* Editable Fields */}
