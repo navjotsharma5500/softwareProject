@@ -619,35 +619,36 @@ const Admin = () => {
                 All Items {itemsPagination.total ? `(${itemsPagination.total})` : ''}
               </h2>
               <div className="flex items-center gap-3">
-                <button
-                  onClick={handleDownloadCsv}
-                  disabled={downloadingCsv || csvCooldown}
-                  className={`flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold ${
-                    downloadingCsv || csvCooldown ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                  title="Download all data as CSV"
-                >
-                  <Download size={20} className={downloadingCsv ? 'animate-spin' : ''} />
-                  {downloadingCsv ? 'Downloading...' : 'Download CSV'}
-                </button>
-                <button
-                  onClick={handleRefresh}
-                  disabled={refreshing || refreshCooldown}
-                  className={`p-2 rounded-lg font-semibold transition-all bg-gray-100 hover:bg-gray-200 text-gray-700 ${
-                    refreshing || refreshCooldown ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                  title="Refresh items"
-                >
-                  <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
-                </button>
-                <button
-                  onClick={openCreateModal}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
-                >
-                  <Plus size={20} />
-                  Add New Item
-                </button>
-              </div>
+                <div className="flex flex-col sm:flex-row w-full gap-2 sm:gap-3">
+                  <button
+                    onClick={handleDownloadCsv}
+                    disabled={downloadingCsv || csvCooldown}
+                    className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold ${
+                      downloadingCsv || csvCooldown ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    title="Download all data as CSV"
+                  >
+                    <Download size={20} className={downloadingCsv ? 'animate-spin' : ''} />
+                    {downloadingCsv ? 'Downloading...' : 'Download CSV'}
+                  </button>
+                  <button
+                    onClick={handleRefresh}
+                    disabled={refreshing || refreshCooldown}
+                    className={`flex-1 sm:flex-none flex items-center justify-center p-2 rounded-lg font-semibold transition-all bg-gray-100 hover:bg-gray-200 text-gray-700 ${
+                      refreshing || refreshCooldown ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    title="Refresh items"
+                  >
+                    <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
+                  </button>
+                  <button
+                    onClick={openCreateModal}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
+                  >
+                    <Plus size={20} />
+                    Add New Item
+                  </button>
+                </div>
             </div>
 
             {loading ? (

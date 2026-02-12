@@ -39,7 +39,6 @@ const Profile = () => {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const isInitialLoad = useRef(true);
   const [formData, setFormData, formControls] = useFormPersistence('profile_form', {
-    name: '',
     rollNo: '', // rollNo stored as numeric string (6-15 digits)
     phone: '',
   });
@@ -63,7 +62,6 @@ const Profile = () => {
       setProfileData(response.data.user);
       const fetched = response.data.user;
       formControls.replaceIfEmpty({
-        name: fetched.name,
         rollNo: fetched.rollNo && fetched.rollNo !== '0' ? fetched.rollNo : '',
         phone: fetched.phone || '',
       });
@@ -395,7 +393,7 @@ const Profile = () => {
             {!editing ? (
               <button
                 onClick={() => setEditing(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors w-full sm:w-auto justify-center"
               >
                 <Edit2 size={18} />
                 Edit Profile
@@ -429,21 +427,10 @@ const Profile = () => {
                 <User size={18} />
                 Full Name
               </label>
-              {editing ? (
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder="SURYA IS THE GOAT"
-                  maxLength={100}
-                  className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
-                />
-              ) : (
-                <p className="px-4 py-2 rounded-lg bg-gray-50 text-gray-900">
-                  {profileData?.name || user?.name}
-                </p>
-              )}
+              <p className="px-4 py-2 rounded-lg bg-gray-50 text-gray-900">
+                {profileData?.name || user?.name}
+                <span className="ml-2 text-xs text-gray-400">(Cannot be changed)</span>
+              </p>
             </div>
 
             {/* Email (Read-only) */}
