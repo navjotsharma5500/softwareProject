@@ -10,28 +10,26 @@ const DevelopersPage = () => {
   // Developer data - Add more developers here in the future
   const developersData = [
     {
-      name: "Surya",
-      role: "Full Stack Developer",
+      name: "Surya Kant Tiwari",
+      role: "Lead Developer",
       github: "SuryaKTiwari11",
       contributions: [
-        "Backend API Development",
-        "Database Architecture",
-        "Authentication & Security",
-        "Server Deployment",
-        "I lost something once...",
-        "Turns out, the portal can't recover lost love 💔",
+        "Portal Architecture & Design",
+        "Backend Development",
+        "Database Design",
+        "Authentication System"
       ],
      
     },
     {
       name: "Akshat Kakkar",
-      role: "Full Stack Developer",
+      role: "Product & Strategy Lead",
       github: "akshatkakkar1",
       contributions: [
-        "Frontend Development",
-        "UI/UX Implementation",
-        "React Components & State",
-        "API Integration"
+        "Original Idea & Vision",
+        "Conceptualization of Portal",
+        "Brainstorming Features",
+        "Product Flow Design"
       ],
     }
     // Add more developers here as needed:
@@ -93,7 +91,7 @@ const DevelopersPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
         {/* Back Button */}
         <div className="mb-6">
@@ -121,11 +119,11 @@ const DevelopersPage = () => {
             <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="flex flex-wrap justify-center gap-8 max-w-5xl mx-auto">
             {developers.map((dev, index) => (
               <div
                 key={index}
-                className="bg-white rounded-xl shadow-xl overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+                className="bg-white rounded-xl shadow-xl overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl w-full md:w-96"
               >
                 {/* Profile Header with Avatar */}
                 <div className="relative h-32 bg-gradient-to-r from-gray-800 to-gray-900">
@@ -150,20 +148,20 @@ const DevelopersPage = () => {
                     <p className="text-sm font-medium text-gray-800">
                       {dev.role}
                     </p>
-                    {dev.location && (
+                    {/* {dev.location && (
                       <p className="text-sm mt-1 text-gray-500">
                         📍 {dev.location}
                       </p>
-                    )}
+                    )} */}
                   </div>
 
                   {/* Bio */}
-                  <div className="text-center mb-4 text-gray-600 text-sm leading-relaxed">
+                  {/* <div className="text-center mb-4 text-gray-600 text-sm leading-relaxed">
                     <p>{dev.githubBio || dev.bio}</p>
-                  </div>
+                  </div> */}
 
                   {/* GitHub Stats */}
-                  {(dev.publicRepos || dev.followers) && (
+                  {/* {(dev.publicRepos || dev.followers) && (
                     <div className="flex justify-center gap-6 mb-4 pb-4 border-b border-gray-200">
                       {dev.publicRepos && (
                         <div className="text-center">
@@ -186,7 +184,7 @@ const DevelopersPage = () => {
                         </div>
                       )}
                     </div>
-                  )}
+                  )} */}
 
                   {/* Contributions */}
                   <div className="mb-6">
