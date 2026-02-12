@@ -70,6 +70,16 @@ const Admin = () => {
   
   // Use ref to track submission state synchronously (prevents race conditions)
   const isSubmittingRef = useRef(false);
+  
+  // Rate limiting for admin operations
+  const lastRefreshTime = useRef(0);
+  const lastCsvDownloadTime = useRef(0);
+  const lastApproveTime = useRef(0);
+  const lastRejectTime = useRef(0);
+  const [refreshCooldown, setRefreshCooldown] = useState(false);
+  const [csvCooldown, setCsvCooldown] = useState(false);
+  const [approveCooldown, setApproveCooldown] = useState(false);
+  const [rejectCooldown, setRejectCooldown] = useState(false);
 
   useEffect(() => {
     if (activeTab === 'items') {
@@ -171,7 +181,19 @@ const Admin = () => {
   };
 
   const handleRefresh = async () => {
+    const now = Date.now();
+    const REFRESH_COOLDOWN = 2000; // 2 seconds
+    
+    // Check if still in cooldown
+    if (now - lastRefreshTime.current < REFRESH_COOLDOWN) {
+      toast.warning('Please wait before refreshing again');
+      return;
+    }
+    
+    lastRefreshTime.current = now;
+    setRefreshCooldown(true);
     setRefreshing(true);
+    
     try {
       if (activeTab === 'items') {
         await fetchItems();
@@ -184,11 +206,25 @@ const Admin = () => {
       toast.error('Failed to refresh data');
     } finally {
       setRefreshing(false);
+      // Remove cooldown after delay
+      setTimeout(() => setRefreshCooldown(false), REFRESH_COOLDOWN);
     }
   };
 
   const handleDownloadCsv = async () => {
+    const now = Date.now();
+    const CSV_COOLDOWN = 5000; // 5 seconds
+    
+    // Check if still in cooldown
+    if (now - lastCsvDownloadTime.current < CSV_COOLDOWN) {
+      toast.warning('Please wait before downloading again');
+      return;
+    }
+    
+    lastCsvDownloadTime.current = now;
+    setCsvCooldown(true);
     setDownloadingCsv(true);
+    
     try {
       const response = await adminApi.downloadCsv();
       const blob = new Blob([response.data], { type: 'text/csv' });
@@ -206,6 +242,8 @@ const Admin = () => {
       toast.error(error.response?.data?.message || 'Failed to download CSV');
     } finally {
       setDownloadingCsv(false);
+      // Remove cooldown after delay
+      setTimeout(() => setCsvCooldown(false), CSV_COOLDOWN);
     }
   };
 
@@ -228,7 +266,7 @@ const Admin = () => {
       // eslint-disable-next-line no-unused-vars
       const { itemId, ...itemData } = formData;
       await adminApi.createItem(itemData);
-      toast.success(' Item created successfully!');
+      toast.success('Item created successfully!');
       setShowModal(false);
       resetForm();
       fetchItems();
@@ -276,7 +314,7 @@ const Admin = () => {
     setSubmitting(true);
     try {
       await adminApi.deleteItem(selectedItem._id);
-      toast.success(' Item deleted successfully!');
+      toast.success('Item deleted successfully!');
       setShowModal(false);
       fetchItems();
     } catch (error) {
@@ -288,9 +326,21 @@ const Admin = () => {
   };
 
   const handleApproveClaim = async (claimId) => {
+    const now = Date.now();
+    const APPROVE_COOLDOWN = 1000; // 1 second
+    
+    // Check if still in cooldown
+    if (now - lastApproveTime.current < APPROVE_COOLDOWN) {
+      toast.warning('Please wait before approving another claim');
+      return;
+    }
+    
+    lastApproveTime.current = now;
+    setApproveCooldown(true);
+    
     try {
       await adminApi.approveClaim(claimId, remarkText);
-      toast.success(' Claim approved successfully!');
+      toast.success('Claim approved successfully!');
       setShowModal(false);
       setRemarkText('');
       setSelectedItem(null);
@@ -307,13 +357,28 @@ const Admin = () => {
       await fetchItems();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to approve claim');
+    } finally {
+      // Remove cooldown after delay
+      setTimeout(() => setApproveCooldown(false), APPROVE_COOLDOWN);
     }
   };
 
   const handleRejectClaim = async (claimId) => {
+    const now = Date.now();
+    const REJECT_COOLDOWN = 1000; // 1 second
+    
+    // Check if still in cooldown
+    if (now - lastRejectTime.current < REJECT_COOLDOWN) {
+      toast.warning('Please wait before rejecting another claim');
+      return;
+    }
+    
+    lastRejectTime.current = now;
+    setRejectCooldown(true);
+    
     try {
       await adminApi.rejectClaim(claimId, remarkText);
-      toast.success('❌ Claim rejected successfully!');
+      toast.success('Claim rejected successfully!');
       setShowModal(false);
       setRemarkText('');
       setSelectedItem(null);
@@ -327,6 +392,9 @@ const Admin = () => {
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to reject claim');
+    } finally {
+      // Remove cooldown after delay
+      setTimeout(() => setRejectCooldown(false), REJECT_COOLDOWN);
     }
   };
 
@@ -553,9 +621,9 @@ const Admin = () => {
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleDownloadCsv}
-                  disabled={downloadingCsv}
+                  disabled={downloadingCsv || csvCooldown}
                   className={`flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold ${
-                    downloadingCsv ? 'opacity-50 cursor-not-allowed' : ''
+                    downloadingCsv || csvCooldown ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   title="Download all data as CSV"
                 >
@@ -564,9 +632,9 @@ const Admin = () => {
                 </button>
                 <button
                   onClick={handleRefresh}
-                  disabled={refreshing}
+                  disabled={refreshing || refreshCooldown}
                   className={`p-2 rounded-lg font-semibold transition-all bg-gray-100 hover:bg-gray-200 text-gray-700 ${
-                    refreshing ? 'opacity-50 cursor-not-allowed' : ''
+                    refreshing || refreshCooldown ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   title="Refresh items"
                 >
@@ -729,8 +797,8 @@ const Admin = () => {
               </h2>
               <button
                 onClick={handleRefresh}
-                disabled={refreshing}
-                className={`p-2 rounded-lg font-semibold transition-all bg-gray-100 hover:bg-gray-200 text-gray-700 ${refreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={refreshing || refreshCooldown}
+                className={`p-2 rounded-lg font-semibold transition-all bg-gray-100 hover:bg-gray-200 text-gray-700 ${refreshing || refreshCooldown ? 'opacity-50 cursor-not-allowed' : ''}`}
                 title="Refresh claims"
               >
                 <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
@@ -895,8 +963,8 @@ const Admin = () => {
               </h2>
               <button
                 onClick={handleRefresh}
-                disabled={refreshing}
-                className={`p-2 rounded-lg font-semibold transition-all bg-gray-100 hover:bg-gray-200 text-gray-700 ${refreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={refreshing || refreshCooldown}
+                className={`p-2 rounded-lg font-semibold transition-all bg-gray-100 hover:bg-gray-200 text-gray-700 ${refreshing || refreshCooldown ? 'opacity-50 cursor-not-allowed' : ''}`}
                 title="Refresh approved claims"
               >
                 <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
@@ -1042,8 +1110,8 @@ const Admin = () => {
               </h2>
               <button
                 onClick={handleRefresh}
-                disabled={refreshing}
-                className={`p-2 rounded-lg font-semibold transition-all bg-gray-100 hover:bg-gray-200 text-gray-700 ${refreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={refreshing || refreshCooldown}
+                className={`p-2 rounded-lg font-semibold transition-all bg-gray-100 hover:bg-gray-200 text-gray-700 ${refreshing || refreshCooldown ? 'opacity-50 cursor-not-allowed' : ''}`}
                 title="Refresh rejected claims"
               >
                 <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
@@ -1339,11 +1407,12 @@ const Admin = () => {
                         ? handleApproveClaim(selectedItem._id) 
                         : handleRejectClaim(selectedItem._id)
                       }
+                      disabled={modalType === 'approve' ? approveCooldown : rejectCooldown}
                       className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors ${
                         modalType === 'approve'
                           ? 'bg-green-600 hover:bg-green-700'
                           : 'bg-red-600 hover:bg-red-700'
-                      }`}
+                      } ${(modalType === 'approve' ? approveCooldown : rejectCooldown) ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       {modalType === 'approve' ? 'Approve' : 'Reject'}
                     </button>

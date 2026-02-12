@@ -27,6 +27,10 @@ const Profile = () => {
   const isDeletingClaimRef = useRef(false);
   const isDeletingReportRef = useRef(false);
   
+  // Rate limiting for refresh button
+  const lastRefreshTime = useRef(0);
+  const [refreshCooldown, setRefreshCooldown] = useState(false);
+  
   // Check URL parameter for section on mount
   const initialSection = searchParams.get('section') === 'reports' ? 'reports' : 'claims';
   const [activeSection, setActiveSection] = useState(initialSection); // 'claims' or 'reports'
@@ -35,8 +39,8 @@ const Profile = () => {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const isInitialLoad = useRef(true);
   const [formData, setFormData, formControls] = useFormPersistence('profile_form', {
-    name: 'SURYA KANT TIWARI',
-    rollNo: 'ADD YOUR ROLL NO', // rollNo stored as string (may be alphanumeric)
+    name: '',
+    rollNo: '', // rollNo stored as numeric string (6-15 digits)
     phone: '',
   });
 
@@ -57,12 +61,10 @@ const Profile = () => {
     try {
       const response = await userApi.getProfile();
       setProfileData(response.data.user);
-      // Prefer stored rollNo unless it's missing or set to '0' — fallback to phone
       const fetched = response.data.user;
-      const rollFallback = fetched.rollNo && fetched.rollNo !== '0' ? fetched.rollNo : (fetched.phone || '');
       formControls.replaceIfEmpty({
         name: fetched.name,
-        rollNo: rollFallback,
+        rollNo: fetched.rollNo && fetched.rollNo !== '0' ? fetched.rollNo : '',
         phone: fetched.phone || '',
       });
     } catch (error) {
@@ -123,7 +125,19 @@ const Profile = () => {
   }, [page, activeSection]);
 
   const handleRefresh = async () => {
+    const now = Date.now();
+    const REFRESH_COOLDOWN = 2000; // 2 seconds
+    
+    // Check if still in cooldown
+    if (now - lastRefreshTime.current < REFRESH_COOLDOWN) {
+      toast.warning('Please wait before refreshing again');
+      return;
+    }
+    
+    lastRefreshTime.current = now;
+    setRefreshCooldown(true);
     setRefreshing(true);
+    
     try {
       await fetchProfile();
       if (activeSection === 'claims') {
@@ -136,15 +150,17 @@ const Profile = () => {
       toast.error('Failed to refresh');
     } finally {
       setRefreshing(false);
+      // Remove cooldown after delay
+      setTimeout(() => setRefreshCooldown(false), REFRESH_COOLDOWN);
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       [name]: value,
-    });
+    }));
   };
 
   const handleSave = async () => {
@@ -157,25 +173,90 @@ const Profile = () => {
     isSavingRef.current = true;
     setSaving(true);
     try {
-      // Client-side validation: prevent excessively long names
-      if (formData.name && formData.name.length > 100) {
-        toast.error('Name is too long (max 100 characters)');
+      // Client-side validation with specific error messages
+      if (!formData.name || formData.name.trim().length < 2) {
+        toast.error('Name must be at least 2 characters long');
+        isSavingRef.current = false;
         setSaving(false);
         return;
       }
-      // Ensure rollNo is numeric when updating (backend accepts numeric values)
+      
+      if (formData.name && formData.name.length > 100) {
+        toast.error('Name is too long (max 100 characters)');
+        isSavingRef.current = false;
+        setSaving(false);
+        return;
+      }
+
+      // Validate rollNo: must be numeric and 6-15 digits
+      if (formData.rollNo && formData.rollNo.toString().trim() !== '') {
+        const rollNoStr = formData.rollNo.toString().trim();
+        if (!/^\d+$/.test(rollNoStr)) {
+          toast.error('Roll number must contain only digits (no letters or special characters)');
+          isSavingRef.current = false;
+          setSaving(false);
+          return;
+        }
+        if (rollNoStr.length < 6 || rollNoStr.length > 15) {
+          toast.error('Roll number must be 6-15 digits long');
+          isSavingRef.current = false;
+          setSaving(false);
+          return;
+        }
+      }
+
+      // Validate phone: must be 10-15 digits if provided
+      if (formData.phone && formData.phone.trim() !== '') {
+        const phoneStr = formData.phone.trim();
+        if (!/^\d+$/.test(phoneStr)) {
+          toast.error('Phone number must contain only digits');
+          isSavingRef.current = false;
+          setSaving(false);
+          return;
+        }
+        if (phoneStr.length < 10 || phoneStr.length > 15) {
+          toast.error('Phone number must be 10-15 digits long');
+          isSavingRef.current = false;
+          setSaving(false);
+          return;
+        }
+      }
+
+      // Prepare payload
       const payload = { ...formData };
       if (payload.rollNo !== undefined && payload.rollNo !== "") {
-        // Convert numeric strings to Number; if invalid, NaN will be sent and backend will validate
-        payload.rollNo = Number(payload.rollNo);
+        payload.rollNo = payload.rollNo.toString().trim();
       }
+      if (payload.phone !== undefined && payload.phone !== "") {
+        payload.phone = payload.phone.toString().trim();
+      }
+      
       await userApi.updateProfile(payload);
       await fetchProfile();
       setEditing(false);
       formControls.clear();
-      toast.success('Profile updated successfully');
+      toast.success('Profile updated successfully!');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update profile');
+      console.error('Update profile error:', error);
+      
+      // Parse error message for better user feedback
+      const errorMsg = error.response?.data?.message || '';
+      
+      if (errorMsg.includes('Roll number')) {
+        toast.error(errorMsg);
+      } else if (errorMsg.includes('phone') || errorMsg.includes('Phone')) {
+        toast.error(errorMsg);
+      } else if (errorMsg.includes('name') || errorMsg.includes('Name')) {
+        toast.error(errorMsg);
+      } else if (error.response?.status === 413) {
+        toast.error('Data too large. Please reduce the length of your inputs.');
+      } else if (error.response?.status === 401) {
+        toast.error('Session expired. Please log in again.');
+      } else if (error.response?.status === 500) {
+        toast.error('Server error. Please try again later.');
+      } else {
+        toast.error(errorMsg || 'Failed to update profile. Please check your input and try again.');
+      }
     } finally {
       isSavingRef.current = false;
       setSaving(false);
@@ -185,7 +266,7 @@ const Profile = () => {
   const handleCancel = () => {
     setFormData({
       name: profileData.name,
-      rollNo: profileData.rollNo && profileData.rollNo !== '0' ? profileData.rollNo : (profileData.phone || ''),
+      rollNo: profileData.rollNo && profileData.rollNo !== '0' ? profileData.rollNo : '',
       phone: profileData.phone || '',
     });
     setEditing(false);
@@ -381,21 +462,35 @@ const Profile = () => {
             <div>
               <label className="flex items-center gap-2 mb-2 font-medium text-gray-700">
                 <IdCard size={18} />
-                Roll Number/Email
+                Roll Number
               </label>
               {editing ? (
-                <input
-                  type="text"
-                  name="rollNo"
-                  value={formData.rollNo ?? ''}
-                  onChange={handleInputChange}
-                  placeholder="add your roll number here"
-                  maxLength="20"
-                  className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
-                />
+                <div>
+                  <input
+                    type="text"
+                    name="rollNo"
+                    value={formData.rollNo ?? ''}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '');
+                      setFormData(prev => ({...prev, rollNo: value}));
+                    }}
+                    placeholder="Enter 6-15 digit roll number (e.g., 102303737)"
+                    maxLength="15"
+                    className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
+                  />
+                  {formData.rollNo && (
+                    <p className={`text-xs mt-1 ${
+                      formData.rollNo.length >= 6 && formData.rollNo.length <= 15
+                        ? 'text-green-600'
+                        : 'text-red-600'
+                    }`}>
+                      {formData.rollNo.length} / 6-15 digits
+                    </p>
+                  )}
+                </div>
               ) : (
                 <p className="px-4 py-2 rounded-lg bg-gray-50 text-gray-900">
-                  {(profileData?.rollNo && profileData.rollNo !== '0') ? profileData.rollNo : (profileData?.phone || user?.rollNo)}
+                  {(profileData?.rollNo && profileData.rollNo !== '0') ? profileData.rollNo : 'Not provided'}
                 </p>
               )}
             </div>
@@ -407,18 +502,29 @@ const Profile = () => {
                 Phone Number (Optional)
               </label>
               {editing ? (
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, '');
-                    setFormData({...formData, phone: value});
-                  }}
-                  placeholder="9876543210"
-                  maxLength="10"
-                  className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
-                />
+                <div>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '');
+                      setFormData(prev => ({...prev, phone: value}));
+                    }}
+                    placeholder="Enter 10-15 digit phone number (e.g., 9876543210)"
+                    maxLength="15"
+                    className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
+                  />
+                  {formData.phone && (
+                    <p className={`text-xs mt-1 ${
+                      formData.phone.length >= 10 && formData.phone.length <= 15
+                        ? 'text-green-600'
+                        : 'text-red-600'
+                    }`}>
+                      {formData.phone.length} / 10-15 digits
+                    </p>
+                  )}
+                </div>
               ) : (
                 <p className="px-4 py-2 rounded-lg bg-gray-50 text-gray-900">
                   {profileData?.phone || 'Not provided'}
@@ -474,9 +580,9 @@ const Profile = () => {
             {/* Refresh Button */}
             <button
               onClick={handleRefresh}
-              disabled={refreshing}
+              disabled={refreshing || refreshCooldown}
               className={`p-2 rounded-lg font-semibold transition-all bg-gray-100 hover:bg-gray-200 text-gray-700 ${
-                refreshing ? 'opacity-50 cursor-not-allowed' : ''
+                refreshing || refreshCooldown ? 'opacity-50 cursor-not-allowed' : ''
               }`}
               title="Refresh"
             >
