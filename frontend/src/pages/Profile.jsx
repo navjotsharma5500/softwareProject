@@ -413,14 +413,14 @@ const Profile = () => {
             <div>
               <label className="flex items-center gap-2 mb-2 font-medium text-gray-700">
                 <IdCard size={18} />
-                Roll Number/Email
+                Roll Number/Email 
               </label>
               {editing ? (
                 <div>
                   <input
                     type="text"
                     name="rollNo"
-                    value={formData.rollNo ?? ''}
+                    value={formData.rollNo || ''}
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, '');
                       setFormData(prev => ({...prev, rollNo: value}));
@@ -462,17 +462,17 @@ const Profile = () => {
                       const value = e.target.value.replace(/\D/g, '');
                       setFormData(prev => ({...prev, phone: value}));
                     }}
-                    placeholder="Enter 10-15 digit phone number (e.g., 9876543210)"
-                    maxLength="15"
+                    placeholder="Enter 10 digit phone number (e.g., 9876543210)"
+                    maxLength="10"
                     className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
                   />
                   {formData.phone && (
                     <p className={`text-xs mt-1 ${
-                      formData.phone.length >= 10 && formData.phone.length <= 15
+                      formData.phone.length === 10
                         ? 'text-green-600'
                         : 'text-red-600'
                     }`}>
-                      {formData.phone.length} / 10-15 digits
+                      {formData.phone.length} / 10 digits
                     </p>
                   )}
                 </div>
