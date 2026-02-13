@@ -303,14 +303,6 @@ const ReportLostItem = () => {
             </div>
           </div>
 
-          {/* Info */}
-          <div className="flex items-start gap-2 p-4 rounded-lg mb-6 bg-gray-100 text-gray-800">
-            <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
-            <p className="text-sm">
-              Your report will be visible only to you and administrators. If someone finds an item matching your description, admin can verify your report.
-            </p>
-          </div>
-
           {/* Submit Button */}
           <button
             type="submit"
@@ -319,6 +311,15 @@ const ReportLostItem = () => {
           >
             {loading ? 'Submitting...' : 'Submit Report'}
           </button>
+            
+           <div className="h-6" />
+          {/* Info */}
+          <div className="flex items-start gap-2 p-4 rounded-lg mb-6 bg-gray-100 text-gray-800">
+            <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0 text-red-500" />
+            <p className="text-sm">
+              Most people who find lost items hand them to campus guards or administrators instead of checking the website or emails. Administrators do not actively search for your lost item—it is your responsibility to check the portal and submit a claim. Filing a report before the item appears online can help establish credibility when claiming it. Your report is private and visible only to you and administrators, ensuring security and confidentiality.
+             </p>
+          </div>
         </form>
       </div>
     </div>

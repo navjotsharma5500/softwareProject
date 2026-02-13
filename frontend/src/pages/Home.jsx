@@ -315,10 +315,9 @@ const Home = () => {
             transition={{ delay: 0.2 }}
             className="text-lg text-gray-900 font-extrabold mt-4"
           >
-            To collect the lost item → Visit admin office near street cafe | Submit found items → Guard or admin office
+            To collect the lost item → Visit admin office near street cafe | To submit found items → handover to Guard or admin office
           </motion.p>
         </div>
-
         {/* Tab Switcher with Report Button */}
         <div className="flex justify-center items-center gap-4 mb-8 flex-wrap">
           {/* Report Lost Item Button */}
@@ -399,10 +398,10 @@ const Home = () => {
           <div className="flex flex-col md:flex-row gap-4 mb-4">
             {/* Search Bar */}
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={20} />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={20} strokeWidth={2} />
               <input
                 type="text"
-                placeholder="Search items..."
+                placeholder="Search for lost items already handed over to the admin. Click to claim if it’s yours." 
                 value={searchInput}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
                 className="w-full pl-10 pr-4 py-3 rounded-xl border bg-white border-gray-200 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-all"
