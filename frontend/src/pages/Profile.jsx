@@ -165,14 +165,8 @@ const Profile = () => {
     try {
       if (formData.rollNo && formData.rollNo.toString().trim() !== '') {
         const rollNoStr = formData.rollNo.toString().trim();
-        if (!/^\d+$/.test(rollNoStr)) {
-          toast.error('Roll number must contain only digits (no letters or special characters)');
-          isSavingRef.current = false;
-          setSaving(false);
-          return;
-        }
-        if (rollNoStr.length < 6 || rollNoStr.length > 15) {
-          toast.error('Roll number must be 6-15 digits long');
+        if (!/^\d{9}$/.test(rollNoStr)) {
+          toast.error(`Roll number must be exactly 9 digits long. You entered ${rollNoStr.length} digits.`);
           isSavingRef.current = false;
           setSaving(false);
           return;
@@ -181,14 +175,8 @@ const Profile = () => {
 
       if (formData.phone && formData.phone.trim() !== '') {
         const phoneStr = formData.phone.trim();
-        if (!/^\d+$/.test(phoneStr)) {
-          toast.error('Phone number must contain only digits');
-          isSavingRef.current = false;
-          setSaving(false);
-          return;
-        }
-        if (phoneStr.length < 10 || phoneStr.length > 15) {
-          toast.error('Phone number must be 10-15 digits long');
+        if (!/^\d{10}$/.test(phoneStr)) {
+          toast.error(`Phone number must be exactly 10 digits long. You entered ${phoneStr.length} digits.`);
           isSavingRef.current = false;
           setSaving(false);
           return;
@@ -437,17 +425,17 @@ const Profile = () => {
                       const value = e.target.value.replace(/\D/g, '');
                       setFormData(prev => ({...prev, rollNo: value}));
                     }}
-                    placeholder="Enter 6-15 digit roll number (e.g., 102303737)"
-                    maxLength="15"
+                    placeholder="Enter 9 digit roll number (e.g., 102303737)"
+                    maxLength="9"
                     className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
                   />
                   {formData.rollNo && (
                     <p className={`text-xs mt-1 ${
-                      formData.rollNo.length >= 6 && formData.rollNo.length <= 15
+                      formData.rollNo.length === 9
                         ? 'text-green-600'
                         : 'text-red-600'
                     }`}>
-                      {formData.rollNo.length} / 6-15 digits
+                      {formData.rollNo.length} / 9 digits
                     </p>
                   )}
                 </div>
