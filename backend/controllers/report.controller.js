@@ -166,6 +166,19 @@ export const createReport = async (req, res) => {
 
     // Accept any non-empty string (no strict validation)
 
+    // Enforce character limits for category and location
+    if (sanitizedCategory.length > 50) {
+      return res
+        .status(400)
+        .json({ message: "Category must not exceed 50 characters" });
+    }
+
+    if (location && location.length > 100) {
+      return res
+        .status(400)
+        .json({ message: "Location must not exceed 100 characters" });
+    }
+
     // Trim and validate location
     location = location.trim();
     if (!location) {
@@ -174,6 +187,19 @@ export const createReport = async (req, res) => {
 
     if (photos && photos.length > 3) {
       return res.status(400).json({ message: "Maximum 3 photos allowed" });
+    }
+
+    // Enforce character limits for itemDescription and additionalDetails
+    if (itemDescription.length > 100) {
+      return res
+        .status(400)
+        .json({ message: "Item description must not exceed 100 characters" });
+    }
+
+    if (additionalDetails && additionalDetails.length > 500) {
+      return res
+        .status(400)
+        .json({ message: "Additional details must not exceed 500 characters" });
     }
 
     // Auto-generate Report ID using atomic counter

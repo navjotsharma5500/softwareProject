@@ -193,13 +193,16 @@ const ReportLostItem = () => {
               className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
               placeholder="Select or type a category"
               required
+              maxLength={50}
             />
             <datalist id="category-options">
               {CATEGORIES.map((cat) => (
                 <option key={cat} value={cat} />
               ))}
             </datalist>
-            <p className="text-xs mt-1 text-gray-500">Select from list or type your own</p>
+            <p className="text-xs mt-1 text-gray-500">
+              {formData.category.length}/50 characters used
+            </p>
           </div>
 
           {/* Location */}
@@ -216,13 +219,16 @@ const ReportLostItem = () => {
               className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
               placeholder="Select or type a location"
               required
+              maxLength={100}
             />
             <datalist id="location-options">
               {LOCATIONS.map((loc) => (
                 <option key={loc} value={loc} />
               ))}
             </datalist>
-            <p className="text-xs mt-1 text-gray-500">Select from list or type your own</p>
+            <p className="text-xs mt-1 text-gray-500">
+              {formData.location.length}/100 characters used
+            </p>
           </div>
 
           {/* Date Lost */}
