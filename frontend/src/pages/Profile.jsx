@@ -17,33 +17,29 @@ const Profile = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [deletingClaim, setDeletingClaim] = useState(null); // Track which claim is being deleted
-  const [deletingReport, setDeletingReport] = useState(null); // Track which report is being deleted
+  const [deletingClaim, setDeletingClaim] = useState(null);
+  const [deletingReport, setDeletingReport] = useState(null);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   
-  // Use refs to prevent spam submissions
   const isSavingRef = useRef(false);
   const isDeletingClaimRef = useRef(false);
   const isDeletingReportRef = useRef(false);
   
-  // Rate limiting for refresh button
   const lastRefreshTime = useRef(0);
   const [refreshCooldown, setRefreshCooldown] = useState(false);
   
-  // Check URL parameter for section on mount
   const initialSection = searchParams.get('section') === 'reports' ? 'reports' : 'claims';
-  const [activeSection, setActiveSection] = useState(initialSection); // 'claims' or 'reports'
+  const [activeSection, setActiveSection] = useState(initialSection);
   
   const [lightboxImages, setLightboxImages] = useState(null);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const isInitialLoad = useRef(true);
   const [formData, setFormData, formControls] = useFormPersistence('profile_form', {
-    rollNo: '', // rollNo stored as numeric string (6-15 digits)
+    rollNo: '',
     phone: '',
   });
 
-  // Back button
   const handleBack = () => {
     window.history.length > 1 ? window.history.back() : window.location.href = '/';
   };
@@ -109,7 +105,6 @@ const Profile = () => {
   useEffect(() => {
     fetchProfile();
     
-    // Clear the section parameter from URL after initial load
     if (searchParams.get('section')) {
       setSearchParams({}, { replace: true });
     }
@@ -124,9 +119,8 @@ const Profile = () => {
 
   const handleRefresh = async () => {
     const now = Date.now();
-    const REFRESH_COOLDOWN = 2000; // 2 seconds
+    const REFRESH_COOLDOWN = 2000;
     
-    // Check if still in cooldown
     if (now - lastRefreshTime.current < REFRESH_COOLDOWN) {
       toast.warning('Please wait before refreshing again');
       return;
@@ -148,7 +142,6 @@ const Profile = () => {
       toast.error('Failed to refresh');
     } finally {
       setRefreshing(false);
-      // Remove cooldown after delay
       setTimeout(() => setRefreshCooldown(false), REFRESH_COOLDOWN);
     }
   };
@@ -162,7 +155,6 @@ const Profile = () => {
   };
 
   const handleSave = async () => {
-    // Prevent spam saves
     if (isSavingRef.current || saving) {
       console.log('Duplicate save blocked');
       return;
@@ -171,22 +163,6 @@ const Profile = () => {
     isSavingRef.current = true;
     setSaving(true);
     try {
-      // Client-side validation with specific error messages
-      if (!formData.name || formData.name.trim().length < 2) {
-        toast.error('Name must be at least 2 characters long');
-        isSavingRef.current = false;
-        setSaving(false);
-        return;
-      }
-      
-      if (formData.name && formData.name.length > 100) {
-        toast.error('Name is too long (max 100 characters)');
-        isSavingRef.current = false;
-        setSaving(false);
-        return;
-      }
-
-      // Validate rollNo: must be numeric and 6-15 digits
       if (formData.rollNo && formData.rollNo.toString().trim() !== '') {
         const rollNoStr = formData.rollNo.toString().trim();
         if (!/^\d+$/.test(rollNoStr)) {
@@ -203,7 +179,6 @@ const Profile = () => {
         }
       }
 
-      // Validate phone: must be 10-15 digits if provided
       if (formData.phone && formData.phone.trim() !== '') {
         const phoneStr = formData.phone.trim();
         if (!/^\d+$/.test(phoneStr)) {
@@ -220,7 +195,6 @@ const Profile = () => {
         }
       }
 
-      // Prepare payload
       const payload = { ...formData };
       if (payload.rollNo !== undefined && payload.rollNo !== "") {
         payload.rollNo = payload.rollNo.toString().trim();
@@ -237,7 +211,6 @@ const Profile = () => {
     } catch (error) {
       console.error('Update profile error:', error);
       
-      // Parse error message for better user feedback
       const errorMsg = error.response?.data?.message || '';
       
       if (errorMsg.includes('Roll number')) {
@@ -263,7 +236,6 @@ const Profile = () => {
 
   const handleCancel = () => {
     setFormData({
-      name: profileData.name,
       rollNo: profileData.rollNo && profileData.rollNo !== '0' ? profileData.rollNo : '',
       phone: profileData.phone || '',
     });
@@ -274,7 +246,6 @@ const Profile = () => {
     const confirmed = window.confirm(`Are you sure you want to remove your claim for "${itemName}"?`);
     if (!confirmed) return;
 
-    // Prevent spam deletions
     if (isDeletingClaimRef.current || deletingClaim === claimId) {
       console.log('Duplicate claim deletion blocked');
       return;
@@ -285,7 +256,6 @@ const Profile = () => {
     try {
       await userApi.deleteClaim(claimId);
       toast.success('Claim removed successfully!');
-      // Refresh claims
       if (activeSection === 'claims') {
         fetchMyClaims();
       }
@@ -302,7 +272,6 @@ const Profile = () => {
     const confirmed = window.confirm(`Are you sure you want to delete your report for "${itemName}"?`);
     if (!confirmed) return;
 
-    // Prevent spam deletions
     if (isDeletingReportRef.current || deletingReport === reportId) {
       console.log('Duplicate report deletion blocked');
       return;
@@ -313,7 +282,6 @@ const Profile = () => {
     try {
       await reportApi.deleteReport(reportId);
       toast.success('Report deleted successfully!');
-      // Refresh reports
       if (activeSection === 'reports') {
         fetchMyReports();
       }
@@ -363,27 +331,28 @@ const Profile = () => {
           <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
           <span>Back</span>
         </button>
+
         {/* Profile Header */}
-        <div className="rounded-2xl shadow-lg p-8 mb-8 bg-white">
-          <div className="flex items-start gap-6 mb-6">
+        <div className="rounded-2xl shadow-lg p-4 sm:p-8 mb-8 bg-white overflow-hidden">
+          <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 mb-6">
             {profileData?.profilePicture ? (
               <img
                 src={profileData.profilePicture}
                 alt={profileData.name}
-                className="w-24 h-24 rounded-full object-cover border-4 border-gray-300 shadow-lg"
+                className="w-24 h-24 rounded-full object-cover border-4 border-gray-300 shadow-lg flex-shrink-0"
               />
             ) : (
-              <div className="w-24 h-24 bg-gradient-to-r from-gray-800 to-gray-900 rounded-full flex items-center justify-center shadow-lg">
+              <div className="w-24 h-24 bg-gradient-to-r from-gray-800 to-gray-900 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
                 <User className="text-white" size={48} />
               </div>
             )}
-            <div className="flex-1">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h1 className="text-3xl font-bold mb-2 text-gray-900">
+            <div className="flex-1 min-w-0 w-full">
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                <div className="min-w-0 w-full sm:w-auto">
+                  <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-gray-900 break-words">
                     {profileData?.name || user?.name}
                   </h1>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 break-all">
                     {profileData?.email || user?.email}
                   </p>
                   {user?.isAdmin && (
@@ -392,15 +361,36 @@ const Profile = () => {
                     </span>
                   )}
                 </div>
-                {!editing ? (
-                  <button
-                    onClick={() => setEditing(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
-                  >
-                    <Edit2 size={18} />
-                    Edit Profile
-                  </button>
-                ) : null}
+                <div className="flex gap-2 w-full sm:w-auto flex-shrink-0">
+                  {!editing ? (
+                    <button
+                      onClick={() => setEditing(true)}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors w-full sm:w-auto"
+                    >
+                      <Edit2 size={18} />
+                      <span>Edit Profile</span>
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-1 sm:flex-initial"
+                      >
+                        <Save size={18} />
+                        <span>{saving ? 'Saving...' : 'Save'}</span>
+                      </button>
+                      <button
+                        onClick={handleCancel}
+                        disabled={saving}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-1 sm:flex-initial"
+                      >
+                        <X size={18} />
+                        <span>Cancel</span>
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -413,7 +403,7 @@ const Profile = () => {
                 <User size={18} />
                 Full Name
               </label>
-              <p className="px-4 py-2 rounded-lg bg-gray-50 text-gray-900">
+              <p className="px-4 py-2 rounded-lg bg-gray-50 text-gray-900 break-words">
                 {profileData?.name || user?.name}
                 <span className="ml-2 text-xs text-gray-400">(Cannot be changed)</span>
               </p>
@@ -425,7 +415,7 @@ const Profile = () => {
                 <Mail size={18} />
                 Email Address
               </label>
-              <p className="px-4 py-2 rounded-lg bg-gray-50 text-gray-600">
+              <p className="px-4 py-2 rounded-lg bg-gray-50 text-gray-600 break-all">
                 {profileData?.email || user?.email}
                 <span className="ml-2 text-xs">(Cannot be changed)</span>
               </p>
@@ -435,7 +425,7 @@ const Profile = () => {
             <div>
               <label className="flex items-center gap-2 mb-2 font-medium text-gray-700">
                 <IdCard size={18} />
-                Roll Number
+                Roll Number/Email
               </label>
               {editing ? (
                 <div>
@@ -462,7 +452,7 @@ const Profile = () => {
                   )}
                 </div>
               ) : (
-                <p className="px-4 py-2 rounded-lg bg-gray-50 text-gray-900">
+                <p className="px-4 py-2 rounded-lg bg-gray-50 text-gray-900 break-all">
                   {(profileData?.rollNo && profileData.rollNo !== '0') ? profileData.rollNo : 'Not provided'}
                 </p>
               )}
@@ -499,7 +489,7 @@ const Profile = () => {
                   )}
                 </div>
               ) : (
-                <p className="px-4 py-2 rounded-lg bg-gray-50 text-gray-900">
+                <p className="px-4 py-2 rounded-lg bg-gray-50 text-gray-900 break-all">
                   {profileData?.phone || 'Not provided'}
                 </p>
               )}
@@ -508,15 +498,15 @@ const Profile = () => {
         </div>
 
         {/* Claims and Reports Section */}
-        <div className="rounded-2xl shadow-lg p-8 bg-white">
+        <div className="rounded-2xl shadow-lg p-4 sm:p-8 bg-white overflow-hidden">
           {/* Tab Selector */}
-          <div className="flex gap-4 mb-6 border-b border-gray-200">
+          <div className="flex gap-2 sm:gap-4 mb-6 border-b border-gray-200 overflow-x-auto">
             <button
               onClick={() => {
                 setActiveSection('claims');
                 setPage(1);
               }}
-              className={`px-4 py-3 font-semibold transition-all border-b-2 ${
+              className={`px-3 sm:px-4 py-3 font-semibold transition-all border-b-2 whitespace-nowrap ${
                 activeSection === 'claims'
                   ? 'border-gray-900 text-gray-900'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -524,7 +514,8 @@ const Profile = () => {
             >
               <div className="flex items-center gap-2">
                 <Package size={20} />
-                My Claims
+                <span className="hidden sm:inline">My Claims</span>
+                <span className="sm:hidden">Claims</span>
               </div>
             </button>
             <button
@@ -532,7 +523,7 @@ const Profile = () => {
                 setActiveSection('reports');
                 setPage(1);
               }}
-              className={`px-4 py-3 font-semibold transition-all border-b-2 ${
+              className={`px-3 sm:px-4 py-3 font-semibold transition-all border-b-2 whitespace-nowrap ${
                 activeSection === 'reports'
                   ? 'border-gray-900 text-gray-900'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -540,13 +531,14 @@ const Profile = () => {
             >
               <div className="flex items-center gap-2">
                 <FileText size={20} />
-                My Reports
+                <span className="hidden sm:inline">My Reports</span>
+                <span className="sm:hidden">Reports</span>
               </div>
             </button>
           </div>
 
-          <div className="flex items-center justify-between mb-6">
-            <h3 className={`text-xl font-semibold text-gray-900`}>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
               {activeSection === 'claims' ? 'Claim Requests' : 'Lost Item Reports'} ({pagination.total || 0})
             </h3>
             
@@ -582,16 +574,16 @@ const Profile = () => {
                   {claims.map((claim) => (
                   <div
                     key={claim._id}
-                    className="border rounded-lg p-6 hover:shadow-md transition-shadow border-gray-200 bg-white"
+                    className="border rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow border-gray-200 bg-white"
                   >
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <h3 className="text-xl font-semibold text-gray-900">
+                    <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-4">
+                      <div className="flex-1 min-w-0 w-full">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
+                          <h3 className="text-lg sm:text-xl font-semibold text-gray-900 break-words">
                             {claim.item?.name || 'Item'}
                           </h3>
                           {claim.claimId && (
-                            <span className="text-xs font-mono bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                            <span className="text-xs font-mono bg-blue-100 text-blue-800 px-2 py-1 rounded break-all">
                               {claim.claimId}
                             </span>
                           )}
@@ -602,15 +594,15 @@ const Profile = () => {
                           <div>
                             <span className="text-sm font-medium text-gray-500">Item Details</span>
                             <div className="mt-2 space-y-1">
-                              <p className="text-sm text-gray-900">
+                              <p className="text-sm text-gray-900 break-words">
                                 <span className="font-medium">Category:</span> {CATEGORY_DISPLAY_NAMES[claim.item?.category] || claim.item?.category}
                               </p>
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <div className="flex items-start gap-2 text-sm text-gray-600">
+                                <svg className="w-4 h-4 text-gray-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
-                                <span>{claim.item?.foundLocation}</span>
+                                <span className="break-words">{claim.item?.foundLocation}</span>
                               </div>
                               <p className="text-sm text-gray-600">
                                 <span className="font-medium">Found:</span> {new Date(claim.item?.dateFound).toLocaleDateString('en-US', {
@@ -620,7 +612,7 @@ const Profile = () => {
                                 })}
                               </p>
                               {claim.item?.itemId && (
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-gray-600 break-all">
                                   <span className="font-medium">Item ID:</span> {claim.item.itemId}
                                 </p>
                               )}
@@ -631,7 +623,7 @@ const Profile = () => {
                             <span className="text-sm font-medium text-gray-500">Claim Information</span>
                             <div className="mt-2 space-y-1">
                               <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Clock size={16} className="text-gray-600" />
+                                <Clock size={16} className="text-gray-600 flex-shrink-0" />
                                 <span>
                                   Requested: {new Date(claim.createdAt).toLocaleDateString('en-US', {
                                     month: 'short',
@@ -661,7 +653,7 @@ const Profile = () => {
                             ? 'text-red-800'
                             : 'text-gray-800'
                         }`}>Admin Remarks:</div>
-                        <p className={`text-sm ${
+                        <p className={`text-sm break-words ${
                           claim.status === 'approved'
                             ? 'text-green-700'
                             : claim.status === 'rejected'
@@ -673,21 +665,21 @@ const Profile = () => {
 
                     {claim.status === 'pending' && (
                       <div className="p-4 rounded-lg border bg-yellow-50 border-yellow-200">
-                        <div className="flex justify-between items-center">
+                        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                           <div className="text-sm text-yellow-800">
                             <p className="mb-1">
                               <strong>Pending:</strong> Please visit the admin office during office hours to collect your item.
                             </p>
                             {claim.claimId && (
-                              <p className="text-xs mt-2">
-                                📋 Provide Claim ID <span className="font-mono font-semibold bg-yellow-200 px-2 py-0.5 rounded">{claim.claimId}</span> to the admin for easier tracking.
+                              <p className="text-xs mt-2 break-words">
+                                📋 Provide Claim ID <span className="font-mono font-semibold bg-yellow-200 px-2 py-0.5 rounded break-all">{claim.claimId}</span> to the admin for easier tracking.
                               </p>
                             )}
                           </div>
                           <button
                             onClick={() => handleRemoveClaim(claim._id, claim.item?.name || 'this item')}
                             disabled={deletingClaim === claim._id}
-                            className={`flex items-center gap-2 px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold ${
+                            className={`flex items-center gap-2 px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold flex-shrink-0 ${
                               deletingClaim === claim._id ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
                           >
@@ -720,8 +712,8 @@ const Profile = () => {
 
               {/* Pagination */}
               {pagination.totalPages > 1 && (
-                <div className="mt-6 flex justify-between items-center">
-                  <div className={`text-sm text-gray-600`}>
+                <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                  <div className="text-sm text-gray-600">
                     Page {page} of {pagination.totalPages}
                   </div>
                   <div className="flex gap-2">
@@ -772,16 +764,16 @@ const Profile = () => {
                   {reports.map((report) => (
                     <div
                       key={report._id}
-                      className="border rounded-lg p-6 hover:shadow-md transition-shadow border-gray-200"
+                      className="border rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow border-gray-200"
                     >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-3">
-                            <h3 className="text-xl font-semibold text-gray-900">
+                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                        <div className="flex-1 min-w-0 w-full">
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
+                            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 break-words">
                               {report.itemDescription}
                             </h3>
                             {report.reportId && (
-                              <span className="text-xs font-mono bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                              <span className="text-xs font-mono bg-purple-100 text-purple-800 px-2 py-1 rounded break-all">
                                 {report.reportId}
                               </span>
                             )}
@@ -794,23 +786,23 @@ const Profile = () => {
                             </span>
                           </div>
 
-                          <div className="space-y-2 mb-4 text-gray-600">
-                            <p><strong>Category:</strong> {CATEGORY_DISPLAY_NAMES[report.category] || report.category}</p>
-                            <p><strong>Location:</strong> {report.location}</p>
+                          <div className="space-y-2 mb-4 text-gray-600 text-sm sm:text-base">
+                            <p className="break-words"><strong>Category:</strong> {CATEGORY_DISPLAY_NAMES[report.category] || report.category}</p>
+                            <p className="break-words"><strong>Location:</strong> {report.location}</p>
                             <p><strong>Lost on:</strong> {new Date(report.dateLost).toLocaleDateString()}</p>
                             {report.additionalDetails && (
-                              <p className="text-sm"><strong>Details:</strong> {report.additionalDetails}</p>
+                              <p className="text-sm break-words"><strong>Details:</strong> {report.additionalDetails}</p>
                             )}
                           </div>
 
                           {report.photos && report.photos.length > 0 && (
-                            <div className="flex gap-2 mb-4">
+                            <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
                               {report.photos.map((photo, index) => (
                                 <img
                                   key={index}
                                   src={photo}
                                   alt={`Photo ${index + 1}`}
-                                  className="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                                  className="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0"
                                   onClick={() => {
                                     setLightboxImages(report.photos);
                                     setLightboxIndex(index);
@@ -822,17 +814,17 @@ const Profile = () => {
                             </div>
                           )}
 
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 break-words">
                             Reported on: {new Date(report.createdAt).toLocaleString()}
                           </p>
                         </div>
 
                         {/* Delete Report Button */}
-                        <div className="flex-shrink-0 ml-4">
+                        <div className="flex-shrink-0 w-full sm:w-auto sm:ml-4">
                           <button
                             onClick={() => handleRemoveReport(report._id, report.itemDescription)}
                             disabled={deletingReport === report._id}
-                            className={`flex items-center gap-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-semibold ${
+                            className={`flex items-center justify-center gap-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-semibold w-full sm:w-auto ${
                               deletingReport === report._id ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
                             title="Delete this report"
@@ -849,8 +841,8 @@ const Profile = () => {
 
               {/* Pagination */}
               {pagination.totalPages > 1 && (
-                <div className="mt-6 flex justify-between items-center">
-                  <div className={`text-sm text-gray-600`}>
+                <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                  <div className="text-sm text-gray-600">
                     Page {page} of {pagination.totalPages}
                   </div>
                   <div className="flex gap-2">
@@ -890,7 +882,8 @@ const Profile = () => {
           initialIndex={lightboxIndex}
           onClose={() => setLightboxImages(null)}
         />
-      )}    </div>
+      )}
+    </div>
   );
 };
 
