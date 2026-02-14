@@ -36,7 +36,6 @@ const userSchema = new mongoose.Schema(
 
 // Indexes for performance optimization
 // Note: email and googleId already indexed via unique: true
-userSchema.index({ isAdmin: 1 }); // Admin queries
 
 const User = mongoose.model("User", userSchema);
 export default User;

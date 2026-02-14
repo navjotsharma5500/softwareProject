@@ -310,3 +310,4 @@ ubuntu@*
 ec2-user@*
 load-testing-README.md
 IMPROVEMENTS_SUMMARY.md
+backend/utils/cleanup_orphaned_images.js
