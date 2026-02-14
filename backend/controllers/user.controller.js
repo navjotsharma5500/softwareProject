@@ -488,12 +488,20 @@ export const getProfile = async (req, res) => {
 };
 
 export const updateProfile = async (req, res) => {
+  // Only allow updates to name, rollNo, phone
+  const allowedFields = ["name", "rollNo", "phone"];
+  const updateFields = Object.keys(req.body);
+  const disallowed = updateFields.filter((f) => !allowedFields.includes(f));
+  if (disallowed.length > 0) {
+    return res
+      .status(400)
+      .json({ message: `Cannot update fields: ${disallowed.join(", ")}` });
+  }
+
   // Joi validation
   const Joi = (await import("joi")).default;
   const schema = Joi.object({
-    // Limit name length to reasonable size
     name: Joi.string().min(2).max(100),
-    // Accept only numeric roll numbers for updates (6-15 digits)
     rollNo: Joi.alternatives().try(
       Joi.number().integer().min(100000).max(999999999999999),
       Joi.string()
@@ -512,7 +520,7 @@ export const updateProfile = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    if (name) user.name = name;
+    if (name !== undefined) user.name = name;
     if (rollNo !== undefined && rollNo !== null) user.rollNo = String(rollNo);
     if (phone !== undefined) user.phone = phone;
     await user.save();

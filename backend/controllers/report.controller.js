@@ -131,21 +131,29 @@ export const createReport = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Sanitize category: handle numeric indices or display names, but also accept custom values
-    let sanitizedCategory = category;
+    // Strict input size validation (must match frontend)
+    if (
+      typeof itemDescription !== "string" ||
+      itemDescription.trim().length === 0
+    ) {
+      return res.status(400).json({ message: "Item description is required" });
+    }
+    if (itemDescription.length > 100) {
+      return res
+        .status(400)
+        .json({ message: "Item description must not exceed 100 characters" });
+    }
 
-    if (!sanitizedCategory || typeof sanitizedCategory !== "string") {
+    let sanitizedCategory = category;
+    if (
+      typeof sanitizedCategory !== "string" ||
+      sanitizedCategory.trim().length === 0
+    ) {
       return res
         .status(400)
         .json({ message: "Category must be a non-empty string" });
     }
-
     sanitizedCategory = sanitizedCategory.trim();
-
-    if (sanitizedCategory.length === 0) {
-      return res.status(400).json({ message: "Category cannot be empty" });
-    }
-
     // If numeric (string or number), treat as index into VALID_CATEGORIES (backward compatibility)
     if (/^\d+$/.test(sanitizedCategory)) {
       const idx = parseInt(sanitizedCategory, 10);
@@ -153,7 +161,6 @@ export const createReport = async (req, res) => {
         sanitizedCategory = VALID_CATEGORIES[idx];
       }
     }
-
     // If a display name (e.g., "Electronics"), map back to the key (backward compatibility)
     const foundKey = Object.keys(CATEGORY_DISPLAY_NAMES).find(
       (k) =>
@@ -163,20 +170,38 @@ export const createReport = async (req, res) => {
     if (foundKey) {
       sanitizedCategory = foundKey;
     }
-
-    // Accept any non-empty string (no strict validation)
-
-    // Enforce character limits for category and location
     if (sanitizedCategory.length > 50) {
       return res
         .status(400)
         .json({ message: "Category must not exceed 50 characters" });
     }
 
-    if (location && location.length > 100) {
+    if (typeof location !== "string" || location.trim().length === 0) {
+      return res.status(400).json({ message: "Location is required" });
+    }
+    location = location.trim();
+    if (location.length > 100) {
       return res
         .status(400)
         .json({ message: "Location must not exceed 100 characters" });
+    }
+
+    if (typeof dateLost !== "string" && !(dateLost instanceof Date)) {
+      return res.status(400).json({ message: "Date lost is required" });
+    }
+
+    if (photos && Array.isArray(photos) && photos.length > 3) {
+      return res.status(400).json({ message: "Maximum 3 photos allowed" });
+    }
+
+    if (
+      additionalDetails &&
+      typeof additionalDetails === "string" &&
+      additionalDetails.length > 500
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Additional details must not exceed 500 characters" });
     }
 
     // Trim and validate location
