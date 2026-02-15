@@ -23,7 +23,7 @@ const Navbar = () => {
                 alt="Thapar Institute Logo" 
                 className="h-8 w-auto sm:h-10 mr-2 sm:mr-3"
               />
-              <span className="hidden sm:inline ">TIET</span>
+              <span className="hidden sm:inline ">TIET L&F</span>
               <span className="sm:hidden">TIET L&F</span>
             </Link>
           </div>
