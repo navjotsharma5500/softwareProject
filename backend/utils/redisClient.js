@@ -1,104 +1,175 @@
 import Redis from "ioredis";
+import dotenv from "dotenv";
+dotenv.config();
 
 let redis = null;
+let redisAvailable = true;
+let consecutiveFailures = 0;
+const MAX_FAILURES = 5;
 
-// Only initialize Redis if REDIS_URL is provided
+function isRedisReady() {
+  return redis && redis.status === "ready" && redisAvailable && consecutiveFailures < MAX_FAILURES;
+}
+
+const PREFIX = `myapp:${process.env.NODE_ENV}:`;
+let hits = 0;
+let misses = 0;
+
 if (process.env.REDIS_URL) {
   redis = new Redis(process.env.REDIS_URL, {
+    lazyConnect: false,
     maxRetriesPerRequest: 3,
     enableReadyCheck: true,
-    connectTimeout: 5000, // 5s connection timeout
-    commandTimeout: 3000, // 3s command timeout - prevents hanging
+    connectTimeout: 15000,
+    commandTimeout: 15000,
+    keepAlive: 30000,
+
     retryStrategy(times) {
-      if (times > 3) {
-        console.error("Redis: Max retries reached, falling back to DB");
-        return null; // Stop retrying
+      if (times > 5) {
+        console.error("❌ Redis retry limit reached");
+        return null;
       }
-      const delay = Math.min(times * 50, 2000);
+      const delay = Math.min(times * 500, 3000);
+      console.log(`🔄 Retrying Redis connection in ${delay}ms (attempt ${times}/5)`);
       return delay;
     },
+
+    tls: {
+      rejectUnauthorized: false,
+    },
+
+    family: 4,
+    enableOfflineQueue: true,
   });
 
   redis.on("connect", () => {
-    if (process.env.NODE_ENV !== "production") {
-      console.log("✅ Redis connected successfully");
-    }
+    console.log("✅ Redis connected");
+    redisAvailable = true;
+    consecutiveFailures = 0;
+  });
+
+  redis.on("ready", () => {
+    console.log("✅ Redis ready");
+    redisAvailable = true;
+    consecutiveFailures = 0;
   });
 
   redis.on("error", (err) => {
     console.error("❌ Redis error:", err.message);
+    redisAvailable = false;
   });
 
   redis.on("close", () => {
-    if (process.env.NODE_ENV !== "production") {
-      console.log("⚠️  Redis connection closed");
-    }
+    console.log("⚠️  Redis closed");
+    redisAvailable = false;
+  });
+
+  redis.on("reconnecting", () => {
+    console.log("🔄 Redis reconnecting...");
+    redisAvailable = false;
   });
 } else {
-  if (process.env.NODE_ENV !== "production") {
-    console.log("⚠️  Redis not configured - caching disabled");
-  }
+  console.log("⚠️  Redis not configured");
 }
 
-// Helper function to safely clear cache patterns
+export const cacheStats = () => ({
+  hits,
+  misses,
+  consecutiveFailures,
+  isReady: isRedisReady(),
+  status: redis ? redis.status : 'not_initialized'
+});
+
 export const clearCachePattern = async (pattern) => {
-  if (!redis) return;
+  if (!isRedisReady()) return;
 
   try {
-    const keys = await redis.keys(pattern);
-    if (keys.length > 0) {
-      // Use UNLINK instead of DEL - non-blocking, faster for large deletes
-      await redis.unlink(...keys);
-      if (process.env.NODE_ENV !== "production") {
-        console.log(
-          `🗑️  Cleared ${keys.length} cache keys matching: ${pattern}`,
-        );
+    let cursor = "0";
+    const pipeline = redis.pipeline();
+
+    do {
+      const [nextCursor, keys] = await redis.scan(
+        cursor,
+        "MATCH",
+        pattern,
+        "COUNT",
+        100,
+      );
+      cursor = nextCursor;
+      if (keys.length) {
+        keys.forEach((key) => pipeline.unlink(key));
       }
-    }
+    } while (cursor !== "0");
+
+    await pipeline.exec();
+    consecutiveFailures = 0;
   } catch (err) {
-    console.error("Error clearing cache:", err.message);
+    consecutiveFailures++;
+    console.error(`Cache clear error (${consecutiveFailures}/${MAX_FAILURES}):`, err.message);
+
+    if (consecutiveFailures >= MAX_FAILURES) {
+      setTimeout(() => { consecutiveFailures = 0; }, 60000);
+    }
   }
 };
 
-// Helper function to get cached data
 export const getCache = async (key) => {
-  if (!redis) return null;
+  if (!isRedisReady()) return null;
 
+  const namespacedKey = PREFIX + key;
   try {
-    const data = await redis.get(key);
-    if (data) {
-      if (process.env.NODE_ENV !== "production") {
-        console.log(`🎯 Cache HIT: ${key}`);
-      }
+    const data = await redis.get(namespacedKey);
+    consecutiveFailures = 0;
+
+    if (!data) {
+      misses++;
+      return null;
+    }
+
+    try {
+      hits++;
       return JSON.parse(data);
-    } else {
-      if (process.env.NODE_ENV !== "production") {
-        console.log(`❌ Cache MISS: ${key}`);
-      }
+    } catch (parseErr) {
+      await redis.del(namespacedKey);
       return null;
     }
   } catch (err) {
-    console.error("Error getting cache:", err.message);
+    consecutiveFailures++;
+    console.error(`Cache get error (${consecutiveFailures}/${MAX_FAILURES}):`, err.message);
+
+    if (consecutiveFailures >= MAX_FAILURES) {
+      setTimeout(() => { consecutiveFailures = 0; }, 60000);
+    }
     return null;
   }
 };
 
-// Helper function to set cached data with proper memory-friendly TTL
 export const setCache = async (key, data, expirationInSeconds = 600) => {
-  if (!redis) return;
+  if (!isRedisReady()) return;
 
+  const namespacedKey = PREFIX + key;
   try {
-    // Ensure max TTL of 1 hour for EC2 memory management
     const ttl = Math.min(expirationInSeconds, 3600);
-
-    // Use SETEX for atomic set with expiration
-    await redis.setex(key, ttl, JSON.stringify(data));
-
-    if (process.env.NODE_ENV !== "production") {
-      console.log(`💾 Cache SET: ${key} (expires in ${ttl}s)`);
-    }
+    await redis.set(namespacedKey, JSON.stringify(data), "EX", ttl);
+    consecutiveFailures = 0;
   } catch (err) {
-    console.error("Error setting cache:", err.message);
+    consecutiveFailures++;
+    console.error(`Cache set error (${consecutiveFailures}/${MAX_FAILURES}):`, err.message);
+
+    if (consecutiveFailures >= MAX_FAILURES) {
+      setTimeout(() => { consecutiveFailures = 0; }, 60000);
+    }
+  }
+};
+
+export const closeRedis = async () => {
+  if (redis) {
+    try {
+      await redis.quit();
+      console.log("👋 Redis closed");
+    } catch (err) {
+      redis.disconnect();
+    }
   }
 };
 
