@@ -231,8 +231,8 @@ export const myClaims = async (req, res) => {
       },
     };
 
-    // Cache for 5 minutes (300 seconds) - balance between freshness and performance
-    await setCache(cacheKey, responseData, 300);
+    // Cache for 3 minutes (180 seconds) - claims change frequently
+    await setCache(cacheKey, responseData, 180);
 
     return res.status(200).json(responseData);
   } catch (error) {
@@ -364,8 +364,8 @@ export const listItems = async (req, res) => {
       },
     };
 
-    // Cache for 10 minutes (600 seconds) - items list changes frequently
-    await setCache(cacheKey, responseData, 600);
+    // Cache for 5 minutes (300 seconds) - items list changes frequently
+    await setCache(cacheKey, responseData, 300);
 
     return res.status(200).json(responseData);
   } catch (error) {
@@ -400,8 +400,8 @@ export const getItemById = async (req, res) => {
 
     const responseData = { item };
 
-    // Cache for 1 hour
-    await setCache(cacheKey, responseData, 3600);
+    // Cache for 5 minutes - frequently updated when claims happen
+    await setCache(cacheKey, responseData, 300);
 
     return res.status(200).json(responseData);
   } catch (error) {
@@ -477,8 +477,8 @@ export const getProfile = async (req, res) => {
 
     const responseData = { user };
 
-    // Cache for 15 minutes
-    await setCache(cacheKey, responseData, 900);
+    // Cache for 5 minutes - profile can be updated by user
+    await setCache(cacheKey, responseData, 300);
 
     return res.status(200).json(responseData);
   } catch (error) {

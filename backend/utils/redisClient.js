@@ -86,12 +86,15 @@ export const clearCachePattern = async (pattern) => {
   try {
     let cursor = "0";
     const pipeline = redis.pipeline();
+    
+    // Add PREFIX to pattern so it matches the namespaced keys
+    const namespacedPattern = PREFIX + pattern;
 
     do {
       const [nextCursor, keys] = await redis.scan(
         cursor,
         "MATCH",
-        pattern,
+        namespacedPattern,
         "COUNT",
         100,
       );
