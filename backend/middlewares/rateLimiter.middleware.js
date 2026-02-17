@@ -22,7 +22,7 @@ export const authLimiter = rateLimit({
 // Claim endpoints - moderate limits
 export const claimLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10, // Limit each IP to 10 claim requests per hour
+  max: 50, // Limit each IP to 10 claim requests per hour
   message: "Too many claim requests, please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
@@ -48,7 +48,7 @@ export const feedbackLimiter = rateLimit({
 // File upload rate limiter - strict to prevent abuse
 export const uploadLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 20, // Max 20 upload requests per hour
+  max: 40, // Max 20 upload requests per hour
   message: "Too many file upload requests, please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
@@ -75,7 +75,7 @@ export const csvDownloadLimiter = rateLimit({
 // Report creation rate limiter - prevent spam
 export const reportLimiter = rateLimit({
   windowMs: 24 * 60 * 60 * 1000, // 24 hours
-  max: 10, // Max 10 reports per day per IP
+  max: 50, // Max 10 reports per day per IP
   message: "Too many report submissions, please try again tomorrow.",
   standardHeaders: true,
   legacyHeaders: false,
