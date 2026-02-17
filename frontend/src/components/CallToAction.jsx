@@ -17,7 +17,7 @@ const CallToAction = () => {
     {
       icon: <Bell size={32} />,
       title: "Post Found Item",
-      description: "Found something? Post it here and make someone's day better!"
+      description: "Found something? Post it here and make someone's day better"
     }
   ];
 
