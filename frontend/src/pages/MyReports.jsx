@@ -202,19 +202,19 @@ const MyReports = () => {
 
                   {/* Actions */}
                   <div className="flex md:flex-col gap-2">
-                    <button
-                      onClick={() => handleDelete(report._id)}
-                      className="p-2 rounded-lg bg-red-600 hover:bg-red-700 text-white"
-                      title="Delete Report"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+                                <div className="flex gap-2 mb-4">
+                                  {report.photos.map((photo, index) => (
+                                    <img
+                                      key={index}
+                                      src={photo.url}
+                                      alt={`Photo ${index + 1}`}
+                                      className="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                                      onClick={() => {
+                                        setLightboxImages(report.photos);
+                                        setLightboxIndex(index);
+                                      }}
+                                      onContextMenu={(e) => e.preventDefault()}
+                                    />
 
         {/* Pagination */}
         {pagination.totalPages > 1 && (

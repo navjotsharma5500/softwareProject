@@ -80,7 +80,7 @@ const ImageLightbox = ({ images, initialIndex = 0, onClose }) => {
       {/* Image Container */}
       <div className="relative max-w-7xl max-h-[90vh] w-full px-16">
         <img
-          src={images[currentIndex]}
+          src={typeof images[currentIndex] === 'object' ? images[currentIndex].url : images[currentIndex]}
           alt={`Image ${currentIndex + 1} of ${images.length}`}
           className="w-full h-full object-contain rounded-lg"
           style={{ maxHeight: '90vh' }}

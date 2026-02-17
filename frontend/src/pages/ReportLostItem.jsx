@@ -299,7 +299,7 @@ const ReportLostItem = () => {
               {photos.map((photo, index) => (
                 <div key={index} className="relative">
                   <img
-                    src={photo}
+                    src={photo.url}
                     alt={`Upload ${index + 1}`}
                     className="w-full h-24 object-cover rounded-lg"
                   />

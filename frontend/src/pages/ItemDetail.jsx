@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MapPin, Calendar, ArrowLeft, User, Trash2 } from 'lucide-react';
 // eslint-disable-next-line no-unused-vars
@@ -26,7 +26,7 @@ const ItemDetail = () => {
   const isClaimingRef = useRef(false);
   const isDeletingClaimRef = useRef(false);
 
-  const fetchItemDetails = async () => {
+  const fetchItemDetails = useCallback(async () => {
     try {
       const response = await publicApi.getItem(id);
       setItem(response.data.item);
@@ -36,39 +36,41 @@ const ItemDetail = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  // FIX: Extracted claim check into a standalone reusable async function.
+  // Previously this logic only lived inside a useEffect, making it impossible
+  // to call after claim deletion without duplicating code or adding workarounds.
+  const checkUserClaimStatus = useCallback(async (currentItem) => {
+    if (!isAuthenticated || !currentItem) return;
+
+    setCheckingClaim(true);
+    try {
+      const response = await userApi.getMyClaims({ page: 1, limit: 100 });
+      const userClaim = response.data.claims.find(
+        claim => claim.item?._id === currentItem._id && claim.status !== 'rejected'
+      );
+      const rejectedClaim = response.data.claims.find(
+        claim => claim.item?._id === currentItem._id && claim.status === 'rejected'
+      );
+      setUserHasClaimed(!!userClaim);
+      setUserClaimId(userClaim?._id || null);
+      setUserHasRejectedClaim(!!rejectedClaim);
+    } catch (error) {
+      console.error('Failed to check claim status:', error);
+    } finally {
+      setCheckingClaim(false);
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     fetchItemDetails();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [fetchItemDetails]);
 
-  // Check if user has already claimed this item
+  // Runs automatically when item or auth state changes
   useEffect(() => {
-    const checkIfUserClaimed = async () => {
-      if (!isAuthenticated || !item) return;
-      
-      setCheckingClaim(true);
-      try {
-        const response = await userApi.getMyClaims({ page: 1, limit: 100 });
-        const userClaim = response.data.claims.find(
-          claim => claim.item?._id === item._id && claim.status !== 'rejected'
-        );
-        const rejectedClaim = response.data.claims.find(
-          claim => claim.item?._id === item._id && claim.status === 'rejected'
-        );
-        setUserHasClaimed(!!userClaim);
-        setUserClaimId(userClaim?._id || null);
-        setUserHasRejectedClaim(!!rejectedClaim);
-      } catch (error) {
-        console.error('Failed to check claim status:', error);
-      } finally {
-        setCheckingClaim(false);
-      }
-    };
-
-    checkIfUserClaimed();
-  }, [item, isAuthenticated]);
+    checkUserClaimStatus(item);
+  }, [item, checkUserClaimStatus]);
 
   const handleClaim = async () => {
     if (!isAuthenticated) {
@@ -100,11 +102,10 @@ const ItemDetail = () => {
       await userApi.claimItem(id);
       toast.success('Claim request submitted successfully!');
       setUserHasClaimed(true); // Optimistic update
-      fetchItemDetails(); // Refresh item details
+      fetchItemDetails(); // Refresh item details (triggers claim status check via useEffect)
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to submit claim';
       toast.error(message);
-      // If error, recheck claim status
       setUserHasClaimed(false);
     } finally {
       isClaimingRef.current = false;
@@ -126,10 +127,26 @@ const ItemDetail = () => {
     try {
       await userApi.deleteClaim(userClaimId);
       toast.success('Claim removed successfully!');
-      setUserHasClaimed(false);
-      setUserClaimId(null);
-      // Don't call fetchItemDetails() here to avoid duplicate toasts
-      // fetchItemDetails(); // Refresh item details
+
+      // FIX: Re-fetch item details AND re-check claim status from backend.
+      //
+      // BUG (original): Only local state was reset:
+      //   setUserHasClaimed(false);
+      //   setUserClaimId(null);
+      // This left `item.owner`, `userHasRejectedClaim`, and other derived UI
+      // state pointing at stale data — causing the claim to still appear in
+      // the UI even though it was deleted on the server.
+      //
+      // FIX: fetchItemDetails() updates the item object (clearing item.owner
+      // when appropriate). Because checkUserClaimStatus is called inside the
+      // useEffect that watches `item`, it will automatically re-run once
+      // fetchItemDetails resolves and setItem fires with fresh data.
+      // This ensures ALL claim-related state is reset atomically from the
+      // server's source of truth.
+      await fetchItemDetails();
+      // Note: checkUserClaimStatus will be triggered automatically by the
+      // useEffect above once `item` state updates from fetchItemDetails.
+
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to remove claim';
       toast.error(message);

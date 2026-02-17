@@ -841,7 +841,7 @@ const Admin = () => {
                               <span className={`text-sm text-gray-500`}>Claimant:</span>
                               <button
                                 onClick={() => openUserHistoryModal(claim.claimant?._id, claim.claimant?.name)}
-                                className={`font-medium hover:underline text-gray-900 hover:text-gray-700 flex items-center gap-1`}
+                                className={`font-medium hover:underline text-blue-600 hover:text-blue-800 flex items-center gap-1`}
                               >
                                 {claim.claimant?.name}
                                 <FileText size={14} />
@@ -1528,7 +1528,7 @@ const Admin = () => {
                                       {report.photos.map((photo, idx) => (
                                         <img
                                           key={idx}
-                                          src={photo}
+                                          src={photo.url}
                                           alt={`Report photo ${idx + 1}`}
                                           className="w-16 h-16 object-cover rounded border-2 border-gray-300 cursor-pointer hover:opacity-80 transition-opacity"
                                           onClick={() => {

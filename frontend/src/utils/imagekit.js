@@ -37,7 +37,12 @@ export const uploadToImageKit = async (file, authParams) => {
     }
 
     const result = await response.json();
-    return result.url; // Return the ImageKit URL
+    // Return object with url and fileId
+    return {
+      url: result.url,
+      fileId: result.fileId,
+      name: result.name,
+    };
   } catch (error) {
     console.error("ImageKit upload error:", error);
     throw error;
@@ -54,6 +59,6 @@ export const uploadMultipleToImageKit = async (files, authParamsArray) => {
   const uploadPromises = files.map((file, index) =>
     uploadToImageKit(file, authParamsArray[index]),
   );
-
+  // Return array of objects [{url, fileId, name}, ...]
   return Promise.all(uploadPromises);
 };

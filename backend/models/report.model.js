@@ -33,7 +33,8 @@ const reportSchema = new mongoose.Schema(
     },
     photos: [
       {
-        type: String, // S3 URL
+        url: { type: String, required: true },
+        fileId: { type: String, default: "" }, // ImageKit fileId for deletion
       },
     ],
     status: {

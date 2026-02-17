@@ -477,10 +477,10 @@ export const deleteReport = async (req, res) => {
 
     // Delete photos from ImageKit (cascading delete)
     for (const photo of report.photos) {
-      const fileId = extractKeyFromUrl(photo);
-      if (fileId) {
+      if (photo.fileId) {
+        // ✅ use stored fileId directly
         try {
-          await deleteFile(fileId);
+          await deleteFile(photo.fileId);
         } catch (err) {
           console.error("Error deleting photo from ImageKit:", err);
         }
