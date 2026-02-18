@@ -232,7 +232,9 @@ export const myClaims = async (req, res) => {
     };
 
     // Cache for 3 minutes (180 seconds) - claims change frequently
-    await setCache(cacheKey, responseData, 180);
+    setCache(cacheKey, responseData, 180).catch((err) => {
+      console.error("[Cache set error]", err.message);
+    });
 
     return res.status(200).json(responseData);
   } catch (error) {
@@ -365,7 +367,9 @@ export const listItems = async (req, res) => {
     };
 
     // Cache for 5 minutes (300 seconds) - items list changes frequently
-    await setCache(cacheKey, responseData, 300);
+    setCache(cacheKey, responseData, 300).catch((err) => {
+      console.error("[Cache set error]", err.message);
+    });
 
     return res.status(200).json(responseData);
   } catch (error) {
@@ -401,7 +405,9 @@ export const getItemById = async (req, res) => {
     const responseData = { item };
 
     // Cache for 5 minutes - frequently updated when claims happen
-    await setCache(cacheKey, responseData, 300);
+    setCache(cacheKey, responseData, 300).catch((err) => {
+      console.error("[Cache set error]", err.message);
+    });
 
     return res.status(200).json(responseData);
   } catch (error) {
@@ -478,7 +484,9 @@ export const getProfile = async (req, res) => {
     const responseData = { user };
 
     // Cache for 5 minutes - profile can be updated by user
-    await setCache(cacheKey, responseData, 300);
+    setCache(cacheKey, responseData, 300).catch((err) => {
+      console.error("[Cache set error]", err.message);
+    });
 
     return res.status(200).json(responseData);
   } catch (error) {
