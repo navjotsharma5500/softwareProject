@@ -21,14 +21,14 @@ export const PublicRoute = ({ children }) => {
 
   if (user) {
     // User is already logged in
+    // Always redirect away from login/signup pages
     // Get the intended destination from state, or default based on role
     const from = location.state?.from?.pathname;
-    
-    if (from) {
-      // If there's a saved intended destination, go there
+    // Prevent redirecting back to login
+    const forbiddenPaths = ['/login'];
+    if (from && !forbiddenPaths.includes(from)) {
       return <Navigate to={from} replace />;
     }
-    
     // Otherwise, admins go to admin dashboard, regular users go home
     return <Navigate to={isAdmin ? '/admin' : '/'} replace />;
   }
