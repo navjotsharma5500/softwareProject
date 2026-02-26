@@ -42,6 +42,33 @@ const HowItWorks = () => {
         How the Lost & Found Portal Works
       </h1>
 
+      {/* Video Tutorial Section */}
+      <div className="max-w-4xl mx-auto mb-12">
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          <div className="bg-gray-900 p-6 text-center">
+            <h2 className="text-2xl md:text-3xl font-bold text-white flex items-center justify-center gap-3">
+              <span className="text-3xl">🎥</span>
+              Watch How It Works
+            </h2>
+          </div>
+          <div className="p-6 bg-gray-50">
+            <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+              <iframe
+                className="absolute top-0 left-0 w-full h-full rounded-lg shadow-md"
+                src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                title="How to Use Lost & Found Portal"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
+            <p className="text-sm text-gray-600 text-center mt-4">
+              Watch this quick tutorial to learn how to report lost items and claim found items on the portal.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Static Card Grid */}
       <div className="max-w-7xl mx-auto mb-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
