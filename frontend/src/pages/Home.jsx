@@ -315,7 +315,7 @@ const Home = () => {
             transition={{ delay: 0.2 }}
             className="text-lg text-gray-900 font-extrabold mt-4"
           >
-            To collect the lost item → Visit admin office near street cafe | To submit found items → handover to Guard or admin office
+            To collect the lost item → Visit admin office in SBI lawn | To submit found items → handover to Guard or admin 
           </motion.p>
         </div>
         {/* Tab Switcher with Report Button */}
