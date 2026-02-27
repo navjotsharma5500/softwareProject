@@ -325,9 +325,8 @@ const ItemDetail = () => {
             {/* Info Text */}
             {!item.isClaimed && !userHasClaimed && (
               <p className="mt-4 text-sm text-center text-gray-500">
-                After submitting a claim, visit the admin office during office hours for verification
-                <br />
-                 ⚠️ submitting false claims may result in removal  of privileges.
+               
+                 ⚠️ submitting false claims will result in blacklisting. ⚠️
               </p>
             )}
             
@@ -399,7 +398,8 @@ const ItemDetail = () => {
               <span className="flex-shrink-0 w-6 h-6 bg-gray-900 text-white rounded-full flex items-center justify-center text-sm font-semibold">
                 2
               </span>
-              <span>Visit the admin office during office hours</span>
+              <span>Visit the admin during office hours at SBI Lawn             
+              </span>
             </li>
             <li className="flex gap-3">
               <span className="flex-shrink-0 w-6 h-6 bg-gray-900 text-white rounded-full flex items-center justify-center text-sm font-semibold">

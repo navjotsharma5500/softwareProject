@@ -227,7 +227,7 @@ const HowItWorks = () => {
             Need Help? <span aria-hidden>🆘</span>
           </h2>
           <p className="text-gray-700">
-            For assistance, please visit the admin office in person during working hours (Mon–Fri, 09:00–17:00 on Thapar working days). The admin team prefers in-person queries to ensure privacy and accurate verification.
+            For assistance, please visit the admin office in SBI Lawn during working hours (Mon–Fri, 09:00–17:00 on Thapar working days). The admin team prefers in-person queries to ensure privacy and accurate verification.
           </p>
         </section>
       </div>

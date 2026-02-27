@@ -50,7 +50,7 @@ function getEmailTemplate(content, title) {
                     <strong>Need Help?</strong>
                   </p>
                   <p style="margin: 0 0 12px 0; color: #9ca3af; font-size: 13px; text-align: center; line-height: 1.6;">
-                    For assistance, please visit the admin office in person during working hours (Mon–Fri, 09:00–17:00 on Thapar working days). Only items physically deposited with the campus guard or admin are listed in the portal.
+                    For assistance, please visit the admin in person during working hours at SBI Lawn (Mon–Fri, 09:00–17:00 on Thapar working days). Only items physically deposited with the campus guard or admin are listed in the portal.
                   </p>
                   <div style="text-align: center; margin-top: 16px;">
                     <a href="${process.env.FRONTEND_URL || "http://localhost:3000"}" 
@@ -283,7 +283,7 @@ export function getReportSubmissionEmailBody(report) {
         ⚠️ Important Reminder
       </h3>
       <p style="margin: 0; color: #78350f; font-size: 14px; line-height: 1.6;">
-        The admin team will <strong>not</strong> proactively search for your item. Please regularly check the portal and contact the admin office if you have questions. Only items physically deposited with the campus guard or admin will appear in the found items list.
+        The admin team will <strong>not</strong> proactively search for your item. Only items physically deposited with the campus guard or admin will appear in the found items list.
       </p>
     </div>
 

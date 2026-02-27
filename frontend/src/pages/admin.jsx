@@ -846,7 +846,7 @@ const Admin = () => {
                                 {claim.claimant?.name}
                                 <FileText size={14} />
                               </button>
-                              <p className={`text-sm text-gray-600`}>{claim.claimant?.email}</p>
+                              {/* <p className={`text-sm text-gray-600`}>{claim.claimant?.email}</p> */}
                               <p className={`text-sm text-gray-600`}>Roll No/Email ID: {claim.claimant?.rollNo}</p>
                             </div>
                             <div>
@@ -1010,7 +1010,7 @@ const Admin = () => {
                               <span className={`text-sm text-gray-500`}>Claimant:</span>
                               <p className={`font-medium text-gray-900`}>{claim.claimant?.name}</p>
                               <p className={`text-sm text-gray-600`}>{claim.claimant?.email}</p>
-                              <p className={`text-sm text-gray-600`}>Roll No/Email ID: {claim.claimant?.rollNo}</p>
+                                 <p className={`text-sm text-gray-600`}>Roll No/Email ID: {claim.claimant?.rollNo}</p>
                             </div>
                             <div>
                               <span className={`text-sm text-gray-500`}>Item Details:</span>
@@ -1463,86 +1463,122 @@ const Admin = () => {
                           
                           <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
                             {userHistory.reports && userHistory.reports.length > 0 ? (
-                              userHistory.reports.map((report) => (
-                                <div key={report._id} className="p-5 rounded-lg border transition-all hover:shadow-md border-gray-200 bg-white hover:bg-gray-50">
-                                  <div className="flex justify-between items-start mb-3">
-                                    <div className="flex-1">
-                                      <div className="flex items-center gap-2 mb-1">
-                                        <h4 className={`font-bold text-lg text-gray-900`}>
-                                          {report.itemDescription}
-                                        </h4>
-                                        {report.reportId && (
-                                          <span className="text-xs font-mono bg-purple-100 text-purple-800 px-2 py-1 rounded">
-                                            {report.reportId}
+                              userHistory.reports.map((report) => {
+                                                      // Flag if any claim by this user was made before this report
+                                                      const suspiciousClaim = userHistory.claims?.find(
+                                                        (claim) => {
+                                                          const claimTime = new Date(claim.createdAt);
+                                                          const reportTime = new Date(report.createdAt);
+                                                          const diffHours = (claimTime - reportTime) / (1000 * 60 * 60);
+                                                          // Claim made within 5 hours after report
+                                                          if (claimTime > reportTime && diffHours <= 5) return true;
+                                                          // Report made after any claim (regardless of time)
+                                                          if (reportTime > claimTime) return true;
+                                                          return false;
+                                                        }
+                                                      );
+                                return (
+                                  <div key={report._id} className="p-5 rounded-lg border transition-all hover:shadow-md border-gray-200 bg-white hover:bg-gray-50">
+                                    <div className="flex justify-between items-start mb-3">
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <h4 className={`font-bold text-lg text-gray-900`}>
+                                            {report.itemDescription}
+                                          </h4>
+                                          {report.reportId && (
+                                            <span className="text-xs font-mono bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                                              {report.reportId}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <div className="flex flex-wrap gap-2 mb-2">
+                                          <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-semibold">
+                                            {CATEGORY_DISPLAY_NAMES[report.category] || report.category}
                                           </span>
-                                        )}
-                                      </div>
-                                      <div className="flex flex-wrap gap-2 mb-2">
-                                        <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-semibold">
-                                          {CATEGORY_DISPLAY_NAMES[report.category] || report.category}
-                                        </span>
-                                        <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                                          report.status === 'active' ? 'bg-green-100 text-green-800' :
-                                          report.status === 'resolved' ? 'bg-gray-100 text-gray-800' :
-                                          'bg-gray-100 text-gray-800'
-                                        }`}>
-                                          {report.status.toUpperCase()}
-                                        </span>
+                                          <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                                            report.status === 'active' ? 'bg-green-100 text-green-800' :
+                                            report.status === 'resolved' ? 'bg-gray-100 text-gray-800' :
+                                            'bg-gray-100 text-gray-800'
+                                          }`}>
+                                            {report.status.toUpperCase()}
+                                          </span>
+                                        </div>
                                       </div>
                                     </div>
+                                    <div className={`space-y-1 text-sm text-gray-600`}>
+                                      {suspiciousClaim && (() => {
+                                        const claimTime = new Date(suspiciousClaim.createdAt);
+                                        const reportTime = new Date(report.createdAt);
+                                        const diffHours = (claimTime - reportTime) / (1000 * 60 * 60);
+                                        let msg = '';
+                                        if (claimTime > reportTime && diffHours <= 5) {
+                                          msg = `Suspicious: Claim made ${diffHours.toFixed(2)} hours after report. Review for possible abuse.`;
+                                        } else if (reportTime > claimTime) {
+                                          const diff = (reportTime - claimTime) / (1000 * 60 * 60);
+                                          msg = `Suspicious: Report made ${diff.toFixed(2)} hours after a claim. Review for possible abuse.`;
+                                        }
+                                        return (
+                                          <div className="mb-2 p-2 rounded bg-yellow-100 border border-yellow-400 flex items-center gap-2">
+                                            <AlertCircle size={16} className="text-yellow-600" />
+                                            <span className="text-yellow-800 font-semibold">{msg}</span>
+                                            <span className="text-xs text-yellow-700">(Claim: {claimTime.toLocaleString('en-US', {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true})})</span>
+                                          </div>
+                                        );
+                                      })()}
+                                      <div className="flex items-center gap-2">
+                                        <MapPin size={14} className="text-red-500" />
+                                        <span><strong>Location:</strong> {report.location}</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Clock size={14} className="text-gray-500" />
+                                        <span><strong>Lost on:</strong> {new Date(report.dateLost).toLocaleDateString('en-US', {
+                                          year: 'numeric',
+                                          month: 'long',
+                                          day: 'numeric'
+                                        })}</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Calendar size={14} className="text-purple-500" />
+                                        <span>
+                                          <strong>Reported:</strong> {new Date(report.createdAt).toLocaleString('en-US', {
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            hour12: true
+                                          })}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    {report.additionalDetails && (
+                                      <div className={`mt-3 pt-3 border-t border-gray-200`}>
+                                        <p className={`text-sm text-gray-600`}>
+                                          <strong>Details:</strong> {report.additionalDetails}
+                                        </p>
+                                      </div>
+                                    )}
+                                    {report.photos && report.photos.length > 0 && (
+                                      <div className="mt-3 flex gap-2 flex-wrap max-w-xs sm:max-w-full">
+                                        {report.photos.map((photo, idx) => (
+                                          <img
+                                            key={idx}
+                                            src={photo.url}
+                                            alt={`Report photo ${idx + 1}`}
+                                            className="w-20 h-20 sm:w-16 sm:h-16 object-cover rounded border-2 border-gray-300 cursor-pointer hover:opacity-80 transition-opacity max-w-full"
+                                            onClick={() => {
+                                              setLightboxImages(report.photos);
+                                              setLightboxIndex(idx);
+                                            }}
+                                            onContextMenu={(e) => e.preventDefault()}
+                                            draggable={false}
+                                          />
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
-                                  
-                                  <div className={`space-y-1 text-sm text-gray-600`}>
-                                    <div className="flex items-center gap-2">
-                                      <MapPin size={14} className="text-red-500" />
-                                      <span><strong>Location:</strong> {report.location}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <Clock size={14} className="text-gray-500" />
-                                      <span><strong>Lost on:</strong> {new Date(report.dateLost).toLocaleDateString('en-US', {
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric'
-                                      })}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <Calendar size={14} className="text-purple-500" />
-                                      <span><strong>Reported:</strong> {new Date(report.createdAt).toLocaleDateString('en-US', {
-                                        year: 'numeric',
-                                        month: 'short',
-                                        day: 'numeric'
-                                      })}</span>
-                                    </div>
-                                  </div>
-                                  
-                                  {report.additionalDetails && (
-                                    <div className={`mt-3 pt-3 border-t border-gray-200`}>
-                                      <p className={`text-sm text-gray-600`}>
-                                        <strong>Details:</strong> {report.additionalDetails}
-                                      </p>
-                                    </div>
-                                  )}
-                                  
-                                  {report.photos && report.photos.length > 0 && (
-                                    <div className="mt-3 flex gap-2">
-                                      {report.photos.map((photo, idx) => (
-                                        <img
-                                          key={idx}
-                                          src={photo.url}
-                                          alt={`Report photo ${idx + 1}`}
-                                          className="w-16 h-16 object-cover rounded border-2 border-gray-300 cursor-pointer hover:opacity-80 transition-opacity"
-                                          onClick={() => {
-                                            setLightboxImages(report.photos);
-                                            setLightboxIndex(idx);
-                                          }}
-                                          onContextMenu={(e) => e.preventDefault()}
-                                          draggable={false}
-                                        />
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                              ))
+                                );
+                              })
                             ) : (
                               <div className="text-center py-12">
                                 <AlertCircle className={`mx-auto mb-3 text-gray-400`} size={48} />

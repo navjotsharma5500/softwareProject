@@ -751,7 +751,7 @@ const Profile = () => {
                             <div className="text-sm text-yellow-800">
                               <p className="mb-1">
                                 <strong>Pending:</strong> Please visit the admin office
-                                during office hours to collect your item.
+                               in SBI Lawn during working hours to collect your item.
                               </p>
                               {claim.claimId && (
                                 <p className="text-xs mt-2 break-words">
