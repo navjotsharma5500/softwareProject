@@ -8,6 +8,7 @@ import Login from './pages/login.jsx'
 import Profile from './pages/Profile.jsx'
 import Admin from './pages/admin.jsx'
  import AdminReports from './pages/AdminReports.jsx'
+import UserActivityHistory from './pages/UserActivityHistory.jsx'
 import ReportLostItem from './pages/ReportLostItem.jsx'
 import HowItWorks from './pages/HowItWorks.jsx'
 import Stats from './pages/Stats.jsx'
@@ -55,6 +56,11 @@ const App = () => {
           <Route path='/admin/report/:id' element={
             <ProtectedRoute adminOnly={true}>
               <ReportDetail />
+            </ProtectedRoute>
+          } />
+          <Route path='/admin/user/:userId' element={
+            <ProtectedRoute adminOnly={true}>
+              <UserActivityHistory />
             </ProtectedRoute>
           } />
           <Route path="*" element={<NotFound />} />

@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Edit2, Trash2, CheckCircle, XCircle, Package, Users, RefreshCw, Search, Filter, FileText, AlertCircle, MapPin, Clock, Calendar, MessageSquare, Star, Download, ArrowLeft } from 'lucide-react';
+import { Plus, Edit2, Trash2, CheckCircle, XCircle, Package, Users, RefreshCw, Search, Filter, AlertCircle, MapPin, Clock, Calendar, MessageSquare, Star, Download, ArrowLeft, FileText } from 'lucide-react';
+import Pagination from '../components/admin/Pagination';
+import ClaimsTab from '../components/admin/ClaimsTab';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { adminApi, userApi } from '../utils/api';
+import { adminApi } from '../utils/api';
 import axios from 'axios';
 import { CATEGORIES, LOCATIONS, CATEGORY_DISPLAY_NAMES } from '../utils/constants';
 import useFormPersistence from '../hooks/useFormPersistence.jsx';
@@ -10,7 +12,7 @@ import ImageLightbox from '../components/ImageLightbox';
 
 const Admin = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('items'); // items, claims, approved-claims, rejected-claims
+  const [activeTab, setActiveTab] = useFormPersistence('admin_active_tab', 'items'); // items, claims, approved-claims, rejected-claims
   const [items, setItems] = useState([]);
   const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -18,10 +20,7 @@ const Admin = () => {
   const [downloadingCsv, setDownloadingCsv] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState(''); // create, edit, delete, viewClaims, approveClaim, userHistory
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [userHistory, setUserHistory] = useState({ claims: [], reports: [] });
-  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [modalType, setModalType] = useState(''); // create, edit, delete, viewClaims, approveClaim
   const [lightboxImages, setLightboxImages] = useState(null);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   
@@ -436,20 +435,8 @@ const Admin = () => {
     setShowModal(true);
   };
 
-  const openUserHistoryModal = async (userId, userName) => {
-    setSelectedUser({ id: userId, name: userName });
-    setModalType('userHistory');
-    setShowModal(true);
-    setLoadingHistory(true);
-    try {
-      const response = await userApi.getUserHistory(userId);
-      setUserHistory(response.data);
-    } catch (error) {
-      toast.error('Failed to load user history');
-      console.error(error);
-    } finally {
-      setLoadingHistory(false);
-    }
+  const openUserHistoryModal = (userId, userName) => {
+    navigate(`/admin/user/${userId}`, { state: { userName, fromTab: activeTab } });
   };
 
   const resetForm = () => {
@@ -532,6 +519,13 @@ const Admin = () => {
               >
                 <XCircle size={20} />
                 Rejected Claims
+              </button>
+              <button
+                onClick={() => navigate('/admin/reports')}
+                className="flex items-center gap-2 px-6 py-4 font-semibold transition-colors whitespace-nowrap text-gray-600 hover:text-gray-900"
+              >
+                <AlertCircle size={20} />
+                Reports
               </button>
             </div>
           </div>
@@ -724,505 +718,47 @@ const Admin = () => {
               
               {/* Pagination Controls for Items */}
               {!loading && items.length > 0 && (
-                <div className="mt-6 flex justify-between items-center">
-                  <div className={`text-sm text-gray-600`}>
-                    Page {itemsPage} of {Math.ceil((itemsPagination.total || 0) / 10)}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setItemsPage(prev => prev - 1)}
-                      disabled={!itemsPagination.hasPrev}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                        itemsPagination.hasPrev
-                          ? 'bg-gray-900 text-white hover:bg-gray-800'
-                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      }`}
-                    >
-                      Previous
-                    </button>
-                    <button
-                      onClick={() => setItemsPage(prev => prev + 1)}
-                      disabled={!itemsPagination.hasNext}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                        itemsPagination.hasNext
-                          ? 'bg-gray-900 text-white hover:bg-gray-800'
-                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      }`}
-                    >
-                      Next
-                    </button>
-                  </div>
-                </div>
+                <Pagination
+                  page={itemsPage}
+                  pagination={itemsPagination}
+                  onPrev={() => setItemsPage(prev => prev - 1)}
+                  onNext={() => setItemsPage(prev => prev + 1)}
+                />
               )}
             </div>
           )}
 
-          {/* Claims Tab */}
-          {activeTab === 'claims' && (
-            <div className={`rounded-xl shadow-md p-6 bg-white`}>
-              {/* Filters for Claims */}
-              <div className="mb-2 flex items-center justify-between">
-                <h3 className={`text-sm font-medium text-gray-700`}>Filters</h3>
-                <button
-                  onClick={() => setShowClaimFilters(prev => !prev)}
-                  className="text-sm text-gray-600 hover:underline"
-                >
-                  {showClaimFilters ? 'Hide Filters' : 'Show Filters'}
-                </button>
-              </div>
-
-              {showClaimFilters && (
-                <div className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                    <div className="relative">
-                      <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400`} size={18} />
-                      <input
-                        type="text"
-                        placeholder="Search by Claim ID, Item ID, claimant name..."
-                        value={claimSearchInput}
-                        onChange={(e) => handleClaimSearchChange(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white border-gray-300"
-                      />
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setClaimFilters({ search: '', status: 'all' });
-                      setClaimSearchInput('');
-                    }}
-                    className="px-4 py-2 rounded-lg font-semibold transition-all bg-gray-200 hover:bg-gray-300 text-gray-700"
-                  >
-                    Clear Filters
-                  </button>
-                </div>
-              )}
-              
-              <div className="flex justify-between items-center mb-6">
-                <h2 className={`text-2xl font-bold text-gray-900`}>
-                  Pending Claims {claimsPagination.total ? `(${claimsPagination.total})` : ''}
-                </h2>
-                <button
-                  onClick={handleRefresh}
-                  disabled={refreshing || refreshCooldown}
-                  className={`p-2 rounded-lg font-semibold transition-all bg-gray-100 hover:bg-gray-200 text-gray-700 ${refreshing || refreshCooldown ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  title="Refresh claims"
-                >
-                  <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
-                </button>
-              </div>
-
-              {loading ? (
-                <div className="flex justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-                </div>
-              ) : claims.length === 0 ? (
-                <div className="text-center py-12">
-                  <Users className="mx-auto text-gray-400 mb-4" size={48} />
-                  <p className="text-xl text-gray-500">No pending claims</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {claims.map((claim) => (
-                    <div
-                      key={claim._id}
-                      className="border rounded-lg p-6 hover:shadow-md transition-shadow border-gray-200"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className={`text-xl font-semibold text-gray-900`}>
-                              {claim.item?.name}
-                            </h3>
-                            {claim.claimId && (
-                              <span className="text-xs font-mono bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                {claim.claimId}
-                              </span>
-                            )}
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                              <span className={`text-sm text-gray-500`}>Claimant:</span>
-                              <button
-                                onClick={() => openUserHistoryModal(claim.claimant?._id, claim.claimant?.name)}
-                                className={`font-medium hover:underline text-blue-600 hover:text-blue-800 flex items-center gap-1`}
-                              >
-                                {claim.claimant?.name}
-                                <FileText size={14} />
-                              </button>
-                              {/* <p className={`text-sm text-gray-600`}>{claim.claimant?.email}</p> */}
-                              <p className={`text-sm text-gray-600`}>Roll No/Email ID: {claim.claimant?.rollNo}</p>
-                            </div>
-                            <div>
-                              <span className={`text-sm text-gray-500`}>Item Details:</span>
-                              <p className={`text-sm text-gray-900`}>Item ID: {claim.item?.itemId}</p>
-                              <p className={`text-sm text-gray-900`}>Category: {CATEGORY_DISPLAY_NAMES[claim.item?.category] || claim.item?.category}</p>
-                              <p className={`text-sm text-gray-900`}>Location: {claim.item?.foundLocation}</p>
-                              <p className={`text-sm text-gray-900`}>
-                                Date: {new Date(claim.item?.dateFound).toLocaleDateString()}
-                              </p>
-                            </div>
-                          </div>
-                          <p className={`text-sm text-gray-500`}>
-                            Claimed on: {new Date(claim.createdAt).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex gap-3 mt-4">
-                        <button
-                          onClick={() => openClaimModal(claim, 'approve')}
-                          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                        >
-                          <CheckCircle size={18} />
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => openClaimModal(claim, 'reject')}
-                          className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                        >
-                          <XCircle size={18} />
-                          Reject
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              {/* Pagination Controls for Claims */}
-              {!loading && claims.length > 0 && (
-                <div className="mt-6 flex justify-between items-center">
-                  <div className="text-sm text-gray-600">
-                    Page {claimsPage} of {Math.ceil((claimsPagination.total || 0) / 10)}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setClaimsPage(prev => prev - 1)}
-                      disabled={!claimsPagination.hasPrev}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                        claimsPagination.hasPrev
-                          ? 'bg-gray-900 text-white hover:bg-gray-800'
-                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      }`}
-                    >
-                      Previous
-                    </button>
-                    <button
-                      onClick={() => setClaimsPage(prev => prev + 1)}
-                      disabled={!claimsPagination.hasNext}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                        claimsPagination.hasNext
-                          ? 'bg-gray-900 text-white hover:bg-gray-800'
-                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      }`}
-                    >
-                      Next
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Approved Claims Tab */}
-          {activeTab === 'approved-claims' && (
-            <div className={`rounded-xl shadow-md p-6 bg-white`}>
-              {/* Filters for Approved Claims */}
-              <div className="mb-2 flex items-center justify-between">
-                <h3 className={`text-sm font-medium text-gray-700`}>Filters</h3>
-                <button
-                  onClick={() => setShowClaimFilters(prev => !prev)}
-                  className="text-sm text-gray-600 hover:underline"
-                >
-                  {showClaimFilters ? 'Hide Filters' : 'Show Filters'}
-                </button>
-              </div>
-
-              {showClaimFilters && (
-                <div className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                    <div className="relative">
-                      <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400`} size={18} />
-                      <input
-                        type="text"
-                        placeholder="Search by Claim ID, Item ID, claimant name..."
-                        value={claimSearchInput}
-                        onChange={(e) => handleClaimSearchChange(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white border-gray-300"
-                      />
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setClaimFilters({ search: '', status: 'all' });
-                      setClaimSearchInput('');
-                    }}
-                    className="px-4 py-2 rounded-lg font-semibold transition-all bg-gray-200 hover:bg-gray-300 text-gray-700"
-                  >
-                    Clear Filters
-                  </button>
-                </div>
-              )}
-              
-              <div className="flex justify-between items-center mb-6">
-                <h2 className={`text-2xl font-bold text-gray-900`}>
-                  Approved Claims {claimsPagination.total ? `(${claimsPagination.total})` : ''}
-                </h2>
-                <button
-                  onClick={handleRefresh}
-                  disabled={refreshing || refreshCooldown}
-                  className={`p-2 rounded-lg font-semibold transition-all bg-gray-100 hover:bg-gray-200 text-gray-700 ${refreshing || refreshCooldown ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  title="Refresh approved claims"
-                >
-                  <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
-                </button>
-              </div>
-
-              {loading ? (
-                <div className="flex justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-                </div>
-              ) : claims.length === 0 ? (
-                <div className="text-center py-12">
-                  <CheckCircle className={`mx-auto mb-4 text-gray-400`} size={48} />
-                  <p className={`text-xl text-gray-500`}>No approved claims</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {claims.map((claim) => (
-                    <div
-                      key={claim._id}
-                      className="border rounded-lg p-6 border-green-200 bg-green-50"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className={`text-xl font-semibold text-gray-900`}>
-                              {claim.item?.name}
-                            </h3>
-                            {claim.claimId && (
-                              <span className="text-xs font-mono bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                {claim.claimId}
-                              </span>
-                            )}
-                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
-                              Approved
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                              <span className={`text-sm text-gray-500`}>Claimant:</span>
-                              <p className={`font-medium text-gray-900`}>{claim.claimant?.name}</p>
-                              <p className={`text-sm text-gray-600`}>{claim.claimant?.email}</p>
-                                 <p className={`text-sm text-gray-600`}>Roll No/Email ID: {claim.claimant?.rollNo}</p>
-                            </div>
-                            <div>
-                              <span className={`text-sm text-gray-500`}>Item Details:</span>
-                              <p className={`text-sm text-gray-900`}>Item ID: {claim.item?.itemId}</p>
-                              <p className={`text-sm text-gray-900`}>Category: {CATEGORY_DISPLAY_NAMES[claim.item?.category] || claim.item?.category}</p>
-                              <p className={`text-sm text-gray-900`}>Location: {claim.item?.foundLocation}</p>
-                              <p className={`text-sm text-gray-900`}>
-                                Date: {new Date(claim.item?.dateFound).toLocaleDateString()}
-                              </p>
-                            </div>
-                          </div>
-                          <p className={`text-sm text-gray-500`}>
-                            Approved on: {new Date(claim.updatedAt).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              {/* Pagination Controls for Approved Claims */}
-              {!loading && claims.length > 0 && (
-                <div className="mt-6 flex justify-between items-center">
-                  <div className={`text-sm text-gray-600`}>
-                    Page {claimsPage} of {Math.ceil((claimsPagination.total || 0) / 10)}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setClaimsPage(prev => prev - 1)}
-                      disabled={!claimsPagination.hasPrev}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                        claimsPagination.hasPrev
-                          ? 'bg-gray-900 text-white hover:bg-gray-800'
-                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      }`}
-                    >
-                      Previous
-                    </button>
-                    <button
-                      onClick={() => setClaimsPage(prev => prev + 1)}
-                      disabled={!claimsPagination.hasNext}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                        claimsPagination.hasNext
-                          ? 'bg-gray-900 text-white hover:bg-gray-800'
-                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      }`}
-                    >
-                      Next
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Rejected Claims Tab */}
-          {activeTab === 'rejected-claims' && (
-            <div className={`rounded-xl shadow-md p-6 bg-white`}>
-              {/* Filters for Rejected Claims */}
-              <div className="mb-2 flex items-center justify-between">
-                <h3 className={`text-sm font-medium text-gray-700`}>Filters</h3>
-                <button
-                  onClick={() => setShowClaimFilters(prev => !prev)}
-                  className="text-sm text-gray-600 hover:underline"
-                >
-                  {showClaimFilters ? 'Hide Filters' : 'Show Filters'}
-                </button>
-              </div>
-
-              {showClaimFilters && (
-                <div className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                    <div className="relative">
-                      <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400`} size={18} />
-                      <input
-                        type="text"
-                        placeholder="Search by Claim ID, Item ID, claimant name..."
-                        value={claimSearchInput}
-                        onChange={(e) => handleClaimSearchChange(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white border-gray-300"
-                      />
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setClaimFilters({ search: '', status: 'all' });
-                      setClaimSearchInput('');
-                    }}
-                    className="px-4 py-2 rounded-lg font-semibold transition-all bg-gray-200 hover:bg-gray-300 text-gray-700"
-                  >
-                    Clear Filters
-                  </button>
-                </div>
-              )}
-              
-              <div className="flex justify-between items-center mb-6">
-                <h2 className={`text-2xl font-bold text-gray-900`}>
-                  Rejected Claims {claimsPagination.total ? `(${claimsPagination.total})` : ''}
-                </h2>
-                <button
-                  onClick={handleRefresh}
-                  disabled={refreshing || refreshCooldown}
-                  className={`p-2 rounded-lg font-semibold transition-all bg-gray-100 hover:bg-gray-200 text-gray-700 ${refreshing || refreshCooldown ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  title="Refresh rejected claims"
-                >
-                  <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
-                </button>
-              </div>
-
-              {loading ? (
-                <div className="flex justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-                </div>
-              ) : claims.length === 0 ? (
-                <div className="text-center py-12">
-                  <XCircle className={`mx-auto mb-4 text-gray-400`} size={48} />
-                  <p className={`text-xl text-gray-500`}>No rejected claims</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {claims.map((claim) => (
-                    <div
-                      key={claim._id}
-                      className="border rounded-lg p-6 border-red-200 bg-red-50"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className={`text-xl font-semibold text-gray-900`}>
-                              {claim.item?.name}
-                            </h3>
-                            {claim.claimId && (
-                              <span className="text-xs font-mono bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                {claim.claimId}
-                              </span>
-                            )}
-                            <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">
-                              Rejected
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                              <span className={`text-sm text-gray-500`}>Claimant:</span>
-                              <p className={`font-medium text-gray-900`}>{claim.claimant?.name}</p>
-                              <p className={`text-sm text-gray-600`}>{claim.claimant?.email}</p>
-                              <p className={`text-sm text-gray-600`}>Roll No/Email ID: {claim.claimant?.rollNo}</p>
-                            </div>
-                            <div>
-                              <span className={`text-sm text-gray-500`}>Item Details:</span>
-                              <p className={`text-sm text-gray-900`}>Item ID: {claim.item?.itemId}</p>
-                              <p className={`text-sm text-gray-900`}>Category: {CATEGORY_DISPLAY_NAMES[claim.item?.category] || claim.item?.category}</p>
-                              <p className={`text-sm text-gray-900`}>Location: {claim.item?.foundLocation}</p>
-                              <p className={`text-sm text-gray-900`}>
-                                Date: {new Date(claim.item?.dateFound).toLocaleDateString()}
-                              </p>
-                            </div>
-                          </div>
-                          <p className={`text-sm text-gray-500`}>
-                            Rejected on: {new Date(claim.updatedAt).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              {/* Pagination Controls for Rejected Claims */}
-              {!loading && claims.length > 0 && (
-                <div className="mt-6 flex justify-between items-center">
-                  <div className={`text-sm text-gray-600`}>
-                    Page {claimsPage} of {Math.ceil((claimsPagination.total || 0) / 10)}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setClaimsPage(prev => prev - 1)}
-                      disabled={!claimsPagination.hasPrev}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                        claimsPagination.hasPrev
-                          ? 'bg-gray-900 text-white hover:bg-gray-800'
-                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      }`}
-                    >
-                      Previous
-                    </button>
-                    <button
-                      onClick={() => setClaimsPage(prev => prev + 1)}
-                      disabled={!claimsPagination.hasNext}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                        claimsPagination.hasNext
-                          ? 'bg-gray-900 text-white hover:bg-gray-800'
-                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      }`}
-                    >
-                      Next
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+          {/* Claims Tabs */}
+          {(activeTab === 'claims' || activeTab === 'approved-claims' || activeTab === 'rejected-claims') && (
+            <ClaimsTab
+              status={activeTab === 'claims' ? 'pending' : activeTab === 'approved-claims' ? 'approved' : 'rejected'}
+              claims={claims}
+              loading={loading}
+              claimsPagination={claimsPagination}
+              claimsPage={claimsPage}
+              setClaimsPage={setClaimsPage}
+              claimSearchInput={claimSearchInput}
+              handleClaimSearchChange={handleClaimSearchChange}
+              showClaimFilters={showClaimFilters}
+              setShowClaimFilters={setShowClaimFilters}
+              onClearFilters={() => {
+                setClaimFilters({ search: '', status: 'all' });
+                setClaimSearchInput('');
+              }}
+              handleRefresh={handleRefresh}
+              refreshing={refreshing}
+              refreshCooldown={refreshCooldown}
+              onApprove={(claim) => openClaimModal(claim, 'approve')}
+              onReject={(claim) => openClaimModal(claim, 'reject')}
+              onViewUser={openUserHistoryModal}
+              CATEGORY_DISPLAY_NAMES={CATEGORY_DISPLAY_NAMES}
+            />
           )}
 
           {/* Modal */}
           {showModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className={`rounded-xl shadow-2xl w-full max-h-[90vh] overflow-y-auto ${
-                modalType === 'userHistory' ? 'max-w-6xl' : 'max-w-2xl'
-              } bg-white`}>
+              <div className={`rounded-xl shadow-2xl w-full max-h-[90vh] overflow-y-auto max-w-2xl bg-white`}>
                 {/* Create/Edit Item Modal */}
                 {(modalType === 'create' || modalType === 'edit') && (
                   <form onSubmit={modalType === 'create' ? handleCreateItem : handleUpdateItem} className="p-6">
@@ -1385,7 +921,6 @@ const Admin = () => {
                   </div>
                 )}
 
-                {/* Approve/Reject Claim */}
                 {(modalType === 'approve' || modalType === 'reject') && (
                   <div className="p-6">
                     <h3 className={`text-2xl font-bold mb-4 text-gray-900`}>
@@ -1427,298 +962,6 @@ const Admin = () => {
                         className="px-4 py-2 border rounded-lg transition-colors border-gray-300 text-gray-700 hover:bg-gray-50"
                       >
                         Cancel
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* User History Modal - Enhanced */}
-                {modalType === 'userHistory' && selectedUser && (
-                  <div className={`p-8 bg-white`}>
-                    {/* Header */}
-                    <div className={`mb-6 pb-4 border-b border-gray-200`}>
-                      <h2 className={`text-3xl font-bold mb-2 text-gray-900`}>
-                        User Activity History
-                      </h2>
-                      <p className={`text-lg text-gray-600`}>
-                        {selectedUser.name}
-                      </p>
-                    </div>
-                    
-                    {loadingHistory ? (
-                      <div className="flex flex-col items-center justify-center py-16">
-                        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-gray-900 mb-4"></div>
-                        <p className={`text-lg text-gray-600`}>Loading history...</p>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Lost Item Reports Section */}
-                        <div className="rounded-lg border p-6 border-gray-200 bg-gray-50">
-                          <div className="flex items-center justify-between mb-4">
-                            <h3 className={`text-xl font-bold flex items-center gap-2 text-gray-900`}>
-                              <AlertCircle size={24} className="text-orange-500" />
-                              Lost Item Reports
-                            </h3>
-                            <span className="px-3 py-1 rounded-full text-sm font-bold bg-orange-100 text-orange-800">
-                              {userHistory.reports?.length || 0}
-                            </span>
-                          </div>
-                          
-                          <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
-                            {userHistory.reports && userHistory.reports.length > 0 ? (
-                              userHistory.reports.map((report) => {
-                                                      // Flag if any claim by this user was made before this report
-                                                      const suspiciousClaim = userHistory.claims?.find(
-                                                        (claim) => {
-                                                          const claimTime = new Date(claim.createdAt);
-                                                          const reportTime = new Date(report.createdAt);
-                                                          const diffHours = (claimTime - reportTime) / (1000 * 60 * 60);
-                                                          // Claim made within 5 hours after report
-                                                          if (claimTime > reportTime && diffHours <= 5) return true;
-                                                          // Report made after any claim (regardless of time)
-                                                          if (reportTime > claimTime) return true;
-                                                          return false;
-                                                        }
-                                                      );
-                                return (
-                                  <div key={report._id} className="p-5 rounded-lg border transition-all hover:shadow-md border-gray-200 bg-white hover:bg-gray-50">
-                                    <div className="flex justify-between items-start mb-3">
-                                      <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-1">
-                                          <h4 className={`font-bold text-lg text-gray-900`}>
-                                            {report.itemDescription}
-                                          </h4>
-                                          {report.reportId && (
-                                            <span className="text-xs font-mono bg-purple-100 text-purple-800 px-2 py-1 rounded">
-                                              {report.reportId}
-                                            </span>
-                                          )}
-                                        </div>
-                                        <div className="flex flex-wrap gap-2 mb-2">
-                                          <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-semibold">
-                                            {CATEGORY_DISPLAY_NAMES[report.category] || report.category}
-                                          </span>
-                                          <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                                            report.status === 'active' ? 'bg-green-100 text-green-800' :
-                                            report.status === 'resolved' ? 'bg-gray-100 text-gray-800' :
-                                            'bg-gray-100 text-gray-800'
-                                          }`}>
-                                            {report.status.toUpperCase()}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <div className={`space-y-1 text-sm text-gray-600`}>
-                                      {suspiciousClaim && (() => {
-                                        const claimTime = new Date(suspiciousClaim.createdAt);
-                                        const reportTime = new Date(report.createdAt);
-                                        const diffHours = (claimTime - reportTime) / (1000 * 60 * 60);
-                                        let msg = '';
-                                        if (claimTime > reportTime && diffHours <= 5) {
-                                          msg = `Suspicious: Claim made ${diffHours.toFixed(2)} hours after report. Review for possible abuse.`;
-                                        } else if (reportTime > claimTime) {
-                                          const diff = (reportTime - claimTime) / (1000 * 60 * 60);
-                                          msg = `Suspicious: Report made ${diff.toFixed(2)} hours after a claim. Review for possible abuse.`;
-                                        }
-                                        return (
-                                          <div className="mb-2 p-2 rounded bg-yellow-100 border border-yellow-400 flex items-center gap-2">
-                                            <AlertCircle size={16} className="text-yellow-600" />
-                                            <span className="text-yellow-800 font-semibold">{msg}</span>
-                                            <span className="text-xs text-yellow-700">(Claim: {claimTime.toLocaleString('en-US', {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true})})</span>
-                                          </div>
-                                        );
-                                      })()}
-                                      <div className="flex items-center gap-2">
-                                        <MapPin size={14} className="text-red-500" />
-                                        <span><strong>Location:</strong> {report.location}</span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <Clock size={14} className="text-gray-500" />
-                                        <span><strong>Lost on:</strong> {new Date(report.dateLost).toLocaleDateString('en-US', {
-                                          year: 'numeric',
-                                          month: 'long',
-                                          day: 'numeric'
-                                        })}</span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <Calendar size={14} className="text-purple-500" />
-                                        <span>
-                                          <strong>Reported:</strong> {new Date(report.createdAt).toLocaleString('en-US', {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                            hour12: true
-                                          })}
-                                        </span>
-                                      </div>
-                                    </div>
-                                    {report.additionalDetails && (
-                                      <div className={`mt-3 pt-3 border-t border-gray-200`}>
-                                        <p className={`text-sm text-gray-600`}>
-                                          <strong>Details:</strong> {report.additionalDetails}
-                                        </p>
-                                      </div>
-                                    )}
-                                    {report.photos && report.photos.length > 0 && (
-                                      <div className="mt-3 flex gap-2 flex-wrap max-w-xs sm:max-w-full">
-                                        {report.photos.map((photo, idx) => (
-                                          <img
-                                            key={idx}
-                                            src={photo.url}
-                                            alt={`Report photo ${idx + 1}`}
-                                            className="w-20 h-20 sm:w-16 sm:h-16 object-cover rounded border-2 border-gray-300 cursor-pointer hover:opacity-80 transition-opacity max-w-full"
-                                            onClick={() => {
-                                              setLightboxImages(report.photos);
-                                              setLightboxIndex(idx);
-                                            }}
-                                            onContextMenu={(e) => e.preventDefault()}
-                                            draggable={false}
-                                          />
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })
-                            ) : (
-                              <div className="text-center py-12">
-                                <AlertCircle className={`mx-auto mb-3 text-gray-400`} size={48} />
-                                <p className={`text-sm text-gray-500`}>No lost item reports</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Claim Requests Section */}
-                        <div className="rounded-lg border p-6 border-gray-200 bg-gray-50">
-                          <div className="flex items-center justify-between mb-4">
-                            <h3 className={`text-xl font-bold flex items-center gap-2 text-gray-900`}>
-                              <Package size={24} className="text-gray-500" />
-                              Claim Requests
-                            </h3>
-                            <span className="px-3 py-1 rounded-full text-sm font-bold bg-gray-100 text-gray-800">
-                              {userHistory.claims?.length || 0}
-                            </span>
-                          </div>
-                          
-                          <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
-                            {userHistory.claims && userHistory.claims.length > 0 ? (
-                              userHistory.claims.map((claim) => (
-                                <div key={claim._id} className="p-5 rounded-lg border transition-all hover:shadow-md border-gray-200 bg-white hover:bg-gray-50">
-                                  <div className="flex justify-between items-start mb-3">
-                                    <div className="flex-1">
-                                      <h4 className={`font-bold text-lg mb-1 text-gray-900`}>
-                                        {claim.item?.name}
-                                      </h4>
-                                      <div className="flex flex-wrap gap-2 mb-2">
-                                        <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs font-semibold">
-                                          {CATEGORY_DISPLAY_NAMES[claim.item?.category] || claim.item?.category}
-                                        </span>
-                                        <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                                          claim.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                          claim.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                                          'bg-yellow-100 text-yellow-800'
-                                        }`}>
-                                          {claim.status.toUpperCase()}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  
-                                  <div className={`space-y-1 text-sm text-gray-600`}>
-                                    <div className="flex items-center gap-2">
-                                      <MapPin size={14} className="text-green-500" />
-                                      <span><strong>Found at:</strong> {claim.item?.foundLocation}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <Calendar size={14} className="text-gray-500" />
-                                      <span><strong>Item ID:</strong> {claim.item?.itemId}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <Clock size={14} className="text-orange-500" />
-                                      <span><strong>Claimed on:</strong> {new Date(claim.createdAt).toLocaleDateString('en-US', {
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                      })}</span>
-                                    </div>
-                                  </div>
-                                  
-                                  {claim.remarks && (
-                                    <div className={`mt-3 pt-3 border-t p-3 rounded ${
-                                      claim.status === 'approved' 
-                                        ? 'border-green-200 bg-green-50'
-                                        : claim.status === 'rejected'
-                                        ? 'border-red-200 bg-red-50'
-                                        : 'border-gray-200'
-                                    }`}>
-                                      <p className={`text-sm font-semibold mb-1 ${
-                                        claim.status === 'approved' ? 'text-green-700' :
-                                        claim.status === 'rejected' ? 'text-red-700' :
-                                        'text-gray-700'
-                                      }`}>
-                                        Admin Remarks:
-                                      </p>
-                                      <p className={`text-sm text-gray-600`}>
-                                        {claim.remarks}
-                                      </p>
-                                    </div>
-                                  )}
-                                </div>
-                              ))
-                            ) : (
-                              <div className="text-center py-12">
-                                <Package className={`mx-auto mb-3 text-gray-400`} size={48} />
-                                <p className={`text-sm text-gray-500`}>No claim requests</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Summary Stats */}
-                    {!loadingHistory && (
-                      <div className={`mt-6 pt-6 border-t border-gray-200`}>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          <div className="p-4 rounded-lg text-center bg-orange-50">
-                            <p className={`text-2xl font-bold text-orange-600`}>
-                              {userHistory.reports?.length || 0}
-                            </p>
-                            <p className={`text-sm text-gray-600`}>Total Reports</p>
-                          </div>
-                          <div className="p-4 rounded-lg text-center bg-gray-50">
-                            <p className={`text-2xl font-bold text-gray-900`}>
-                              {userHistory.claims?.length || 0}
-                            </p>
-                            <p className={`text-sm text-gray-600`}>Total Claims</p>
-                          </div>
-                          <div className="p-4 rounded-lg text-center bg-green-50">
-                            <p className={`text-2xl font-bold text-green-600`}>
-                              {userHistory.claims?.filter(c => c.status === 'approved').length || 0}
-                            </p>
-                            <p className={`text-sm text-gray-600`}>Approved</p>
-                          </div>
-                          <div className="p-4 rounded-lg text-center bg-red-50">
-                            <p className="text-2xl font-bold text-red-600">
-                              {userHistory.claims?.filter(c => c.status === 'rejected').length || 0}
-                            </p>
-                            <p className={`text-sm text-gray-600`}>Rejected</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex justify-end mt-6">
-                      <button
-                        onClick={() => setShowModal(false)}
-                        className="px-6 py-3 rounded-lg font-semibold transition-colors bg-gray-200 hover:bg-gray-300 text-gray-700"
-                      >
-                        Close
                       </button>
                     </div>
                   </div>

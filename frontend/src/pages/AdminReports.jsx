@@ -4,6 +4,8 @@ import { ArrowLeft, Search, Filter, RefreshCw, FileText, Eye } from 'lucide-reac
 import { toast } from 'react-toastify';
 import api from '../utils/api';
 import { CATEGORIES, CATEGORY_DISPLAY_NAMES } from '../utils/constants';
+import Pagination from '../components/admin/Pagination';
+import EmptyState from '../components/EmptyState';
 
 const LIMIT = 30;
 
@@ -243,11 +245,13 @@ function AdminReports() {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900" />
             </div>
           ) : reports.length === 0 ? (
-            <div className="text-center py-16">
-              <FileText className="mx-auto text-gray-300 mb-3" size={48} />
-              <p className="text-gray-500 text-lg">No reports found</p>
-              <p className="text-gray-400 text-sm mt-1">Try adjusting your filters</p>
-            </div>
+            <EmptyState
+              icon={FileText}
+              iconClassName="mx-auto text-gray-300 mb-3"
+              title="No reports found"
+              subtitle="Try adjusting your filters"
+              className="text-center py-16"
+            />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -314,36 +318,12 @@ function AdminReports() {
 
           {/* Pagination */}
           {!loading && reports.length > 0 && (
-            <div className="mt-6 flex justify-between items-center">
-              <p className="text-sm text-gray-600">
-                Page {page} of {meta.totalPages}
-                {meta.total ? ` · ${meta.total} total` : ''}
-              </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setPage(p => p - 1)}
-                  disabled={!meta.hasPrev}
-                  className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
-                    meta.hasPrev
-                      ? 'bg-gray-900 text-white hover:bg-gray-800'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => setPage(p => p + 1)}
-                  disabled={!meta.hasNext}
-                  className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
-                    meta.hasNext
-                      ? 'bg-gray-900 text-white hover:bg-gray-800'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  Next
-                </button>
-              </div>
-            </div>
+            <Pagination
+              page={page}
+              pagination={meta}
+              onPrev={() => setPage((p) => p - 1)}
+              onNext={() => setPage((p) => p + 1)}
+            />
           )}
         </div>
       </div>

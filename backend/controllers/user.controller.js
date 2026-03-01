@@ -152,6 +152,13 @@ export const deleteReport = async (req, res) => {
       });
     }
 
+    // Resolved reports cannot be deleted
+    if (report.status === "resolved") {
+      return res
+        .status(400)
+        .json({ message: "Resolved reports cannot be deleted" });
+    }
+
     // Delete associated ImageKit photos (cascading delete)
     if (report.photos && report.photos.length > 0) {
       const { deleteFile, extractKeyFromUrl } =
@@ -434,7 +441,10 @@ export const getUserHistory = async (req, res) => {
         .sort({ createdAt: -1 })
         .limit(50)
         .lean(), // Increased from 20 for better history
-      Report.find({ user: userId }).sort({ createdAt: -1 }).limit(50).lean(),
+      Report.find({ user: userId, status: { $ne: "resolved" } })
+        .sort({ createdAt: -1 })
+        .limit(50)
+        .lean(),
     ]);
 
     const [user, claims, reports] = await Promise.race([

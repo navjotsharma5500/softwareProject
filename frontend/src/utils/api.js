@@ -119,6 +119,9 @@ export const reportApi = {
   // Delete report
   deleteReport: (id) => api.delete(`/reports/${id}`),
 
+  // Resolve own report (owner only)
+  resolveReport: (id) => api.patch(`/reports/${id}/resolve`),
+
   // Update report status (admin only)
   updateReportStatus: (id, status) =>
     api.patch(`/reports/${id}/status`, { status }),

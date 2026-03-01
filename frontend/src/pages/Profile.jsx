@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { User, Mail, IdCard, Package, Clock, CheckCircle, XCircle, AlertCircle, RefreshCw, Edit2, Save, X, Phone, FileText, Trash2 } from 'lucide-react';
+import { User, Mail, IdCard, Package, RefreshCw, Edit2, Save, X, Phone, FileText } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import { userApi, reportApi } from '../utils/api';
@@ -8,6 +8,10 @@ import useFormPersistence from '../hooks/useFormPersistence.jsx';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ImageLightbox from '../components/ImageLightbox';
 import { useSearchParams } from 'react-router-dom';
+import ClaimCard from '../components/profile/ClaimCard';
+import ReportCard from '../components/profile/ReportCard';
+import Pagination from '../components/admin/Pagination';
+import EmptyState from '../components/EmptyState';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -19,12 +23,14 @@ const Profile = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [deletingClaim, setDeletingClaim] = useState(null);
   const [deletingReport, setDeletingReport] = useState(null);
+  const [resolvingReport, setResolvingReport] = useState(null);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const isSavingRef = useRef(false);
   const isDeletingClaimRef = useRef(false);
   const isDeletingReportRef = useRef(false);
+  const isResolvingReportRef = useRef(false);
 
   const lastRefreshTime = useRef(0);
   const [refreshCooldown, setRefreshCooldown] = useState(false);
@@ -326,29 +332,29 @@ const Profile = () => {
     }
   };
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'approved':
-        return (
-          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-            <CheckCircle size={14} />
-            Approved
-          </span>
-        );
-      case 'rejected':
-        return (
-          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
-            <XCircle size={14} />
-            Rejected
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
-            <AlertCircle size={14} />
-            Pending
-          </span>
-        );
+  const handleResolveReport = async (reportId, itemName) => {
+    const confirmed = window.confirm(
+      `Mark your report for "${itemName}" as resolved? This means you found your item.`
+    );
+    if (!confirmed) return;
+
+    if (isResolvingReportRef.current || resolvingReport === reportId) {
+      console.log('Duplicate report resolve blocked');
+      return;
+    }
+
+    isResolvingReportRef.current = true;
+    setResolvingReport(reportId);
+    try {
+      await reportApi.resolveReport(reportId);
+      toast.success('Report marked as resolved!');
+      await fetchMyReports();
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to resolve report';
+      toast.error(message);
+    } finally {
+      isResolvingReportRef.current = false;
+      setResolvingReport(null);
     }
   };
 
@@ -373,7 +379,13 @@ const Profile = () => {
               <img
                 src={profileData.profilePicture}
                 alt={profileData.name}
-                className="w-24 h-24 rounded-full object-cover border-4 border-gray-300 shadow-lg flex-shrink-0"
+                className="w-24 h-24 rounded-full object-cover border-4 border-gray-300 shadow-lg flex-shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => {
+                  setLightboxImages([{ url: profileData.profilePicture }]);
+                  setLightboxIndex(0);
+                }}
+                onContextMenu={(e) => e.preventDefault()}
+                draggable={false}
               />
             ) : (
               <div className="w-24 h-24 bg-gradient-to-r from-gray-800 to-gray-900 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
@@ -601,206 +613,21 @@ const Profile = () => {
                   message="Loading claims..."
                 />
               ) : claims.length === 0 ? (
-                <div className="text-center py-12">
-                  <Package className="mx-auto text-gray-400 mb-4" size={48} />
-                  <p className="text-xl text-gray-500 mb-2">No claim requests yet</p>
-                  <p className="text-gray-400">Browse items and submit a claim request</p>
-                </div>
+                <EmptyState
+                  icon={Package}
+                  title="No claim requests yet"
+                  subtitle="Browse items and submit a claim request"
+                />
               ) : (
                 <div className="space-y-4">
                   {claims.map((claim) => (
-                    <div
+                    <ClaimCard
                       key={claim._id}
-                      className="border rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow border-gray-200 bg-white"
-                    >
-                      <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-4">
-                        <div className="flex-1 min-w-0 w-full">
-                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
-                            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 break-words">
-                              {claim.item?.name || 'Item'}
-                            </h3>
-                            {claim.claimId && (
-                              <span className="text-xs font-mono bg-blue-100 text-blue-800 px-2 py-1 rounded break-all">
-                                {claim.claimId}
-                              </span>
-                            )}
-                            {getStatusBadge(claim.status)}
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                              <span className="text-sm font-medium text-gray-500">
-                                Item Details
-                              </span>
-                              <div className="mt-2 space-y-1">
-                                <p className="text-sm text-gray-900 break-words">
-                                  <span className="font-medium">Category:</span>{' '}
-                                  {CATEGORY_DISPLAY_NAMES[claim.item?.category] ||
-                                    claim.item?.category}
-                                </p>
-                                <div className="flex items-start gap-2 text-sm text-gray-600">
-                                  <svg
-                                    className="w-4 h-4 text-gray-600 flex-shrink-0 mt-0.5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth="2"
-                                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                                    />
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth="2"
-                                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                                    />
-                                  </svg>
-                                  <span className="break-words">
-                                    {claim.item?.foundLocation}
-                                  </span>
-                                </div>
-                                <p className="text-sm text-gray-600">
-                                  <span className="font-medium">Found:</span>{' '}
-                                  {new Date(claim.item?.dateFound).toLocaleDateString(
-                                    'en-US',
-                                    {
-                                      month: 'short',
-                                      day: 'numeric',
-                                      year: 'numeric',
-                                    }
-                                  )}
-                                </p>
-                                {claim.item?.itemId && (
-                                  <p className="text-sm text-gray-600 break-all">
-                                    <span className="font-medium">Item ID:</span>{' '}
-                                    {claim.item.itemId}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-
-                            <div>
-                              <span className="text-sm font-medium text-gray-500">
-                                Claim Information
-                              </span>
-                              <div className="mt-2 space-y-1">
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                  <Clock
-                                    size={16}
-                                    className="text-gray-600 flex-shrink-0"
-                                  />
-                                  <span>
-                                    Requested:{' '}
-                                    {new Date(claim.createdAt).toLocaleDateString(
-                                      'en-US',
-                                      {
-                                        month: 'short',
-                                        day: 'numeric',
-                                        year: 'numeric',
-                                      }
-                                    )}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {claim.remarks && (
-                        <div
-                          className={`mb-4 p-4 rounded-lg border ${
-                            claim.status === 'approved'
-                              ? 'bg-green-50 border-green-200'
-                              : claim.status === 'rejected'
-                              ? 'bg-red-50 border-red-200'
-                              : 'bg-gray-100 border-gray-200'
-                          }`}
-                        >
-                          <div
-                            className={`font-semibold text-sm mb-1 ${
-                              claim.status === 'approved'
-                                ? 'text-green-800'
-                                : claim.status === 'rejected'
-                                ? 'text-red-800'
-                                : 'text-gray-800'
-                            }`}
-                          >
-                            Admin Remarks:
-                          </div>
-                          <p
-                            className={`text-sm break-words ${
-                              claim.status === 'approved'
-                                ? 'text-green-700'
-                                : claim.status === 'rejected'
-                                ? 'text-red-700'
-                                : 'text-gray-700'
-                            }`}
-                          >
-                            {claim.remarks}
-                          </p>
-                        </div>
-                      )}
-
-                      {claim.status === 'pending' && (
-                        <div className="p-4 rounded-lg border bg-yellow-50 border-yellow-200">
-                          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                            <div className="text-sm text-yellow-800">
-                              <p className="mb-1">
-                                <strong>Pending:</strong> Please visit the admin office
-                               in SBI Lawn during working hours to collect your item.
-                              </p>
-                              {claim.claimId && (
-                                <p className="text-xs mt-2 break-words">
-                                  📋 Provide Claim ID{' '}
-                                  <span className="font-mono font-semibold bg-yellow-200 px-2 py-0.5 rounded break-all">
-                                    {claim.claimId}
-                                  </span>{' '}
-                                  to the admin for easier tracking.
-                                </p>
-                              )}
-                            </div>
-                            <button
-                              onClick={() =>
-                                handleRemoveClaim(
-                                  claim._id,
-                                  claim.item?.name || 'this item'
-                                )
-                              }
-                              disabled={deletingClaim === claim._id}
-                              className={`flex items-center gap-2 px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold flex-shrink-0 ${
-                                deletingClaim === claim._id
-                                  ? 'opacity-50 cursor-not-allowed'
-                                  : ''
-                              }`}
-                            >
-                              <Trash2 size={14} />
-                              {deletingClaim === claim._id ? 'Removing...' : 'Remove'}
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      {claim.status === 'approved' && (
-                        <div className="p-4 rounded-lg border bg-green-50 border-green-200">
-                          <p className="text-sm text-green-800">
-                            <strong>Approved!</strong> This item is now in your
-                            possession. You have successfully claimed this item.
-                          </p>
-                        </div>
-                      )}
-
-                      {claim.status === 'rejected' && (
-                        <div className="p-4 rounded-lg border bg-red-50 border-red-200">
-                          <p className="text-sm text-red-800">
-                            <strong>Rejected:</strong> Your claim was not approved.
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                      claim={claim}
+                      onRemove={handleRemoveClaim}
+                      deletingClaim={deletingClaim}
+                      CATEGORY_DISPLAY_NAMES={CATEGORY_DISPLAY_NAMES}
+                    />
                   ))}
                 </div>
               )}
@@ -808,33 +635,12 @@ const Profile = () => {
               {/* Pagination */}
               {pagination.totalPages > 1 && (
                 <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-                  <div className="text-sm text-gray-600">
-                    Page {page} of {pagination.totalPages}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setPage(page - 1)}
-                      disabled={!pagination.hasPrev}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                        pagination.hasPrev
-                          ? 'bg-gray-900 text-white hover:bg-gray-800'
-                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      }`}
-                    >
-                      Previous
-                    </button>
-                    <button
-                      onClick={() => setPage(page + 1)}
-                      disabled={!pagination.hasNext}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                        pagination.hasNext
-                          ? 'bg-gray-900 text-white hover:bg-gray-800'
-                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      }`}
-                    >
-                      Next
-                    </button>
-                  </div>
+                  <Pagination
+                    page={page}
+                    pagination={pagination}
+                    onPrev={() => setPage(page - 1)}
+                    onNext={() => setPage(page + 1)}
+                  />
                 </div>
               )}
             </>
@@ -849,110 +655,27 @@ const Profile = () => {
                   message="Loading reports..."
                 />
               ) : reports.length === 0 ? (
-                <div className="text-center py-12">
-                  <FileText className="mx-auto text-gray-400 mb-4" size={48} />
-                  <p className="text-xl text-gray-500 mb-2">No reports found</p>
-                  <p className="text-gray-400">Report a lost item to get started</p>
-                </div>
+                <EmptyState
+                  icon={FileText}
+                  title="No reports found"
+                  subtitle="Report a lost item to get started"
+                />
               ) : (
                 <div className="space-y-4">
                   {reports.map((report) => (
-                    <div
+                    <ReportCard
                       key={report._id}
-                      className="border rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow border-gray-200"
-                    >
-                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                        <div className="flex-1 min-w-0 w-full">
-                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
-                            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 break-words">
-                              {report.itemDescription}
-                            </h3>
-                            {report.reportId && (
-                              <span className="text-xs font-mono bg-purple-100 text-purple-800 px-2 py-1 rounded break-all">
-                                {report.reportId}
-                              </span>
-                            )}
-                            <span
-                              className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                report.status === 'active'
-                                  ? 'bg-green-100 text-green-800'
-                                  : report.status === 'resolved'
-                                  ? 'bg-gray-100 text-gray-800'
-                                  : 'bg-gray-100 text-gray-800'
-                              }`}
-                            >
-                              {report.status}
-                            </span>
-                          </div>
-
-                          <div className="space-y-2 mb-4 text-gray-600 text-sm sm:text-base">
-                            <p className="break-words">
-                              <strong>Category:</strong>{' '}
-                              {CATEGORY_DISPLAY_NAMES[report.category] || report.category}
-                            </p>
-                            <p className="break-words">
-                              <strong>Location:</strong> {report.location}
-                            </p>
-                            <p>
-                              <strong>Lost on:</strong>{' '}
-                              {new Date(report.dateLost).toLocaleDateString()}
-                            </p>
-                            {report.additionalDetails && (
-                              <p className="text-sm break-words">
-                                <strong>Details:</strong> {report.additionalDetails}
-                              </p>
-                            )}
-                          </div>
-
-                          {report.photos && report.photos.length > 0 && (
-                            <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-                              {report.photos.map((photo, index) => (
-                                <img
-                                  key={index}
-                                  src={photo.url}
-                                  alt={`Photo ${index + 1}`}
-                                  className="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0"
-                                  onClick={() => {
-                                    setLightboxImages(report.photos);
-                                    setLightboxIndex(index);
-                                  }}
-                                  onContextMenu={(e) => e.preventDefault()}
-                                  draggable={false}
-                                />
-                              ))}
-                            </div>
-                          )}
-
-                          <p className="text-xs text-gray-500 break-words">
-                            Reported on: {new Date(report.createdAt).toLocaleString()}
-                          </p>
-                        </div>
-
-                        {/* Delete Report Button */}
-                        <div className="flex-shrink-0 w-full sm:w-auto sm:ml-4">
-                          <button
-                            onClick={() =>
-                              handleRemoveReport(report._id, report.itemDescription)
-                            }
-                            disabled={deletingReport === report._id}
-                            className={`flex items-center justify-center gap-2 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-semibold w-full sm:w-auto ${
-                              deletingReport === report._id
-                                ? 'opacity-50 cursor-not-allowed'
-                                : ''
-                            }`}
-                            title="Delete this report"
-                          >
-                            <Trash2
-                              size={16}
-                              className={
-                                deletingReport === report._id ? 'animate-spin' : ''
-                              }
-                            />
-                            {deletingReport === report._id ? 'Deleting...' : 'Delete'}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                      report={report}
+                      onDelete={handleRemoveReport}
+                      deletingReport={deletingReport}
+                      onResolve={handleResolveReport}
+                      resolvingReport={resolvingReport}
+                      CATEGORY_DISPLAY_NAMES={CATEGORY_DISPLAY_NAMES}
+                      onImageClick={(photos, index) => {
+                        setLightboxImages(photos);
+                        setLightboxIndex(index);
+                      }}
+                    />
                   ))}
                 </div>
               )}
@@ -960,33 +683,12 @@ const Profile = () => {
               {/* Pagination */}
               {pagination.totalPages > 1 && (
                 <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-                  <div className="text-sm text-gray-600">
-                    Page {page} of {pagination.totalPages}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setPage(page - 1)}
-                      disabled={!pagination.hasPrev}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                        pagination.hasPrev
-                          ? 'bg-gray-900 text-white hover:bg-gray-800'
-                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      }`}
-                    >
-                      Previous
-                    </button>
-                    <button
-                      onClick={() => setPage(page + 1)}
-                      disabled={!pagination.hasNext}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                        pagination.hasNext
-                          ? 'bg-gray-900 text-white hover:bg-gray-800'
-                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      }`}
-                    >
-                      Next
-                    </button>
-                  </div>
+                  <Pagination
+                    page={page}
+                    pagination={pagination}
+                    onPrev={() => setPage(page - 1)}
+                    onNext={() => setPage(page + 1)}
+                  />
                 </div>
               )}
             </>

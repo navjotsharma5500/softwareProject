@@ -19,6 +19,7 @@ import {
   updateReport,
   deleteReport,
   updateReportStatus,
+  resolveOwnReport,
   getReportsByUserId,
 } from "../controllers/report.controller.js";
 
@@ -85,6 +86,15 @@ router.delete(
   validateObjectId("id"),
   idempotencyMiddleware(3600, true), // Strict mode
   deleteReport,
+);
+
+// Resolve own report (owner only)
+router.patch(
+  "/:id/resolve",
+  isAuthenticated,
+  validateObjectId("id"),
+  idempotencyMiddleware(3600, true), // Strict mode
+  resolveOwnReport,
 );
 
 // Update report status (admin only, with strict idempotency and validation)
