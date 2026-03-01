@@ -26,11 +26,11 @@ function getEmailTemplate(content, title) {
             <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden;">
               <!-- Header -->
               <tr>
-                <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 40px; text-align: center;">
+                <td style="background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%); padding: 30px 40px; text-align: center;">
                   <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold; letter-spacing: -0.5px;">
                     🔍 Thapar Lost &amp; Found Portal
                   </h1>
-                  <p style="margin: 8px 0 0 0; color: #e0e7ff; font-size: 14px;">
+                  <p style="margin: 8px 0 0 0; color: #fecaca; font-size: 14px;">
                     Admin-managed listings — only items deposited with the campus guard or admin are shown.
                   </p>
                 </td>
@@ -54,12 +54,12 @@ function getEmailTemplate(content, title) {
                   </p>
                   <div style="text-align: center; margin-top: 16px;">
                     <a href="${process.env.FRONTEND_URL || "http://localhost:3000"}" 
-                       style="display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px;">
+                       style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%); color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px;">
                       Open Lost &amp; Found Portal
                     </a>
                   </div>
                   <div style="text-align: center; margin-top: 12px;">
-                    <a href="${(process.env.FRONTEND_URL || "http://localhost:3000") + "/how-it-works"}" style="color: #4f46e5; text-decoration: none; font-size: 13px;">How the portal works</a>
+                    <a href="${(process.env.FRONTEND_URL || "http://localhost:3000") + "/how-it-works"}" style="color: #dc2626; text-decoration: none; font-size: 13px;">How the portal works</a>
                   </div>
                   <p style="margin: 18px 0 0 0; color: #9ca3af; font-size: 12px; text-align: center;">
                     © ${new Date().getFullYear()} Thapar University Lost &amp; Found Portal.
@@ -124,7 +124,7 @@ export function getClaimStatusEmailBody(claim, status) {
       }
     </p>
 
-    <div style="background-color: #f9fafb; border-left: 4px solid #667eea; padding: 20px; margin-bottom: 24px; border-radius: 4px;">
+    <div style="background-color: #f9fafb; border-left: 4px solid #dc2626; padding: 20px; margin-bottom: 24px; border-radius: 4px;">
       <h3 style="margin: 0 0 16px 0; color: #1f2937; font-size: 18px; font-weight: 600;">
         📦 Item Details
       </h3>
@@ -156,11 +156,11 @@ export function getClaimStatusEmailBody(claim, status) {
       </table>
     </div>
 
-    <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; margin-bottom: 24px; border-radius: 4px;">
-      <h3 style="margin: 0 0 12px 0; color: #92400e; font-size: 16px; font-weight: 600;">
+    <div style="background-color: #f9fafb; border-left: 4px solid #374151; padding: 20px; margin-bottom: 24px; border-radius: 4px;">
+      <h3 style="margin: 0 0 12px 0; color: #1f2937; font-size: 16px; font-weight: 600;">
         💬 Your Claim Remarks
       </h3>
-      <p style="margin: 0; color: #78350f; font-size: 14px; line-height: 1.6;">
+      <p style="margin: 0; color: #374151; font-size: 14px; line-height: 1.6;">
         ${claim.remarks || "No additional remarks provided"}
       </p>
     </div>
@@ -168,7 +168,7 @@ export function getClaimStatusEmailBody(claim, status) {
     ${
       !isApproved
         ? `
-      <div style="background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 20px; margin-bottom: 24px; border-radius: 4px;">
+      <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 20px; margin-bottom: 24px; border-radius: 4px;">
         <h3 style="margin: 0 0 12px 0; color: #991b1b; font-size: 16px; font-weight: 600;">
           📋 Claim Status Record
         </h3>
@@ -202,8 +202,8 @@ export function getClaimStatusEmailBody(claim, status) {
 export function getReportSubmissionEmailBody(report) {
   const content = `
     <div style="text-align: center; margin-bottom: 30px;">
-      <div style="display: inline-block; padding: 16px 32px; background-color: #dbeafe; border-radius: 8px; border: 2px solid #3b82f6;">
-        <h2 style="margin: 0; color: #1e40af; font-size: 24px; font-weight: bold;">
+      <div style="display: inline-block; padding: 16px 32px; background-color: #fef2f2; border-radius: 8px; border: 2px solid #dc2626;">
+        <h2 style="margin: 0; color: #b91c1c; font-size: 24px; font-weight: bold;">
           📝 Report Submitted Successfully
         </h2>
       </div>
@@ -213,7 +213,7 @@ export function getReportSubmissionEmailBody(report) {
       Thank you for reporting your lost item. Your report has been successfully submitted to the Thapar University Lost & Found Portal. The portal does not send automatic match notifications — please check the portal regularly and submit a claim if you find your item.
     </p>
 
-    <div style="background-color: #f9fafb; border-left: 4px solid #667eea; padding: 20px; margin-bottom: 24px; border-radius: 4px;">
+    <div style="background-color: #f9fafb; border-left: 4px solid #dc2626; padding: 20px; margin-bottom: 24px; border-radius: 4px;">
       <h3 style="margin: 0 0 16px 0; color: #1f2937; font-size: 18px; font-weight: 600;">
         🔍 Your Lost Item Report
       </h3>
@@ -244,7 +244,7 @@ export function getReportSubmissionEmailBody(report) {
         </tr>
         <tr>
           <td style="font-weight: 600; padding: 8px 0;">Report ID:</td>
-          <td style="padding: 8px 0; font-family: monospace; color: #667eea;">#${
+          <td style="padding: 8px 0; font-family: monospace; color: #b91c1c;">#${
             report._id?.toString().slice(-8).toUpperCase() || "N/A"
           }</td>
         </tr>
@@ -254,11 +254,11 @@ export function getReportSubmissionEmailBody(report) {
     ${
       report.additionalDetails
         ? `
-      <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; margin-bottom: 24px; border-radius: 4px;">
-        <h3 style="margin: 0 0 12px 0; color: #92400e; font-size: 16px; font-weight: 600;">
+      <div style="background-color: #f9fafb; border-left: 4px solid #374151; padding: 20px; margin-bottom: 24px; border-radius: 4px;">
+        <h3 style="margin: 0 0 12px 0; color: #1f2937; font-size: 16px; font-weight: 600;">
           📌 Additional Details
         </h3>
-        <p style="margin: 0; color: #78350f; font-size: 14px; line-height: 1.6;">
+        <p style="margin: 0; color: #374151; font-size: 14px; line-height: 1.6;">
           ${report.additionalDetails}
         </p>
       </div>
@@ -266,11 +266,11 @@ export function getReportSubmissionEmailBody(report) {
         : ""
     }
 
-    <div style="background-color: #d1fae5; border-left: 4px solid #10b981; padding: 20px; margin-bottom: 24px; border-radius: 4px;">
-      <h3 style="margin: 0 0 12px 0; color: #065f46; font-size: 16px; font-weight: 600;">
+    <div style="background-color: #f9fafb; border-left: 4px solid #dc2626; padding: 20px; margin-bottom: 24px; border-radius: 4px;">
+      <h3 style="margin: 0 0 12px 0; color: #1f2937; font-size: 16px; font-weight: 600;">
         📍 What Happens Next?
       </h3>
-      <ol style="margin: 0; padding-left: 20px; color: #047857; font-size: 14px; line-height: 1.8;">
+      <ol style="margin: 0; padding-left: 20px; color: #374151; font-size: 14px; line-height: 1.8;">
         <li><strong>Check the Portal Regularly:</strong> Browse the found items section to see if your item appears</li>
         <li><strong>Check Regularly:</strong> The portal does not send automatic match notifications — please check the found items section regularly and submit a claim if you see your item.</li>
         <li><strong>Submit a Claim:</strong> When you find your item, submit a claim through the portal</li>
@@ -278,11 +278,11 @@ export function getReportSubmissionEmailBody(report) {
       </ol>
     </div>
 
-    <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; margin-bottom: 24px; border-radius: 4px;">
-      <h3 style="margin: 0 0 12px 0; color: #92400e; font-size: 16px; font-weight: 600;">
+    <div style="background-color: #fff1f2; border-left: 4px solid #b91c1c; padding: 20px; margin-bottom: 24px; border-radius: 4px;">
+      <h3 style="margin: 0 0 12px 0; color: #b91c1c; font-size: 16px; font-weight: 600;">
         ⚠️ Important Reminder
       </h3>
-      <p style="margin: 0; color: #78350f; font-size: 14px; line-height: 1.6;">
+      <p style="margin: 0; color: #374151; font-size: 14px; line-height: 1.6;">
         The admin team will <strong>not</strong> proactively search for your item. Only items physically deposited with the campus guard or admin will appear in the found items list.
       </p>
     </div>
