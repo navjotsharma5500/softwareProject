@@ -35,6 +35,28 @@ router.get(
   sanitizeSearchQuery,
   listAllItems,
 );
+// Admin-only endpoint to list all reports with pagination and filtering
+import { listAllReports } from "../controllers/admin.reports.controller.js";
+import { getReportById } from "../controllers/admin.reports.controller.js";
+router.get(
+  "/reports",
+  isAuthenticated,
+  adminOnly,
+  adminLimiter,
+  validatePagination,
+  sanitizeSearchQuery,
+  listAllReports,
+);
+
+// Admin-only endpoint to get a single report by ID
+router.get(
+  "/reports/:id",
+  isAuthenticated,
+  adminOnly,
+  adminLimiter,
+  validateObjectId("id"),
+  getReportById,
+);
 router.post(
   "/items",
   isAuthenticated,

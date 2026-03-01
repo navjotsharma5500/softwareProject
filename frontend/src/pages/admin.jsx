@@ -621,6 +621,9 @@ const Admin = () => {
                 </h2>
                 <div className="flex items-center gap-3">
                   <div className="flex flex-col sm:flex-row w-full gap-2 sm:gap-3">
+                    <button onClick={() => navigate('/admin/reports')} className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                      Reports
+                    </button>
                     <button
                       onClick={handleDownloadCsv}
                       disabled={downloadingCsv || csvCooldown}

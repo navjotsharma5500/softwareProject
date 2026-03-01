@@ -7,8 +7,11 @@ import ItemDetail from './pages/ItemDetail.jsx'
 import Login from './pages/login.jsx'
 import Profile from './pages/Profile.jsx'
 import Admin from './pages/admin.jsx'
+ import AdminReports from './pages/AdminReports.jsx'
 import ReportLostItem from './pages/ReportLostItem.jsx'
 import HowItWorks from './pages/HowItWorks.jsx'
+import Stats from './pages/Stats.jsx'
+import ReportDetail from './pages/ReportDetail.jsx'
 import { ProtectedRoute } from './components/ProtectedRoute.jsx'
 import { PublicRoute } from './components/PublicRoute.jsx'
 import NotFound from './pages/NotFound.jsx'
@@ -37,16 +40,27 @@ const App = () => {
           } />
           <Route path='/report-lost-item' element={<ReportLostItem />} />
           <Route path='/how-it-works' element={<HowItWorks />} />
+          <Route path='/stats' element={<Stats />} />
           {/* Admin Routes */}
           <Route path='/admin' element={
             <ProtectedRoute adminOnly={true}>
               <Admin />
             </ProtectedRoute>
           } />
+          <Route path='/admin/reports' element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminReports />
+            </ProtectedRoute>
+          } />
+          <Route path='/admin/report/:id' element={
+            <ProtectedRoute adminOnly={true}>
+              <ReportDetail />
+            </ProtectedRoute>
+          } />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
-      <Footer />
+      <Footer />  
     </div>
   );
 }

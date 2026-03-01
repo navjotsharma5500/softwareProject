@@ -8,7 +8,12 @@ let consecutiveFailures = 0;
 const MAX_FAILURES = 5;
 
 function isRedisReady() {
-  return redis && redis.status === "ready" && redisAvailable && consecutiveFailures < MAX_FAILURES;
+  return (
+    redis &&
+    redis.status === "ready" &&
+    redisAvailable &&
+    consecutiveFailures < MAX_FAILURES
+  );
 }
 
 const PREFIX = `myapp:${process.env.NODE_ENV}:`;
@@ -20,8 +25,8 @@ if (process.env.REDIS_URL) {
     lazyConnect: false,
     maxRetriesPerRequest: 3,
     enableReadyCheck: true,
-    connectTimeout: 15000,
-    commandTimeout: 15000,
+    connectTimeout: 10000,
+    commandTimeout: 3000,      // 3 s max per command — don't block the request
     keepAlive: 30000,
 
     retryStrategy(times) {
@@ -30,7 +35,9 @@ if (process.env.REDIS_URL) {
         return null;
       }
       const delay = Math.min(times * 500, 3000);
-      console.log(`🔄 Retrying Redis connection in ${delay}ms (attempt ${times}/5)`);
+      console.log(
+        `🔄 Retrying Redis connection in ${delay}ms (attempt ${times}/5)`,
+      );
       return delay;
     },
 
@@ -39,7 +46,7 @@ if (process.env.REDIS_URL) {
     },
 
     family: 4,
-    enableOfflineQueue: true,
+    enableOfflineQueue: false,  // reject queued commands immediately when offline
   });
 
   redis.on("connect", () => {
@@ -77,7 +84,7 @@ export const cacheStats = () => ({
   misses,
   consecutiveFailures,
   isReady: isRedisReady(),
-  status: redis ? redis.status : 'not_initialized'
+  status: redis ? redis.status : "not_initialized",
 });
 
 export const clearCachePattern = async (pattern) => {
@@ -86,7 +93,7 @@ export const clearCachePattern = async (pattern) => {
   try {
     let cursor = "0";
     const pipeline = redis.pipeline();
-    
+
     // Add PREFIX to pattern so it matches the namespaced keys
     const namespacedPattern = PREFIX + pattern;
 
@@ -108,10 +115,15 @@ export const clearCachePattern = async (pattern) => {
     consecutiveFailures = 0;
   } catch (err) {
     consecutiveFailures++;
-    console.error(`Cache clear error (${consecutiveFailures}/${MAX_FAILURES}):`, err.message);
+    console.error(
+      `Cache clear error (${consecutiveFailures}/${MAX_FAILURES}):`,
+      err.message,
+    );
 
     if (consecutiveFailures >= MAX_FAILURES) {
-      setTimeout(() => { consecutiveFailures = 0; }, 60000);
+      setTimeout(() => {
+        consecutiveFailures = 0;
+      }, 60000);
     }
   }
 };
@@ -138,10 +150,15 @@ export const getCache = async (key) => {
     }
   } catch (err) {
     consecutiveFailures++;
-    console.error(`Cache get error (${consecutiveFailures}/${MAX_FAILURES}):`, err.message);
+    console.error(
+      `Cache get error (${consecutiveFailures}/${MAX_FAILURES}):`,
+      err.message,
+    );
 
     if (consecutiveFailures >= MAX_FAILURES) {
-      setTimeout(() => { consecutiveFailures = 0; }, 60000);
+      setTimeout(() => {
+        consecutiveFailures = 0;
+      }, 60000);
     }
     return null;
   }
@@ -152,15 +169,24 @@ export const setCache = async (key, data, expirationInSeconds = 600) => {
 
   const namespacedKey = PREFIX + key;
   try {
-    const ttl = Math.min(expirationInSeconds, 3600);
-    await redis.set(namespacedKey, JSON.stringify(data), "EX", ttl);
+    await redis.set(
+      namespacedKey,
+      JSON.stringify(data),
+      "EX",
+      expirationInSeconds,
+    );
     consecutiveFailures = 0;
   } catch (err) {
     consecutiveFailures++;
-    console.error(`Cache set error (${consecutiveFailures}/${MAX_FAILURES}):`, err.message);
+    console.error(
+      `Cache set error (${consecutiveFailures}/${MAX_FAILURES}):`,
+      err.message,
+    );
 
     if (consecutiveFailures >= MAX_FAILURES) {
-      setTimeout(() => { consecutiveFailures = 0; }, 60000);
+      setTimeout(() => {
+        consecutiveFailures = 0;
+      }, 60000);
     }
   }
 };

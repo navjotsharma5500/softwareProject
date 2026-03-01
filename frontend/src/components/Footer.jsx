@@ -1,8 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-const Footer = () => {
-  const currentYear = new Date().getFullYear()
+ const Footer = () => {
 
   return (
     <footer className="bg-gray-100 text-gray-700">
@@ -34,8 +33,8 @@ const Footer = () => {
               </ul>
               <ul className="space-y-2">
                 <li><Link to="/profile" className="hover:text-gray-900 transition-colors">Profile</Link></li>
-                <li><Link to="/login" className="hover:text-gray-900 transition-colors">Login</Link></li>
-                <li><Link to="/dev" className="hover:text-gray-900 transition-colors">Developers</Link></li>
+                    <li><Link to="/dev" className="hover:text-gray-900 transition-colors">Developers</Link></li>
+                <li><Link to="/stats" className="hover:text-gray-900 transition-colors">Stats</Link></li>
               </ul>
             </div>
           </div>

@@ -11,6 +11,7 @@ import adminRoutes from "./routes/admin.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import reportRoutes from "./routes/report.routes.js";
 import healthRoutes from "./routes/health.routes.js";
+import statsRoutes from "./routes/stats.routes.js";
 
 import {
   apiLimiter,
@@ -124,6 +125,7 @@ app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/admin", adminLimiter, adminRoutes);
 app.use("/api/user", apiLimiter, userRoutes);
 app.use("/api/reports", apiLimiter, reportRoutes);
+app.use("/api/stats", statsRoutes); // Public stats — rate limited inside the router
 app.use("/health", healthRoutes); // No rate limiting on health checks
 
 app.get("/", (req, res) => {
