@@ -1,13 +1,12 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { CATEGORY_DISPLAY_NAMES } from '../../utils/constants';
 
-const ItemsView = ({ items, viewMode, onNavigate }) => {
-  const itemsContainerRef = useRef(null);
+const ItemsView = ({ items, viewMode, onNavigate, containerRef }) => {
 
   return (
     <motion.div
-      ref={itemsContainerRef}
+      ref={containerRef}
       layout
       className={
         viewMode === 'grid'

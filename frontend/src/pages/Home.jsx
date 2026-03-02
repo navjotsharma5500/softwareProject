@@ -20,6 +20,7 @@ const Home = () => {
   const [viewMode, setViewMode] = useFormPersistence('home_view', 'grid'); // 'grid' or 'list'
   const [isScrolled, setIsScrolled] = useState(false);
   const isInitialLoad = useRef(true);
+  const itemsContainerRef = useRef(null);
 
   // Rate limiting state
   const lastRefreshTime = useRef(0);
@@ -527,6 +528,7 @@ const Home = () => {
             items={items}
             viewMode={viewMode}
             onNavigate={(itemId) => navigate(`/item/${itemId}`)}
+            containerRef={itemsContainerRef}
           />
         )}
 
