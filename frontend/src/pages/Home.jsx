@@ -10,7 +10,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import FilterPanel from '../components/home/FilterPanel';
 import ItemsView from '../components/home/ItemsView';
 import EmptyState from '../components/EmptyState';
-import { CATEGORIES } from '../utils/constants';
+import { CATEGORIES, LOCATIONS, TIME_PERIODS } from '../utils/constants';
 import { scrollToItemsSection } from '../utils/scroll.utils';
 
 const Home = () => {
