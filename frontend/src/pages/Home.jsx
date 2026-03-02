@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, Grid, List, Search, Filter } from 'lucide-react';
+import { RefreshCw, Grid, List, Search, Filter, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { publicApi } from '../utils/api';
 import axios from 'axios';
