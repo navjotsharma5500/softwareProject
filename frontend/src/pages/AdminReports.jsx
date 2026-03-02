@@ -21,6 +21,8 @@ const defaultFilters = {
   status: '',
   startDate: '',
   endDate: '',
+  reportId: '',
+  reporterName: '',
 };
 
 function AdminReports() {
@@ -33,9 +35,13 @@ function AdminReports() {
   const [refreshing, setRefreshing] = useState(false);
   const [showFilters, setShowFilters] = useState(true);
 
-  // Debounced search
+  // Debounced inputs
   const [searchInput, setSearchInput] = useState('');
+  const [reportIdInput, setReportIdInput] = useState('');
+  const [reporterNameInput, setReporterNameInput] = useState('');
   const searchTimeoutRef = useRef(null);
+  const reportIdTimeoutRef = useRef(null);
+  const reporterNameTimeoutRef = useRef(null);
 
   const lastRefreshTime = useRef(0);
   const [refreshCooldown, setRefreshCooldown] = useState(false);
@@ -46,11 +52,13 @@ function AdminReports() {
       const params = {
         page: currentPage,
         limit: LIMIT,
-        ...(currentFilters.search   && { search:    currentFilters.search }),
-        ...(currentFilters.category && { category:  currentFilters.category }),
-        ...(currentFilters.status   && { status:    currentFilters.status }),
-        ...(currentFilters.startDate && { startDate: currentFilters.startDate }),
-        ...(currentFilters.endDate   && { endDate:   currentFilters.endDate }),
+        ...(currentFilters.search        && { search:       currentFilters.search }),
+        ...(currentFilters.category      && { category:     currentFilters.category }),
+        ...(currentFilters.status        && { status:       currentFilters.status }),
+        ...(currentFilters.startDate     && { startDate:    currentFilters.startDate }),
+        ...(currentFilters.endDate       && { endDate:      currentFilters.endDate }),
+        ...(currentFilters.reportId      && { reportId:     currentFilters.reportId }),
+        ...(currentFilters.reporterName  && { reporterName: currentFilters.reporterName }),
       };
       const res = await api.get('/admin/reports', { params });
       setReports(res.data.reports || []);
@@ -66,10 +74,10 @@ function AdminReports() {
     fetchReports(page, filters);
   }, [page, filters, fetchReports]);
 
-  // Sync searchInput with filters.search on external changes
-  useEffect(() => {
-    setSearchInput(filters.search || '');
-  }, [filters.search]);
+  // Sync debounced inputs with filters on external changes
+  useEffect(() => { setSearchInput(filters.search || ''); }, [filters.search]);
+  useEffect(() => { setReportIdInput(filters.reportId || ''); }, [filters.reportId]);
+  useEffect(() => { setReporterNameInput(filters.reporterName || ''); }, [filters.reporterName]);
 
   const handleSearchChange = (value) => {
     setSearchInput(value);
@@ -86,9 +94,29 @@ function AdminReports() {
     setPage(1);
   };
 
+  const handleReportIdChange = (value) => {
+    setReportIdInput(value);
+    if (reportIdTimeoutRef.current) clearTimeout(reportIdTimeoutRef.current);
+    reportIdTimeoutRef.current = setTimeout(() => {
+      setFilters(prev => ({ ...prev, reportId: value }));
+      setPage(1);
+    }, 300);
+  };
+
+  const handleReporterNameChange = (value) => {
+    setReporterNameInput(value);
+    if (reporterNameTimeoutRef.current) clearTimeout(reporterNameTimeoutRef.current);
+    reporterNameTimeoutRef.current = setTimeout(() => {
+      setFilters(prev => ({ ...prev, reporterName: value }));
+      setPage(1);
+    }, 300);
+  };
+
   const handleClearFilters = () => {
     setFilters(defaultFilters);
     setSearchInput('');
+    setReportIdInput('');
+    setReporterNameInput('');
     setPage(1);
   };
 
@@ -156,10 +184,32 @@ function AdminReports() {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                   <input
                     type="text"
-                    placeholder="Search by name, description, location…"
+                    placeholder="Search by description, location…"
                     value={searchInput}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                  />
+                </div>
+
+                {/* Report ID */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Filter by Report ID…"
+                    value={reportIdInput}
+                    onChange={(e) => handleReportIdChange(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                  />
+                </div>
+
+                {/* Reporter Name */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Filter by reporter name/email…"
+                    value={reporterNameInput}
+                    onChange={(e) => handleReporterNameChange(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                   />
                 </div>
 

@@ -26,8 +26,14 @@ export async function listAllReports(req, res) {
     // Build query object based on filters
     const query = {};
 
-    // Search filter (search in itemDescription, category, location, reporter name/email)
-    if (req.query.search) {
+    // Report ID filter (partial match on reportId string field)
+    if (req.query.reportId) {
+      query.reportId = { $regex: new RegExp(req.query.reportId, "i") };
+    }
+
+    // Search filter (DB pre-filter on item fields; user name/email is handled in JS below)
+    // Only add $or when reporterName is NOT also active, to avoid missing reporter-name-only matches
+    if (req.query.search && !req.query.reporterName) {
       const searchRegex = new RegExp(req.query.search, "i");
       query.$or = [
         { itemDescription: { $regex: searchRegex } },
@@ -57,24 +63,41 @@ export async function listAllReports(req, res) {
       }
     }
 
-    // Populate user for search in reporter fields
+    // Populate user for JS-level filtering when search or reporterName is active
+    const needsJsFilter = !!(req.query.search || req.query.reporterName);
     let reports, total;
-    if (req.query.search) {
-      // Need to populate user and filter in JS for reporter fields
+
+    if (needsJsFilter) {
       const allReports = await Report.find(query)
         .populate("user", "name email")
         .sort({ createdAt: -1 })
         .lean();
+
       const filteredReports = allReports.filter((report) => {
-        const search = req.query.search.toLowerCase();
-        return (
-          report.user?.name?.toLowerCase().includes(search) ||
-          report.user?.email?.toLowerCase().includes(search) ||
-          report.itemDescription?.toLowerCase().includes(search) ||
-          report.category?.toLowerCase().includes(search) ||
-          report.location?.toLowerCase().includes(search)
-        );
+        let match = true;
+
+        if (req.query.search) {
+          const s = req.query.search.toLowerCase();
+          match =
+            match &&
+            (report.user?.name?.toLowerCase().includes(s) ||
+              report.user?.email?.toLowerCase().includes(s) ||
+              report.itemDescription?.toLowerCase().includes(s) ||
+              report.category?.toLowerCase().includes(s) ||
+              report.location?.toLowerCase().includes(s));
+        }
+
+        if (req.query.reporterName) {
+          const n = req.query.reporterName.toLowerCase();
+          match =
+            match &&
+            (report.user?.name?.toLowerCase().includes(n) ||
+              report.user?.email?.toLowerCase().includes(n));
+        }
+
+        return match;
       });
+
       total = filteredReports.length;
       reports = filteredReports.slice(skip, skip + limit);
     } else {

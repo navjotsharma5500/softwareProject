@@ -7,7 +7,6 @@ import { publicApi } from '../utils/api';
 import axios from 'axios';
 import useFormPersistence from '../hooks/useFormPersistence';
 import LoadingSpinner from '../components/LoadingSpinner';
-import FilterPanel from '../components/home/FilterPanel';
 import ItemsView from '../components/home/ItemsView';
 import EmptyState from '../components/EmptyState';
 import { CATEGORIES, LOCATIONS, TIME_PERIODS } from '../utils/constants';
