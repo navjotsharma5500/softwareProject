@@ -7,7 +7,6 @@ import { uploadMultipleToImageKit } from '../utils/imagekit';
 import { Upload, X, AlertCircle, ArrowLeft } from 'lucide-react';
 import { CATEGORIES, LOCATIONS, CATEGORY_DISPLAY_NAMES } from '../utils/constants';
 import useFormPersistence from '../hooks/useFormPersistence.jsx';
-import { useEffect } from 'react';
 
 const ReportLostItem = () => {
   const navigate = useNavigate();
@@ -25,11 +24,6 @@ const ReportLostItem = () => {
     dateLost: '',
     additionalDetails: '',
   });
-
-  useEffect(() => {
-    // Scroll to the top of the page when the component is mounted
-    window.scrollTo(0, 0);
-  }, []);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

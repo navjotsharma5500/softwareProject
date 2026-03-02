@@ -17,10 +17,12 @@ import { ProtectedRoute } from './components/ProtectedRoute.jsx'
 import { PublicRoute } from './components/PublicRoute.jsx'
 import NotFound from './pages/NotFound.jsx'
 import DevelopersPage from './pages/DevelopersPage.jsx'
+import ScrollToTop from './components/ScrollToTop.jsx'
 
 const App = () => {
   return (
     <div className="flex flex-col min-h-screen">
+      <ScrollToTop />
       <Navbar />
       <main className="flex-1">
         <Routes>

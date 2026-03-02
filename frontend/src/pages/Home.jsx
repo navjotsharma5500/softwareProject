@@ -11,6 +11,7 @@ import FilterPanel from '../components/home/FilterPanel';
 import ItemsView from '../components/home/ItemsView';
 import EmptyState from '../components/EmptyState';
 import { CATEGORIES } from '../utils/constants';
+import { scrollToItemsSection } from '../utils/scroll.utils';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -147,17 +148,7 @@ const Home = () => {
     }
   }, [setFilters]);
 
-  const scrollToItems = () => {
-    if (!itemsContainerRef.current) return;
-    const header = document.querySelector('header');
-    const headerHeight = header && window.getComputedStyle(header).position !== 'static'
-      ? header.offsetHeight
-      : 0;
-    const defaultOffset = 80; // safe fallback for typical headers
-    const offset = headerHeight ? headerHeight + 8 : defaultOffset;
-    const top = itemsContainerRef.current.getBoundingClientRect().top + window.pageYOffset;
-    window.scrollTo({ top: Math.max(0, top - offset), behavior: 'smooth' });
-  };
+  const scrollToItems = () => scrollToItemsSection('smooth');
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -322,7 +313,7 @@ const Home = () => {
           </motion.p>
         </div>
         {/* Tab Switcher with Report Button */}
-        <div className="flex justify-center items-center gap-4 mb-8 flex-wrap">
+        <div id="items-section" className="flex justify-center items-center gap-4 mb-8 flex-wrap">
           {/* Report Lost Item Button */}
           <button
             onClick={() => navigate('/report-lost-item')}
