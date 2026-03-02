@@ -23,10 +23,10 @@ let misses = 0;
 if (process.env.REDIS_URL) {
   redis = new Redis(process.env.REDIS_URL, {
     lazyConnect: false,
-    maxRetriesPerRequest: 3,
+    maxRetriesPerRequest: 2,
     enableReadyCheck: true,
-    connectTimeout: 10000,
-    commandTimeout: 3000,      // 3 s max per command — don't block the request
+    connectTimeout: 5000, // 5 s to establish connection (was 10 s)
+    commandTimeout: 1000, // 1 s max per command — fail fast, don't block requests
     keepAlive: 30000,
 
     retryStrategy(times) {
@@ -34,7 +34,7 @@ if (process.env.REDIS_URL) {
         console.error("❌ Redis retry limit reached");
         return null;
       }
-      const delay = Math.min(times * 500, 3000);
+      const delay = Math.min(times * 300, 2000); // faster reconnect (was 500ms/3000ms)
       console.log(
         `🔄 Retrying Redis connection in ${delay}ms (attempt ${times}/5)`,
       );
@@ -46,7 +46,7 @@ if (process.env.REDIS_URL) {
     },
 
     family: 4,
-    enableOfflineQueue: false,  // reject queued commands immediately when offline
+    enableOfflineQueue: false, // reject queued commands immediately when offline
   });
 
   redis.on("connect", () => {
