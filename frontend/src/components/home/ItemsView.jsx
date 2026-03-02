@@ -72,18 +72,13 @@ const ItemsView = ({ items, viewMode, onNavigate }) => {
                 </div>
               </div>
 
-              {/* Show claimant info for claimed items to increase credibility */}
-              {item.isClaimed && item.owner ? (
-                <div className="mb-4 text-sm text-gray-700">
+              {/* Show claimant name as public deterrent against theft */}
+              {item.isClaimed && item.owner && (
+                <div className="mb-4 text-sm text-gray-600">
                   <span className="font-medium">Claimed by:</span>{' '}
-                  <span className="font-semibold">{item.owner.name}</span>
-                  {item.owner.rollNo ? (
-                    <span className="ml-2 text-xs text-gray-500">
-                      (Roll/Email: {item.owner.rollNo})
-                    </span>
-                  ) : null}
+                  <span className="font-semibold text-gray-800">{item.owner.name}</span>
                 </div>
-              ) : null}
+              )}
 
               {/* Only show View Details button for available items */}
               {!item.isClaimed && (
@@ -153,18 +148,14 @@ const ItemsView = ({ items, viewMode, onNavigate }) => {
                     </span>
                   </div>
 
-                  {/* Show claimant in list view */}
+                  {/* Show claimant name as public deterrent against theft */}
                   {item.isClaimed && item.owner && (
-                    <div className="text-sm text-gray-700">
-                      <span className="font-medium">By:</span>{' '}
-                      <span className="font-semibold">{item.owner.name}</span>
-                      {item.owner.rollNo && (
-                        <span className="ml-1 text-xs text-gray-500">
-                          (Roll/Email: {item.owner.rollNo})
-                        </span>
-                      )}
+                    <div className="text-sm text-gray-600">
+                      <span className="font-medium">Claimed by:</span>{' '}
+                      <span className="font-semibold text-gray-800">{item.owner.name}</span>
                     </div>
                   )}
+
                 </div>
               </div>
 
