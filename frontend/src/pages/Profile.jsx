@@ -608,10 +608,7 @@ const Profile = () => {
           {activeSection === 'claims' && (
             <>
               {loading ? (
-                <LoadingSpinner
-                  showColdStartMessage={isInitialLoad.current}
-                  message="Loading claims..."
-                />
+                <LoadingSpinner message="Loading claims..." />
               ) : claims.length === 0 ? (
                 <EmptyState
                   icon={Package}
@@ -650,10 +647,7 @@ const Profile = () => {
           {activeSection === 'reports' && (
             <>
               {loading ? (
-                <LoadingSpinner
-                  showColdStartMessage={isInitialLoad.current}
-                  message="Loading reports..."
-                />
+                <LoadingSpinner message="Loading reports..." />
               ) : reports.length === 0 ? (
                 <EmptyState
                   icon={FileText}

@@ -312,7 +312,7 @@ const Home = () => {
             transition={{ delay: 0.2 }}
             className="text-lg text-gray-900 font-extrabold mt-4"
           >
-            To collect the lost item → Visit admin office near SBI Bank | To submit found items → handover to Guard or admin 
+            To collect the lost item → Visit admin office near SBI Bank | To submit found items → handover to Guard or Admin 
           </motion.p>
         </div>
         {/* Tab Switcher with Report Button */}
@@ -511,10 +511,7 @@ const Home = () => {
 
         {/* Loading State */}
         {loading && (
-          <LoadingSpinner 
-            showColdStartMessage={isInitialLoad.current}
-            message={isInitialLoad.current ? "Loading items..." : "Loading..."}
-          />
+          <LoadingSpinner message="Loading items..." />
         )}
 
         {/* Items Grid/List */}
