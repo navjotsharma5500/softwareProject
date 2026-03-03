@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const DevelopersPage = () => {
   const navigate = useNavigate();
@@ -115,9 +116,7 @@ const DevelopersPage = () => {
         </div>
 
         {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
-          </div>
+          <LoadingSpinner />
         ) : (
           <>
             <div className="flex flex-wrap justify-center gap-8 max-w-5xl mx-auto">

@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
@@ -59,21 +60,8 @@ export const AuthProvider = ({ children }) => {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="text-center px-6">
-          <div className="mb-8">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-gray-900 mx-auto"></div>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-3">
-            Loading...
-          </h2>
-          <p className="text-gray-600 text-sm max-w-md">
-            Cold starting server... This might take up to 20-30 seconds
-          </p>
-          <p className="text-gray-500 text-xs mt-2">
-            (Free service - Thanks for your patience! 🙏)
-          </p>
-        </div>
+      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <LoadingSpinner />
       </div>
     );
   }

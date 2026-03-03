@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { ArrowLeft, AlertCircle, Package, MapPin, Clock, Calendar } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { userApi } from '../utils/api';
@@ -63,10 +64,7 @@ const UserActivityHistory = () => {
           </div>
 
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-24">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-gray-900 mb-4"></div>
-              <p className="text-lg text-gray-600">Loading history...</p>
-            </div>
+            <LoadingSpinner />
           ) : (
             <>
               {/* Summary Stats */}

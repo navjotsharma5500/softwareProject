@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, Mail, Tag, MapPin, Calendar, Clock, FileText, Image as ImageIcon, Info } from 'lucide-react';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { toast } from 'react-toastify';
 import api from '../utils/api';
 import ImageLightbox from '../components/ImageLightbox.jsx';
@@ -49,8 +50,8 @@ const ReportDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900" />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <LoadingSpinner />
       </div>
     );
   }

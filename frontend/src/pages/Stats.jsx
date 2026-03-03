@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Users, FileText, Package, TrendingUp, CheckCircle, Search, ClipboardList } from 'lucide-react';
+import LoadingSpinner from '../components/LoadingSpinner';
 import api from '../utils/api';
 
 // eslint-disable-next-line no-unused-vars
@@ -47,9 +48,8 @@ const Stats = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mb-4" />
-        <p className="text-gray-500">Loading stats…</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <LoadingSpinner />
       </div>
     );
   }
