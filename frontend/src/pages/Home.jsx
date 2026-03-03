@@ -11,6 +11,7 @@ import ItemsView from '../components/home/ItemsView';
 import EmptyState from '../components/EmptyState';
 import { CATEGORIES, LOCATIONS, TIME_PERIODS } from '../utils/constants';
 import { scrollToItemsSection } from '../utils/scroll.utils';
+import AddToHomeScreen from '../components/AddToHomeScreen';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -229,6 +230,9 @@ const Home = () => {
 
   return (
     <div className="min-h-screen transition-colors duration-300 bg-gray-50">
+      {/* Add to Home Screen prompt - mobile only, shown once */}
+      <AddToHomeScreen />
+
       {/* Animated How It Works Button - bottom right */}
       <motion.div
         initial={{ x: 100, opacity: 0 }}
