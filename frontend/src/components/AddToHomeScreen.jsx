@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, PlusSquare, ChevronDown } from 'lucide-react';
 
 const STORAGE_KEY = 'tiet_a2hs_dismissed';
-const RESHOW_AFTER_MS = 7 * 24 * 60 * 60 * 1000; // 1 week
+const RESHOW_AFTER_MS = 7 * 24 * 60 * 60 * 1000 * 2; // 2 weeks
 
 function detectPlatform() {
   const ua = navigator.userAgent || '';
