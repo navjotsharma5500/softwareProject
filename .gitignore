@@ -316,4 +316,3 @@ backend/utils/cleanup_orphaned_images.js
 *script*
 *interview*
 *claude*
-docker-compose.dev.yml

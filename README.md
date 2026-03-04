@@ -1,464 +1,206 @@
-# 🎓 Thapar Institute Lost & Found System
+﻿# 🎓 Thapar Institute Lost & Found System
 
-A full-stack web application for managing lost and found items at **Thapar Institute of Engineering and Technology**. This system streamlines the process of reporting found items and claiming lost ones, with admin oversight for verification.
+A full-stack web application for managing lost and found items at **Thapar Institute of Engineering and Technology**. Users can browse found items, report lost ones, claim them back — all with admin oversight.
 
-## 🌟 Features
+## 🔗 **Live:** [CHECK IT OUT](https://lost-and-found-portal-six.vercel.app)
 
-### 👥 For Public Users (No Authentication Required)
+## ✨ Features
 
-- 🔍 Browse all found items with advanced filters
-- 📱 Search by category, location, and time period
-- 👁️ View detailed item information and images
-- 🎨 Dark mode support
-- ✨ Smooth animations and modern UI
+### 🌐 Public (no login required)
 
-### 🔐 For Authenticated Users
+- 🔍 Browse and search all found items — filter by category, location, and time period
+- 🖼️ View item details with images (lightbox viewer)
+- 📊 Public statistics dashboard
+- ℹ️ How It Works page
 
-- 📝 Claim lost items with detailed descriptions
-- 📊 Track claim status (Pending/Approved/Rejected)
-- 👤 View personal profile and claim history
-- 🔔 Real-time notifications via toast messages
+### 🔐 Authenticated Users (@thapar.edu Google accounts only)
 
-### 👨‍💼 For Admins
+- 📋 Claim found items with a proof description
+- 🔄 Track claim status in real time (Pending / Approved / Rejected)
+- ❌ Cancel a pending claim
+- 📝 Report a lost item — with title, description, category, location, date, and photo uploads
+- 🗂️ View, edit, and delete your own lost item reports
+- ✅ Mark your own report as resolved when you recover your item
+- 👤 View and edit your profile
+- 📜 Full activity history — all your claims and reports in one place
 
-- ➕ Create, edit, and delete found items
-- 🔢 Auto-generated unique Item IDs (ITEM000001, ITEM000002, etc.)
-- 📋 Manage pending, approved, and rejected claims
-- ✅ Approve claims after cross-questioning claimants
-- ❌ Reject claims with admin remarks
-- 🔍 Advanced search and filter for items and claims
-- 📊 Paginated data management
-- 🚫 Automatic rejection of competing claims when one is approved
+### 🛡️ Admins
 
-### 🔒 Security & Performance Features
+- ➕ Create, edit, delete found items (IDs auto-generated: ITEM000001, ITEM000002…)
+- 📋 View all claims — filter by status (pending / approved / rejected)
+- ✅ Approve a claim — automatically rejects all other claims for that item
+- ❌ Reject claims with optional remarks
+- 📑 View and manage all lost item reports
+- 🔎 View detailed report pages with full user context
+- 👥 View all users — search, filter, view their full activity history
+- 🚫 Blacklist or unblacklist users (blocked users cannot claim or report)
+- 📥 Export all data as CSV
+- 🔍 Advanced search and filters across items, claims, reports, and users
 
-- 🛡️ **Rate Limiting** - Protection against brute force & DDoS attacks
-  - Auth endpoints: 50 requests/15 min
-  - Claim endpoints: 10 requests/hour
-  - Admin endpoints: 200 requests/15 min
-- 🔄 **Idempotency Middleware** - Prevents duplicate requests with `Idempotency-Key` header
-- ⚡ **Redis Caching** - Fast data retrieval with automatic cache invalidation
-  - Item listings cached
-  - User claims cached
-  - Admin queries optimized
-- 🔐 **Security Headers** - Helmet.js for production-grade security
-- 🧹 **Input Sanitization** - XSS & MongoDB injection protection
-- 📧 **Email Notifications** - Automated status updates for claims
-- 📦 **Image Storage** - AWS S3 integration for secure image uploads
+---
 
 ## 🛠️ Tech Stack
 
-### Frontend
+| Layer      | Stack                                                       |
+| ---------- | ----------------------------------------------------------- |
+| Frontend   | React 19, React Router 7, Tailwind CSS, Framer Motion, Vite |
+| Backend    | Node.js, Express 5, MongoDB + Mongoose, Redis (optional)    |
+| Auth       | Google OAuth 2.0 + JWT (HTTP-only cookies)                  |
+| Images     | ImageKit                                                    |
+| Email      | Nodemailer                                                  |
+| Deployment | Vercel                                                      |
 
-- **React 19.1.1** - UI library
-- **React Router 7.9.5** - Client-side routing
-- **Tailwind CSS 3.4.18** - Utility-first CSS framework
-- **Framer Motion 12.23.24** - Animation library
-- **Vite 7.1.7** - Build tool
-- **Lucide React** - Icon library
-- **React Toastify** - Toast notifications
-- **Axios** - HTTP client
+---
 
-### Backend
+## 🚀 Setup
 
-- **Node.js** - JavaScript runtime
-- **Express 5.1.0** - Web framework
-- **MongoDB** - NoSQL database
-- **Mongoose 8.19.3** - ODM for MongoDB
-- **Redis (ioredis 5.8.2)** - Caching & session management
-- **JWT** - Authentication tokens
-- **Google OAuth 2.0** - Secure authentication via Thapar email
-- **Helmet** - Security headers
-- **CORS** - Cross-origin resource sharing
-- **Morgan** - HTTP request logger
-- **Express Rate Limit** - API rate limiting
-- **AWS S3** - Image storage
-- **Nodemailer** - Email notifications
-- **Joi** - Schema validation
+### Prerequisites
 
-## 📋 Prerequisites
-
-- Node.js (v14 or higher)
+- Node.js v18+
 - MongoDB (local or Atlas)
-- Redis (optional - for caching, falls back gracefully if not available)
-- AWS S3 account (optional - for image uploads)
-- npm or yarn
+- Redis (optional — caching falls back gracefully if unavailable)
+- ImageKit account (optional — for image uploads)
 
-## 🚀 Installation & Setup
-
-### 1. Clone the Repository
+### 1. Clone
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/navjotsharma5500/softwareProject.git
 cd softwareProject
 ```
 
-### 2. Backend Setup
+### 2. Backend
 
 ```bash
 cd backend
 npm install
 ```
 
-Create a `.env` file in the `backend` folder:
+Create `backend/.env`:
 
 ```env
 PORT=3000
 MONGODB_URI=mongodb://localhost:27017/lostfound
-JWT_SECRET=your_super_secret_jwt_key_here
+JWT_SECRET=your_jwt_secret
 NODE_ENV=development
+FRONTEND_URL=http://localhost:5173
 
-# Redis (Optional - for caching & rate limiting)
+# Google OAuth
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GOOGLE_CALLBACK_URL=http://localhost:3000/api/auth/google/callback
+
+# Gmail (optional — for email notifications)
+GMAIL_USER=your-gmail@gmail.com
+GMAIL_PASS=your-app-password
+
+# ImageKit (optional — for image uploads)
+IMAGEKIT_PUBLIC_KEY=your-public-key
+IMAGEKIT_PRIVATE_KEY=your-private-key
+IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your-id
+
+# Redis (optional — for caching)
 REDIS_URL=redis://localhost:6379
-
-# AWS S3 (Optional - for image uploads)
-AWS_REGION=your-region
-AWS_ACCESS_KEY_ID=your-access-key
-AWS_SECRET_ACCESS_KEY=your-secret-key
-AWS_S3_BUCKET_NAME=your-bucket-name
-
-# Email (Optional - for notifications)
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASS=your-app-password
-EMAIL_FROM=noreply@thapar.edu
 ```
 
-### 3. Frontend Setup
+### 3. Frontend
 
 ```bash
 cd ../frontend
 npm install
 ```
 
-Create a `.env` file in the `frontend` folder:
+Create `frontend/.env`:
 
 ```env
-VITE_API_BASE_URL=http://localhost:3000
+VITE_API_BASE_URL=http://localhost:3000/api
+VITE_GOOGLE_CLIENT_ID=your-google-client-id
 ```
 
-### 4. Seed Database (Optional but Recommended)
+### 4. Run
 
 ```bash
-cd ../backend
-npm run seed
+# Terminal 1 — backend
+cd backend && npm run dev
+
+# Terminal 2 — frontend
+cd frontend && npm run dev
 ```
 
-This creates:
+- 🌐 Frontend: http://localhost:5173
+- ⚙️ API: http://localhost:3000
 
-- 5 test users (including 1 admin)
-- 15 sample items
-- 3 pending claims
+---
 
-**Default Test Users:**
+## 🐳 Local MongoDB (Docker)
 
-- **Admin**: admin@thapar.edu (Google OAuth)
-- **User**: john.doe@thapar.edu (Google OAuth)
-
-_Note: Authentication is via Google OAuth using @thapar.edu emails only_
-
-### 5. Run the Application
-
-**Terminal 1 - Backend:**
+To spin up a local MongoDB instance for development:
 
 ```bash
-cd backend
-npm run dev
+docker compose -f docker-compose.yml up -d
 ```
 
-**Terminal 2 - Frontend:**
+---
 
-```bash
-cd frontend
-npm run dev
-```
+## 🎓 Admin Setup
 
-The app will be available at:
+Log in via Google OAuth, then run in MongoDB:
 
-- Frontend: `http://localhost:5173`
-- Backend API: `http://localhost:3000`
-
-## 📚 Project Structure
-
-```
-softwareProject/
-├── backend/
-│   ├── controllers/        # Request handlers
-│   │   ├── admin.controller.js
-│   │   ├── auth.controllers.js
-│   │   ├── report.controller.js
-│   │   └── user.controller.js
-│   ├── middlewares/        # Auth, validation & security
-│   │   ├── auth.middleware.js
-│   │   ├── rateLimiter.middleware.js
-│   │   └── idempotency.middleware.js
-│   ├── models/            # Database schemas
-│   │   ├── claim.model.js
-│   │   ├── item.model.js
-│   │   ├── user.model.js
-│   │   └── report.model.js
-│   ├── routes/            # API routes
-│   │   ├── admin.routes.js
-│   │   ├── auth.routes.js
-│   │   ├── user.routes.js
-│   │   └── report.routes.js
-│   ├── utils/             # Helper utilities
-│   │   ├── redisClient.js
-│   │   ├── email.utils.js
-│   │   └── s3.utils.js
-│   ├── config/            # Configuration
-│   │   ├── email.config.js
-│   │   └── passport.config.js
-│   ├── index.js           # Entry point
-│   ├── utils.js           # Helper functions
-│   └── package.json
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/    # Reusable components
-│   │   │   ├── Navbar.jsx
-│   │   │   ├── Footer.jsx
-│   │   │   ├── Hero.jsx
-│   │   │   ├── ItemCard.jsx
-│   │   │   ├── CategoryFilter.jsx
-│   │   │   ├── DarkModeToggle.jsx
-│   │   │   └── FloatingActionButton.jsx
-│   │   ├── pages/         # Page components
-│   │   │   ├── Home.jsx
-│   │   │   ├── login.jsx
-│   │   │   ├── admin.jsx
-│   │   │   └── Claim_items.jsx
-│   │   ├── context/       # React Context
-│   │   │   └── DarkModeContext.jsx
-│   │   ├── utils/         # Utilities
-│   │   │   ├── api.js     # Axios config
-│   │   │   └── constants.js
-│   │   ├── App.jsx        # Main app component
-│   │   └── main.jsx       # Entry point
-│   └── package.json
-```
-
-## 🔐 Authentication & Authorization
-
-- **Google OAuth 2.0 authentication** with @thapar.edu email restriction
-- **JWT-based sessions** with HTTP-only cookies
-- **Token expiry**: 1 hour
-- **Admin privileges** must be manually set in the database
-- **Protected routes** for user claims and admin dashboard
-- **Email validation**: Only @thapar.edu emails allowed
-
-## 🎯 Key Workflows
-
-### 1. Item Recovery Flow
-
-```
-Admin finds item → Creates entry in system →
-User browses items → Recognizes their item →
-Requests claim (with proof) → Admin cross-questions →
-Admin approves claim → Item marked as claimed →
-Other pending claims auto-rejected → User collects item
-```
-
-### 2. Admin Approval Process
-
-```
-View pending claims → Check claimant details →
-Cross-question in person → Verify ownership proof →
-Approve correct claimant → Add remarks →
-System auto-rejects other claims → Notify users
-```
-
-## 📊 Database Models
-
-### User
-
-- Email (must be @thapar.edu)
-- Name, Roll Number
-- Google ID
-- Profile Picture (Google)
-- isAdmin flag
-
-### Item
-
-- Item ID (auto-generated: ITEM000001)
-- Name, Description, Category
-- Found Location, Date Found
-- Images, Brief Notes
-- isClaimed, Owner Reference
-
-### Claim
-
-- Item Reference
-- Claimant Reference
-- Status (pending/approved/rejected)
-- Admin Remarks
-- Proof Description
-
-## 🎨 Categories & Locations
-
-**Categories:**
-bottle, earpods, watch, phone, wallet, id_card, keys, bag, laptop, charger, books, stationery, glasses, jewelry, clothing, electronics, other
-
-**Locations:**
-COS, Library, LT, near HOSTEL O C D M, near HOSTEL A B J H, near HOSTEL Q PG, near HOSTEL E N G I, near HOSTEL K L, SBI LAWN, G BLOCK, SPORTS AREA, Auditorium, Main Gate, Jaggi
-
-## 🔍 Filter Options
-
-- **Category Filter**: Filter by item type
-- **Location Filter**: Filter by where item was found
-- **Status Filter**: Available or Claimed items
-- **Time Period**: Yesterday, Last Week, Last Month, Last 3 Months
-- **Search**: Search in item name or description
-- **Claim Status**: Pending, Approved, or Rejected claims
-
-## 🛡️ Security Features
-
-- Google OAuth 2.0 integration
-- JWT token authentication
-- @thapar.edu email domain restriction
-- HTTP-only cookies
-- Helmet.js for security headers
-- CORS protection
-- Input validation & sanitization
-- XSS protection with xss-clean
-- MongoDB injection prevention with express-mongo-sanitize
-- HPP (HTTP Parameter Pollution) protection
-- Admin-only routes
-- No future dates for "Date Found"
-- Rate limiting on all endpoints
-- Idempotency support for critical operations
-- Redis-backed session management
-- CSRF protection
-
-## 📖 API Documentation
-
-Detailed API documentation is available in `backend/API_DOCUMENTATION.md`
-
-**Key Endpoints:**
-
-- `GET /api/user/items` - Browse items (public, cached)
-- `GET /api/auth/google` - Initiate Google OAuth
-- `GET /api/auth/google/callback` - OAuth callback
-- `POST /api/auth/logout` - Logout user
-- `GET /api/auth/profile` - Get current user profile
-- `POST /api/user/items/:id/claim` - Claim item (rate limited: 10/hour, idempotent)
-- `GET /api/user/my-claims` - View my claims (cached)
-- `POST /api/admin/items` - Create item (admin, cache invalidation)
-- `PATCH /api/admin/claims/:id/approve` - Approve claim (admin, idempotent)
-
-## 🧪 Testing
-
-**Seed Database:**
-
-```bash
-npm run seed          # Full reset with test data
-npm run add-items     # Add more items
-npm run create-admin  # Create admin user
-```
-
-**Check Database Status:**
-
-```bash
-npm run db-status
-```
-
-## 🎓 Admin Account Setup
-
-### Method 1: Using Seed Script
-
-```bash
-npm run seed
-```
-
-Creates admin@thapar.edu / admin123
-
-### Method 2: Manual Setup
-
-1. Login with your @thapar.edu Google account through the UI
-2. Connect to MongoDB
-3. Run:
-
-```javascript
+```js
 db.users.updateOne(
   { email: "youremail@thapar.edu" },
   { $set: { isAdmin: true } },
 );
 ```
 
-## 🚨 Common Issues & Solutions
+---
 
-**Issue**: Can't see approved claims in Approved Claims tab  
-**Solution**: The filter was set to 'pending' by default. Now fixed to 'all'.
+## 📖 API Reference
 
-**Issue**: Item ID field shows when creating items  
-**Solution**: Item IDs are now auto-generated (ITEM000001 format).
+| Method | Endpoint                         | Auth   |
+| ------ | -------------------------------- | ------ |
+| GET    | `/api/user/items`                | Public |
+| GET    | `/api/user/items/:id`            | Public |
+| GET    | `/api/stats`                     | Public |
+| GET    | `/api/health`                    | Public |
+| GET    | `/api/auth/google`               | —      |
+| POST   | `/api/auth/logout`               | Auth   |
+| GET    | `/api/auth/profile`              | Auth   |
+| POST   | `/api/user/items/:id/claim`      | Auth   |
+| GET    | `/api/user/my-claims`            | Auth   |
+| DELETE | `/api/user/my-claims/:claimId`   | Auth   |
+| GET    | `/api/user/items/:id/my-claim`   | Auth   |
+| GET    | `/api/user/profile`              | Auth   |
+| PATCH  | `/api/user/profile`              | Auth   |
+| POST   | `/api/reports`                   | Auth   |
+| GET    | `/api/reports/my-reports`        | Auth   |
+| GET    | `/api/reports/:id`               | Auth   |
+| PATCH  | `/api/reports/:id`               | Auth   |
+| DELETE | `/api/reports/:id`               | Auth   |
+| PATCH  | `/api/reports/:id/resolve`       | Auth   |
+| GET    | `/api/admin/items`               | Admin  |
+| POST   | `/api/admin/items`               | Admin  |
+| PATCH  | `/api/admin/items/:id`           | Admin  |
+| DELETE | `/api/admin/items/:id`           | Admin  |
+| GET    | `/api/admin/items/:id/claims`    | Admin  |
+| GET    | `/api/admin/items/download-csv`  | Admin  |
+| GET    | `/api/admin/claims`              | Admin  |
+| PATCH  | `/api/admin/claims/:id/approve`  | Admin  |
+| PATCH  | `/api/admin/claims/:id/reject`   | Admin  |
+| GET    | `/api/admin/reports`             | Admin  |
+| GET    | `/api/admin/reports/:id`         | Admin  |
+| PATCH  | `/api/admin/reports/:id/status`  | Admin  |
+| GET    | `/api/admin/users`               | Admin  |
+| GET    | `/api/user/history/:userId`      | Admin  |
+| PATCH  | `/api/admin/users/:id/blacklist` | Admin  |
 
-**Issue**: Claimed items are still clickable  
-**Solution**: Claimed items now have reduced opacity and are non-interactive.
-
-**Issue**: Admin filters not working  
-**Solution**: Backend now properly parses search, category, location, and status filters.
-
-**Issue**: Redis connection errors  
-**Solution**: Redis is optional. If REDIS_URL is not provided, the app works without caching. For production, ensure Redis is running or use a managed service like Redis Cloud.
-
-**Issue**: Rate limit errors during testing  
-**Solution**: Rate limits are configured per IP. For development, limits are relaxed. Use different IPs or wait for the time window to reset.
-
-**Issue**: Duplicate claim submissions  
-**Solution**: Use `Idempotency-Key` header with a unique UUID to prevent duplicate requests.
-
-## 🚀 Performance Optimizations
-
-### Caching Strategy
-
-- **Item listings**: Cached for 5 minutes, auto-invalidated on create/update/delete
-- **User claims**: Cached per user, invalidated when claim status changes
-- **Admin queries**: Optimized with Redis caching
-
-### Database Indexes
-
-- User email index (unique)
-- Item category, location, and date indexes
-- Claim status and item indexes
-- Compound indexes for common query patterns
-
-### Rate Limiting
-
-All endpoints are protected with appropriate rate limits to prevent abuse:
-
-- Authentication: 50 requests per 15 minutes
-- Claims: 10 requests per hour
-- Admin operations: 200 requests per 15 minutes
-
-## 🔄 Idempotency
-
-Critical endpoints support idempotency to prevent duplicate operations:
-
-```javascript
-// Frontend example
-const response = await axios.post("/api/user/items/:id/claim", claimData, {
-  headers: {
-    "Idempotency-Key": "unique-uuid-for-this-request",
-  },
-});
-```
-
-Idempotent endpoints cache responses for 24 hours. Retry with the same key returns the cached response.
-
-## 📝 License
-
-This project is for educational purposes at Thapar Institute of Engineering and Technology.
-
-## 👥 Contributors
-
-- Your Name/Team Name
-
-## 📞 Contact
-
-For issues or questions, contact: [your-email@thapar.edu]
+> ⚡ Critical write endpoints (`/claim`, `POST /reports`, approve/reject) support idempotency via the `Idempotency-Key` request header.
 
 ---
 
-**Made with ❤️ for Thapar Institute of Engineering and Technology**
+## 📞 Contact
+
+[stiwari2_be23@thapar.edu](mailto:stiwari2_be23@thapar.edu)
+
+---
+
+_Made with ❤️ for Thapar Institute of Engineering and Technology_
