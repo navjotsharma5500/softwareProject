@@ -78,6 +78,10 @@ export const userApi = {
   // Claim an item
   claimItem: (itemId) => api.post(`/user/items/${itemId}/claim`),
 
+  // Check whether the current user has a claim for a specific item.
+  // Returns { hasClaim, hasRejectedClaim, claim }.
+  checkMyClaim: (itemId) => api.get(`/user/items/${itemId}/my-claim`),
+
   // Get my claims (with request cancellation support)
   getMyClaims: (params, config = {}) =>
     api.get("/user/my-claims", { params, ...config }),
@@ -163,6 +167,10 @@ export const adminApi = {
 
   // Download CSV data
   downloadCsv: () => api.get("/admin/download-csv", { responseType: "text" }),
+
+  // User management
+  getUsers: (params) => api.get("/admin/users", { params }),
+  toggleBlacklist: (userId) => api.patch(`/admin/users/${userId}/blacklist`),
 };
 
 export default api;

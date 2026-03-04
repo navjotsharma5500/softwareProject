@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { User, Mail, IdCard, Package, RefreshCw, Edit2, Save, X, Phone, FileText } from 'lucide-react';
+import { Package, RefreshCw, FileText } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import { userApi, reportApi } from '../utils/api';
 import { CATEGORY_DISPLAY_NAMES } from '../utils/constants';
 import useFormPersistence from '../hooks/useFormPersistence.jsx';
+import { useCooldown } from '../hooks/useCooldown';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ImageLightbox from '../components/ImageLightbox';
 import { useSearchParams } from 'react-router-dom';
 import ClaimCard from '../components/profile/ClaimCard';
 import ReportCard from '../components/profile/ReportCard';
+import ProfileHeader from '../components/profile/ProfileHeader';
 import Pagination from '../components/admin/Pagination';
 import EmptyState from '../components/EmptyState';
 
@@ -32,8 +34,7 @@ const Profile = () => {
   const isDeletingReportRef = useRef(false);
   const isResolvingReportRef = useRef(false);
 
-  const lastRefreshTime = useRef(0);
-  const [refreshCooldown, setRefreshCooldown] = useState(false);
+  const [refreshCooldown, triggerRefresh] = useCooldown(2000);
 
   const initialSection = searchParams.get('section') === 'reports' ? 'reports' : 'claims';
   const [activeSection, setActiveSection] = useState(initialSection);
@@ -147,16 +148,11 @@ const Profile = () => {
   }, [page, activeSection, fetchMyClaims, fetchMyReports, fetchProfile, searchParams, setSearchParams]);
 
   const handleRefresh = async () => {
-    const now = Date.now();
-    const REFRESH_COOLDOWN = 2000;
-
-    if (now - lastRefreshTime.current < REFRESH_COOLDOWN) {
+    if (!triggerRefresh()) {
       toast.warning('Please wait before refreshing again');
       return;
     }
 
-    lastRefreshTime.current = now;
-    setRefreshCooldown(true);
     setRefreshing(true);
 
     try {
@@ -171,7 +167,6 @@ const Profile = () => {
       toast.error('Failed to refresh');
     } finally {
       setRefreshing(false);
-      setTimeout(() => setRefreshCooldown(false), REFRESH_COOLDOWN);
     }
   };
 
@@ -373,177 +368,21 @@ const Profile = () => {
         </button>
 
         {/* Profile Header */}
-        <div className="rounded-2xl shadow-lg p-4 sm:p-8 mb-8 bg-white overflow-hidden">
-          <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 mb-6">
-            {profileData?.profilePicture ? (
-              <img
-                src={profileData.profilePicture}
-                alt={profileData.name}
-                className="w-24 h-24 rounded-full object-cover border-4 border-gray-300 shadow-lg flex-shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => {
-                  setLightboxImages([{ url: profileData.profilePicture }]);
-                  setLightboxIndex(0);
-                }}
-                onContextMenu={(e) => e.preventDefault()}
-                draggable={false}
-              />
-            ) : (
-              <div className="w-24 h-24 bg-gradient-to-r from-gray-800 to-gray-900 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
-                <User className="text-white" size={48} />
-              </div>
-            )}
-            <div className="flex-1 min-w-0 w-full">
-              <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                <div className="min-w-0 w-full sm:w-auto">
-                  <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-gray-900 break-words">
-                    {profileData?.name || user?.name}
-                  </h1>
-                  <p className="text-sm text-gray-600 break-all">
-                    {profileData?.email || user?.email}
-                  </p>
-                  {user?.isAdmin && (
-                    <span className="inline-block mt-2 px-3 py-1 bg-purple-100 text-purple-800 rounded-lg font-semibold text-sm">
-                      Admin
-                    </span>
-                  )}
-                </div>
-                <div className="flex gap-2 w-full sm:w-auto flex-shrink-0">
-                  {!editing ? (
-                    <button
-                      onClick={() => setEditing(true)}
-                      className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors w-full sm:w-auto"
-                    >
-                      <Edit2 size={18} />
-                      <span>Edit Profile</span>
-                    </button>
-                  ) : (
-                    <>
-                      <button
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-1 sm:flex-initial"
-                      >
-                        <Save size={18} />
-                        <span>{saving ? 'Saving...' : 'Save'}</span>
-                      </button>
-                      <button
-                        onClick={handleCancel}
-                        disabled={saving}
-                        className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-1 sm:flex-initial"
-                      >
-                        <X size={18} />
-                        <span>Cancel</span>
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Editable Fields */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Name */}
-            <div>
-              <label className="flex items-center gap-2 mb-2 font-medium text-gray-700">
-                <User size={18} />
-                Full Name
-              </label>
-              <p className="px-4 py-2 rounded-lg bg-gray-50 text-gray-900 break-words">
-                {profileData?.name || user?.name}
-                <span className="ml-2 text-xs text-gray-400">(Cannot be changed)</span>
-              </p>
-            </div>
-
-            {/* Email (Read-only) */}
-            <div>
-              <label className="flex items-center gap-2 mb-2 font-medium text-gray-700">
-                <Mail size={18} />
-                Email Address
-              </label>
-              <p className="px-4 py-2 rounded-lg bg-gray-50 text-gray-600 break-all">
-                {profileData?.email || user?.email}
-                <span className="ml-2 text-xs">(Cannot be changed)</span>
-              </p>
-            </div>
-
-            {/* Roll Number */}
-            <div>
-              <label className="flex items-center gap-2 mb-2 font-medium text-gray-700">
-                <IdCard size={18} />
-                Roll Number/Email
-              </label>
-              {editing ? (
-                <div>
-                  <input
-                    type="text"
-                    name="rollNo"
-                    value={formData.rollNo || ''}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '');
-                      setFormData((prev) => ({ ...prev, rollNo: value }));
-                    }}
-                    placeholder="Enter 9 digit roll number (e.g., 102303737)"
-                    maxLength="9"
-                    className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
-                  />
-                  {formData.rollNo && (
-                    <p
-                      className={`text-xs mt-1 ${
-                        formData.rollNo.length === 9 ? 'text-green-600' : 'text-red-600'
-                      }`}
-                    >
-                      {formData.rollNo.length} / 9 digits
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <p className="px-4 py-2 rounded-lg bg-gray-50 text-gray-900 break-all">
-                  {profileData?.rollNo && profileData.rollNo !== '0'
-                    ? profileData.rollNo
-                    : 'Not provided'}
-                </p>
-              )}
-            </div>
-
-            {/* Phone */}
-            <div>
-              <label className="flex items-center gap-2 mb-2 font-medium text-gray-700">
-                <Phone size={18} />
-                Phone Number (Optional)
-              </label>
-              {editing ? (
-                <div>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '');
-                      setFormData((prev) => ({ ...prev, phone: value }));
-                    }}
-                    placeholder="Enter 10 digit phone number (e.g., 9876543210)"
-                    maxLength="10"
-                    className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
-                  />
-                  {formData.phone && (
-                    <p
-                      className={`text-xs mt-1 ${
-                        formData.phone.length === 10 ? 'text-green-600' : 'text-red-600'
-                      }`}
-                    >
-                      {formData.phone.length} / 10 digits
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <p className="px-4 py-2 rounded-lg bg-gray-50 text-gray-900 break-all">
-                  {profileData?.phone || 'Not provided'}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
+        <ProfileHeader
+          profileData={profileData}
+          user={user}
+          editing={editing}
+          saving={saving}
+          setEditing={setEditing}
+          handleSave={handleSave}
+          handleCancel={handleCancel}
+          formData={formData}
+          setFormData={setFormData}
+          onImageClick={(images, index) => {
+            setLightboxImages(images);
+            setLightboxIndex(index);
+          }}
+        />
 
         {/* Claims and Reports Section */}
         <div className="rounded-2xl shadow-lg p-4 sm:p-8 bg-white overflow-hidden">

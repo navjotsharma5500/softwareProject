@@ -1,11 +1,19 @@
 import Report from "../models/report.model.js";
+import User from "../models/user.model.js";
+import { withQueryTimeout } from "../middlewares/queryTimeout.middleware.js";
 
-// Get a single report by ID for admin details page
+/**
+ * Get a single lost-item report by ID for the admin detail view.
+ * Populates the reporter's name and email.
+ *
+ * @route GET /admin/reports/:id
+ * @access Protected — admins only
+ */
 export async function getReportById(req, res) {
   try {
-    const report = await Report.findById(req.params.id)
-      .populate("user", "name email")
-      .lean();
+    const report = await withQueryTimeout(
+      Report.findById(req.params.id).populate("user", "name email").lean(),
+    );
     if (!report) {
       return res.status(404).json({ message: "Report not found" });
     }
@@ -16,7 +24,16 @@ export async function getReportById(req, res) {
   }
 }
 
-// List all reports for admin with pagination and filters
+/**
+ * List all lost-item reports for admin oversight with pagination and filters.
+ * Supports filtering by reportId, category, status, and date range.
+ * search — matches itemDescription, category, location, or reporter name/email
+ *   via indexed User pre-query (no JS-level collection scan).
+ * reporterName — resolves matching user IDs from User collection then filters at DB level.
+ *
+ * @route GET /admin/reports
+ * @access Protected — admins only
+ */
 export async function listAllReports(req, res) {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -31,14 +48,32 @@ export async function listAllReports(req, res) {
       query.reportId = { $regex: new RegExp(req.query.reportId, "i") };
     }
 
-    // Search filter (DB pre-filter on item fields; user name/email is handled in JS below)
-    // Only add $or when reporterName is NOT also active, to avoid missing reporter-name-only matches
-    if (req.query.search && !req.query.reporterName) {
+    // reporterName: look up matching user IDs (indexed) and filter at DB level
+    if (req.query.reporterName) {
+      const nameRegex = new RegExp(req.query.reporterName, "i");
+      const matchingUsers = await withQueryTimeout(
+        User.find({ $or: [{ name: nameRegex }, { email: nameRegex }] })
+          .select("_id")
+          .lean(),
+      );
+      query.user = { $in: matchingUsers.map((u) => u._id) };
+    }
+
+    // search: add $or covering item text fields + any matching user IDs
+    if (req.query.search) {
       const searchRegex = new RegExp(req.query.search, "i");
+      const matchingUsers = await withQueryTimeout(
+        User.find({ $or: [{ name: searchRegex }, { email: searchRegex }] })
+          .select("_id")
+          .lean(),
+      );
       query.$or = [
         { itemDescription: { $regex: searchRegex } },
         { category: { $regex: searchRegex } },
         { location: { $regex: searchRegex } },
+        ...(matchingUsers.length
+          ? [{ user: { $in: matchingUsers.map((u) => u._id) } }]
+          : []),
       ];
     }
 
@@ -63,45 +98,9 @@ export async function listAllReports(req, res) {
       }
     }
 
-    // Populate user for JS-level filtering when search or reporterName is active
-    const needsJsFilter = !!(req.query.search || req.query.reporterName);
     let reports, total;
-
-    if (needsJsFilter) {
-      const allReports = await Report.find(query)
-        .populate("user", "name email")
-        .sort({ createdAt: -1 })
-        .lean();
-
-      const filteredReports = allReports.filter((report) => {
-        let match = true;
-
-        if (req.query.search) {
-          const s = req.query.search.toLowerCase();
-          match =
-            match &&
-            (report.user?.name?.toLowerCase().includes(s) ||
-              report.user?.email?.toLowerCase().includes(s) ||
-              report.itemDescription?.toLowerCase().includes(s) ||
-              report.category?.toLowerCase().includes(s) ||
-              report.location?.toLowerCase().includes(s));
-        }
-
-        if (req.query.reporterName) {
-          const n = req.query.reporterName.toLowerCase();
-          match =
-            match &&
-            (report.user?.name?.toLowerCase().includes(n) ||
-              report.user?.email?.toLowerCase().includes(n));
-        }
-
-        return match;
-      });
-
-      total = filteredReports.length;
-      reports = filteredReports.slice(skip, skip + limit);
-    } else {
-      [reports, total] = await Promise.all([
+    [reports, total] = await withQueryTimeout(
+      Promise.all([
         Report.find(query)
           .populate("user", "name email")
           .sort({ createdAt: -1 })
@@ -109,8 +108,8 @@ export async function listAllReports(req, res) {
           .limit(limit)
           .lean(),
         Report.countDocuments(query),
-      ]);
-    }
+      ]),
+    );
 
     const totalPages = Math.ceil(total / limit);
 

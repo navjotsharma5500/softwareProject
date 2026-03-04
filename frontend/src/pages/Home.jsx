@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { RefreshCw, Grid, List, Search, Filter, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { publicApi } from '../utils/api';
 import axios from 'axios';
 import useFormPersistence from '../hooks/useFormPersistence';
+import { useCooldown } from '../hooks/useCooldown';
+import { useDebounce } from '../hooks/useDebounce';
+import { motion } from 'framer-motion';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ItemsView from '../components/home/ItemsView';
 import EmptyState from '../components/EmptyState';
@@ -25,13 +27,10 @@ const Home = () => {
   const itemsContainerRef = useRef(null);
 
   // Rate limiting state
-  const lastRefreshTime = useRef(0);
-  const lastClearFiltersTime = useRef(0);
   const lastPageChangeTime = useRef(0);
-  const searchTimeoutRef = useRef(null);
   const abortControllerRef = useRef(null);
-  const [refreshCooldown, setRefreshCooldown] = useState(false);
-  const [clearCooldown, setClearCooldown] = useState(false);
+  const [refreshCooldown, triggerRefresh] = useCooldown(2000);
+  const [clearCooldown, triggerClearFilters] = useCooldown(1000);
 
   // Tab state (not persisted - always start on available)
   const [activeTab, setActiveTab] = useState('available'); // 'available' or 'claimed'
@@ -52,6 +51,16 @@ const Home = () => {
   useEffect(() => {
     setSearchInput(filters.search || '');
   }, [filters.search]);
+
+  // Debounce search input and sync to filters
+  const debouncedSearch = useDebounce(searchInput, 300);
+
+  useEffect(() => {
+    setFilters(prev => {
+      if (prev.search === debouncedSearch) return prev;
+      return { ...prev, search: debouncedSearch, page: 1 };
+    });
+  }, [debouncedSearch, setFilters]);
   
   const [pagination, setPagination] = useState({
     total: 0,
@@ -119,26 +128,12 @@ const Home = () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
-      // Clear search timeout
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
     };
   }, []);
 
   const handleFilterChange = useCallback((key, value) => {
     if (key === 'search') {
-      setSearchInput(value); // Update local input immediately
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-      searchTimeoutRef.current = setTimeout(() => {
-        setFilters(prev => ({
-          ...prev,
-          search: value,
-          page: 1
-        }));
-      }, 300);
+      setSearchInput(value); // Update local input immediately (debounced via useDebounce)
     } else {
       setFilters(prev => ({
         ...prev,
@@ -158,17 +153,11 @@ const Home = () => {
   };
 
   const handleRefresh = async () => {
-    const now = Date.now();
-    const REFRESH_COOLDOWN = 2000; // 2 seconds
-    
-    // Check if still in cooldown
-    if (now - lastRefreshTime.current < REFRESH_COOLDOWN) {
+    if (!triggerRefresh()) {
       toast.warning('Please wait before refreshing again');
       return;
     }
     
-    lastRefreshTime.current = now;
-    setRefreshCooldown(true);
     setRefreshing(true);
     
     try {
@@ -178,23 +167,14 @@ const Home = () => {
       toast.error('Failed to refresh items');
     } finally {
       setRefreshing(false);
-      // Remove cooldown after delay
-      setTimeout(() => setRefreshCooldown(false), REFRESH_COOLDOWN);
     }
   };
 
   const clearFilters = () => {
-    const now = Date.now();
-    const CLEAR_COOLDOWN = 1000; // 1 second
-    
-    // Check if still in cooldown
-    if (now - lastClearFiltersTime.current < CLEAR_COOLDOWN) {
+    if (!triggerClearFilters()) {
       toast.warning('Please wait before clearing filters again');
       return;
     }
-    
-    lastClearFiltersTime.current = now;
-    setClearCooldown(true);
     
     // Clear persisted filters as well
     if (filtersControls && typeof filtersControls.clear === 'function') filtersControls.clear();
@@ -209,9 +189,6 @@ const Home = () => {
     
     // Clear search input state as well
     setSearchInput('');
-    
-    // Remove cooldown after delay
-    setTimeout(() => setClearCooldown(false), CLEAR_COOLDOWN);
   };
 
   const handlePageChange = (newPage) => {

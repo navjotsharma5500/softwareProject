@@ -1,10 +1,26 @@
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { withQueryTimeout } from "../middlewares/queryTimeout.middleware.js";
 
 dotenv.config();
 
-// Google OAuth callback handler
+// Shared cookie config — single source of truth for both set and clear
+const cookieOptions = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+  path: "/",
+  domain: process.env.NODE_ENV === "production" ? ".guestapp.in" : undefined,
+};
+
+/**
+ * Handle Google OAuth callback.
+ * Signs a 7-day JWT, sets it as an httpOnly cookie, and redirects to frontend.
+ * Supports optional base64-encoded state.redirect for deep-link redirects.
+ *
+ * @route GET /auth/google/callback
+ */
 export const googleCallback = async (req, res) => {
   try {
     if (!req.user) {
@@ -21,15 +37,7 @@ export const googleCallback = async (req, res) => {
     );
 
     // Set token as cookie
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true, // Always use secure in production
-      sameSite: "none", // Required for cross-site cookies
-      maxAge: 7 * 24 * 3600000, // 7 days
-      path: "/",
-      domain:
-        process.env.NODE_ENV === "production" ? ".guestapp.in" : undefined,
-    });
+    res.cookie("token", token, { ...cookieOptions, maxAge: 7 * 24 * 3600000 });
 
     // Extract redirect from state parameter if present
     let redirectUrl = `${process.env.FRONTEND_URL}/login?token=${token}`;
@@ -59,16 +67,15 @@ export const googleCallback = async (req, res) => {
   }
 };
 
+/**
+ * Clear the auth cookie and end the session.
+ *
+ * @route POST /auth/logout
+ * @access Protected — authenticated users only
+ */
 export const logout = async (req, res) => {
   try {
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-      domain:
-        process.env.NODE_ENV === "production" ? ".guestapp.in" : undefined,
-    });
+    res.clearCookie("token", cookieOptions);
     res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     console.error(error);
@@ -76,12 +83,25 @@ export const logout = async (req, res) => {
   }
 };
 
+/**
+ * Return the full user document for the currently authenticated user.
+ * Used by the frontend to hydrate auth context on refresh.
+ *
+ * @route GET /auth/profile
+ * @access Protected — authenticated users only
+ */
 export const getProfile = async (req, res) => {
   const userId = req.user?._id || req.user?.id;
   if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
   try {
-    const user = await User.findById(userId);
+    const user = await withQueryTimeout(
+      User.findById(userId)
+        .select(
+          "name email rollNo phone profilePicture isAdmin isBlacklisted createdAt",
+        )
+        .lean(),
+    );
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

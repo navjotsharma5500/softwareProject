@@ -4,9 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { reportApi } from '../utils/api';
 import { uploadMultipleToImageKit } from '../utils/imagekit';
-import { Upload, X, AlertCircle, ArrowLeft } from 'lucide-react';
-import { CATEGORIES, LOCATIONS, CATEGORY_DISPLAY_NAMES } from '../utils/constants';
+import { AlertCircle, ArrowLeft } from 'lucide-react';
+import { CATEGORIES, CATEGORY_DISPLAY_NAMES } from '../utils/constants';
 import useFormPersistence from '../hooks/useFormPersistence.jsx';
+import ReportFormFields from '../components/report/ReportFormFields';
+import ImageUploadSection from '../components/report/ImageUploadSection';
 
 const ReportLostItem = () => {
   const navigate = useNavigate();
@@ -162,152 +164,14 @@ const ReportLostItem = () => {
         </h1>
 
         <form onSubmit={handleSubmit} className="p-6 rounded-lg shadow-md bg-white">
-          {/* Item Description */}
-          <div className="mb-4">
-            <label className="block mb-2 font-medium text-gray-700">
-              Item Description * <span className="text-xs text-gray-500">({formData.itemDescription.length}/100)</span>
-            </label>
-            <input
-              type="text"
-              name="itemDescription"
-              value={formData.itemDescription}
-              onChange={handleInputChange}
-              maxLength={100}
-              className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
-              placeholder="e.g., Black iPhone 13 Pro"
-              required
-            />
-          </div>
+          <ReportFormFields formData={formData} onChange={handleInputChange} />
 
-          {/* Category */}
-          <div className="mb-4">
-            <label className="block mb-2 font-medium text-gray-700">
-              Category *
-            </label>
-            <input
-              type="text"
-              name="category"
-              list="category-options"
-              value={formData.category}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
-              placeholder="Select or type a category"
-              required
-              maxLength={50}
-            />
-            <datalist id="category-options">
-              {CATEGORIES.map((cat) => (
-                <option key={cat} value={cat} />
-              ))}
-            </datalist>
-            <p className="text-xs mt-1 text-gray-500">
-              {formData.category.length}/50 characters used
-            </p>
-          </div>
-
-          {/* Location */}
-          <div className="mb-4">
-            <label className="block mb-2 font-medium text-gray-700">
-              Where did you lose it? *
-            </label>
-            <input
-              type="text"
-              name="location"
-              list="location-options"
-              value={formData.location}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
-              placeholder="Select or type a location"
-              required
-              maxLength={100}
-            />
-            <datalist id="location-options">
-              {LOCATIONS.map((loc) => (
-                <option key={loc} value={loc} />
-              ))}
-            </datalist>
-            <p className="text-xs mt-1 text-gray-500">
-              {formData.location.length}/100 characters used
-            </p>
-          </div>
-
-          {/* Date Lost */}
-          <div className="mb-4">
-            <label className="block mb-2 font-medium text-gray-700">
-              When did you lose it? *
-            </label>
-            <input
-              type="date"
-              name="dateLost"
-              value={formData.dateLost}
-              onChange={handleInputChange}
-              max={new Date().toISOString().split('T')[0]}
-              className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
-              required
-            />
-          </div>
-
-          {/* Additional Details */}
-          <div className="mb-4">
-            <label className="block mb-2 font-medium text-gray-700">
-              Additional Details <span className="text-xs text-gray-500">({formData.additionalDetails.length}/500)</span>
-            </label>
-            <textarea
-              name="additionalDetails"
-              value={formData.additionalDetails}
-              onChange={handleInputChange}
-              maxLength={500}
-              rows="4"
-              className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900"
-              placeholder="Any distinguishing features, serial numbers, etc."
-            />
-          </div>
-
-          {/* Photo Upload */}
-          <div className="mb-6">
-            <label className="block mb-2 font-medium text-gray-700">
-              Photos (Max 3)
-            </label>
-            
-            {photos.length < 3 && (
-              <label className="flex items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer border-gray-300 hover:border-gray-400 bg-gray-50">
-                <div className="flex flex-col items-center">
-                  <Upload className="w-8 h-8 mb-2 text-gray-500" />
-                  <span className="text-sm text-gray-500">
-                    {uploading ? 'Uploading...' : 'Click to upload photos'}
-                  </span>
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                  disabled={uploading}
-                />
-              </label>
-            )}
-
-            {/* Photo Previews */}
-            <div className="grid grid-cols-3 gap-4 mt-4">
-              {photos.map((photo, index) => (
-                <div key={index} className="relative">
-                  <img
-                    src={photo.url}
-                    alt={`Upload ${index + 1}`}
-                    className="w-full h-24 object-cover rounded-lg"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removePhoto(index)}
-                    className="absolute -top-2 -right-2 p-1 bg-red-500 rounded-full text-white hover:bg-red-600"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
+          <ImageUploadSection
+            photos={photos}
+            uploading={uploading}
+            onUpload={handlePhotoUpload}
+            onRemove={removePhoto}
+          />
 
           {/* Submit Button */}
           <button

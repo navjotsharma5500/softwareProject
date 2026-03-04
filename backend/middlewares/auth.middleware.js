@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import User from "../models/user.model.js";
 
 dotenv.config();
 
@@ -35,4 +36,24 @@ export const adminOnly = (req, res, next) => {
     return res.status(403).json({ message: "Access Denied. Admins only." });
   }
   next();
+};
+
+// Block blacklisted users from performing actions
+// Must run AFTER isAuthenticated (needs req.user._id)
+export const notBlacklisted = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id)
+      .select("isBlacklisted")
+      .lean();
+    if (user?.isBlacklisted) {
+      return res.status(403).json({
+        message:
+          "Your account has been restricted. Please contact the admin to regain access.",
+      });
+    }
+    next();
+  } catch (error) {
+    console.error("notBlacklisted middleware error:", error);
+    next(); // Fail open — don't block on DB error
+  }
 };

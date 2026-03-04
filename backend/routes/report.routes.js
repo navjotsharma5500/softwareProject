@@ -1,5 +1,9 @@
 import express from "express";
-import { isAuthenticated, adminOnly } from "../middlewares/auth.middleware.js";
+import {
+  isAuthenticated,
+  adminOnly,
+  notBlacklisted,
+} from "../middlewares/auth.middleware.js";
 import { idempotencyMiddleware } from "../middlewares/idempotency.middleware.js";
 import {
   uploadLimiter,
@@ -10,18 +14,20 @@ import {
   validateObjectId,
   validateBodySize,
 } from "../middlewares/requestValidator.middleware.js";
+import { getUploadUrls } from "../controllers/report.upload.controller.js";
 import {
-  getUploadUrls,
   createReport,
-  getAllReports,
   getMyReports,
   getReportById,
   updateReport,
   deleteReport,
-  updateReportStatus,
   resolveOwnReport,
+} from "../controllers/report.crud.controller.js";
+import {
+  getAllReports,
+  updateReportStatus,
   getReportsByUserId,
-} from "../controllers/report.controller.js";
+} from "../controllers/report.admin.controller.js";
 
 const router = express.Router();
 
@@ -38,6 +44,7 @@ router.post(
 router.post(
   "/",
   isAuthenticated,
+  notBlacklisted,
   reportLimiter,
   validateBodySize(200),
   idempotencyMiddleware(86400, true),

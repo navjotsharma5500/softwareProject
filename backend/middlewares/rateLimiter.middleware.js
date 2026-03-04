@@ -37,13 +37,14 @@ export const adminLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-export const feedbackLimiter = rateLimit({
-  windowMs: 24 * 60 * 60 * 1000, // 24 hours
-  max: 100, // Limit each IP to 100 per day (increased for development)
-  message: "Too many feedback submissions, please try again later.",
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// feedbackLimiter — reserved for a future feedback/contact route
+// export const feedbackLimiter = rateLimit({
+//   windowMs: 24 * 60 * 60 * 1000,
+//   max: 100,
+//   message: "Too many feedback submissions, please try again later.",
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
 
 // File upload rate limiter - strict to prevent abuse
 export const uploadLimiter = rateLimit({
@@ -75,7 +76,7 @@ export const csvDownloadLimiter = rateLimit({
 // Report creation rate limiter - prevent spam
 export const reportLimiter = rateLimit({
   windowMs: 24 * 60 * 60 * 1000, // 24 hours
-  max: 75 , // Max 10 reports per day per IP
+  max: 75, // Max 10 reports per day per IP
   message: "Too many report submissions, please try again tomorrow.",
   standardHeaders: true,
   legacyHeaders: false,

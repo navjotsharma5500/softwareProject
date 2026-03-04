@@ -30,8 +30,12 @@ const userSchema = new mongoose.Schema(
     profilePicture: {
       type: String, // Google profile picture URL
     },
+    isBlacklisted: {
+      type: Boolean,
+      default: false, // Safe for existing docs — Mongoose returns false if field missing
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Indexes for performance optimization

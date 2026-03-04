@@ -50,7 +50,6 @@ export default function securityMiddleware(app) {
   // 2. Additional Helmet security headers
   app.use(helmet.noSniff()); // Prevent MIME type sniffing
   app.use(helmet.frameguard({ action: "deny" })); // Prevent clickjacking
-  app.use(helmet.xssFilter()); // Enable XSS filter
   app.use(helmet.referrerPolicy({ policy: "strict-origin-when-cross-origin" }));
 
   // 3. Prevent HTTP Parameter Pollution attacks

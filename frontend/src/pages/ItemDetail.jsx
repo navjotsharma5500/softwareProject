@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Calendar, ArrowLeft, User, Trash2 } from 'lucide-react';
+import { MapPin, Calendar, ArrowLeft } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import { publicApi, userApi } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { CATEGORY_DISPLAY_NAMES } from '../utils/constants';
+import ItemClaimSection from '../components/ItemClaimSection';
 
 const ItemDetail = () => {
   const { id } = useParams();
@@ -20,7 +21,7 @@ const ItemDetail = () => {
   const [deletingClaim, setDeletingClaim] = useState(false);
   const [userHasClaimed, setUserHasClaimed] = useState(false);
   const [userClaimId, setUserClaimId] = useState(null);
-  const [checkingClaim, setCheckingClaim] = useState(false);
+  const [checkingClaim, setCheckingClaim] = useState(true);
   const [userHasRejectedClaim, setUserHasRejectedClaim] = useState(false);
   
   // Use refs to prevent spam submissions
@@ -39,26 +40,32 @@ const ItemDetail = () => {
     }
   }, [id]);
 
-  // FIX: Extracted claim check into a standalone reusable async function.
-  // Previously this logic only lived inside a useEffect, making it impossible
-  // to call after claim deletion without duplicating code or adding workarounds.
+  // Uses the dedicated /user/items/:id/my-claim endpoint so we only fetch the
+  // claim that belongs to the current user for THIS item — no more fetching
+  // all 100 claims and filtering client-side. That approach had two failure
+  // modes:
+  //  1. Redis cached the "all claims" response under a different key than the
+  //     Profile page, so the two could show inconsistent data.
+  //  2. Users with >100 claims would never see the matching claim at all.
   const checkUserClaimStatus = useCallback(async (currentItem) => {
-    if (!isAuthenticated || !currentItem) return;
+    if (!isAuthenticated || !currentItem) {
+      setCheckingClaim(false);
+      return;
+    }
 
     setCheckingClaim(true);
     try {
-      const response = await userApi.getMyClaims({ page: 1, limit: 100 });
-      const userClaim = response.data.claims.find(
-        claim => claim.item?._id === currentItem._id && claim.status !== 'rejected'
-      );
-      const rejectedClaim = response.data.claims.find(
-        claim => claim.item?._id === currentItem._id && claim.status === 'rejected'
-      );
-      setUserHasClaimed(!!userClaim);
-      setUserClaimId(userClaim?._id || null);
-      setUserHasRejectedClaim(!!rejectedClaim);
+      const response = await userApi.checkMyClaim(currentItem._id);
+      const { hasClaim, hasRejectedClaim, claim } = response.data;
+      setUserHasClaimed(hasClaim);
+      setUserClaimId(claim?._id || null);
+      setUserHasRejectedClaim(hasRejectedClaim);
     } catch (error) {
+      // If the check fails, default to allowing the user to try claiming.
       console.error('Failed to check claim status:', error);
+      setUserHasClaimed(false);
+      setUserClaimId(null);
+      setUserHasRejectedClaim(false);
     } finally {
       setCheckingClaim(false);
     }
@@ -78,11 +85,6 @@ const ItemDetail = () => {
       toast.info('Please login to claim this item');
       const currentPath = `/item/${id}`;
       navigate(`/login?redirect=${encodeURIComponent(currentPath)}`);
-      return;
-    }
-
-    if (item.isClaimed) {
-      toast.warning('This item has already been claimed');
       return;
     }
 
@@ -275,106 +277,18 @@ const ItemDetail = () => {
               </div>
             )}
 
-            {/* Claim Information */}
-            {item.owner && (
-              <div className="border rounded-lg p-4 mb-6 bg-gray-100 border-gray-200">
-                <div className="flex items-center gap-2 mb-2 text-gray-800">
-                  <User size={20} />
-                  <span className="font-semibold">Claim Status</span>
-                </div>
-                <p className="text-gray-700">
-                  {item.isClaimed 
-                    ? 'This item has been claimed and is no longer available.' 
-                    : 'A claim request has been submitted for this item. Awaiting admin approval.'}
-                </p>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="flex gap-4">
-              {!item.isClaimed && (
-                <button
-                  onClick={handleClaim}
-                  disabled={claiming || checkingClaim || userHasClaimed || userHasRejectedClaim || (item.owner && item.owner._id === user?._id)}
-                  className={`flex-1 py-4 rounded-xl font-semibold text-white transition-all ${
-                    claiming || checkingClaim || userHasClaimed || userHasRejectedClaim || (item.owner && item.owner._id === user?._id)
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-gray-800 to-gray-900 hover:shadow-lg'
-                  }`}
-                >
-                  {checkingClaim
-                    ? 'Checking...'
-                    : claiming 
-                    ? 'Submitting...' 
-                    : userHasRejectedClaim
-                    ? 'Your Claim Was Rejected - Cannot Re-claim'
-                    : userHasClaimed
-                    ? 'Already Claimed - Awaiting Approval'
-                    : (item.owner && item.owner._id === user?._id)
-                    ? 'You already claimed this'
-                    : 'Request to Claim This Item'}
-                </button>
-              )}
-              
-              {item.isClaimed && (
-                <div className="flex-1 py-4 rounded-xl font-semibold text-center bg-gray-200 text-gray-600">
-                  This item is no longer available
-                </div>
-              )}
-            </div>
-
-            {/* Info Text */}
-            {!item.isClaimed && !userHasClaimed && (
-              <p className="mt-4 text-sm text-center text-gray-500">
-               
-                 ⚠️ submitting false claims will result in blacklisting. ⚠️
-              </p>
-            )}
-            
-            {/* User Already Claimed Message */}
-            {userHasClaimed && !item.isClaimed && (
-              <div className="mt-4 border rounded-lg p-4 bg-yellow-50 border-yellow-200">
-                <p className="text-sm text-center mb-3 text-yellow-800">
-                  You have already submitted a claim request for this item. Check your{' '}
-                  <button 
-                    onClick={() => navigate('/profile')}
-                    className="font-semibold underline hover:text-yellow-900"
-                  >
-                    profile page
-                  </button>
-                  {' '}for the status.
-                </p>
-                <div className="flex justify-center">
-                  <button
-                    onClick={handleRemoveClaim}
-                    disabled={deletingClaim}
-                    className={`flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold ${
-                      deletingClaim ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                  >
-                    <Trash2 size={16} />
-                    {deletingClaim ? 'Removing...' : 'Remove Claim'}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* User Rejected Claim Message */}
-            {userHasRejectedClaim && !item.isClaimed && (
-              <div className="mt-4 border rounded-lg p-4 bg-red-50 border-red-200">
-                <p className="text-sm text-center text-red-800">
-                  Your previous claim for this item was rejected by an admin. You cannot re-claim this item.
-                  Please check your{' '}
-                  <button 
-                    onClick={() => navigate('/profile')}
-                    className="font-semibold underline hover:text-red-900"
-                  >
-                    profile page
-                  </button>
-                  {' '}for details or contact the admin office.
-                </p>
-              </div>
-            )}
+            <ItemClaimSection
+              item={item}
+              claiming={claiming}
+              deletingClaim={deletingClaim}
+              checkingClaim={checkingClaim}
+              userHasClaimed={userHasClaimed}
+              userHasRejectedClaim={userHasRejectedClaim}
+              user={user}
+              onClaim={handleClaim}
+              onRemoveClaim={handleRemoveClaim}
+              onNavigateProfile={() => navigate('/profile')}
+            />
           </div>
         </motion.div>
 

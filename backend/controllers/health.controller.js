@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import redis from "../utils/redisClient.js";
 import Item from "../models/item.model.js";
+import { withQueryTimeout } from "../middlewares/queryTimeout.middleware.js";
 
 /**
  * Basic health check endpoint
@@ -35,12 +36,12 @@ export const detailedHealth = async (req, res) => {
       dbState === 1
         ? "connected"
         : dbState === 2
-        ? "connecting"
-        : "disconnected";
+          ? "connecting"
+          : "disconnected";
 
     // Test query performance
     const queryStart = Date.now();
-    await Item.countDocuments().limit(1);
+    await Item.estimatedDocumentCount();
     const queryTime = Date.now() - queryStart;
 
     health.services.database = {
@@ -126,22 +127,15 @@ export const detailedHealth = async (req, res) => {
 };
 
 /**
- * Database connection test endpoint
- * Tests database query performance with actual query
+ * Database connection test endpoint.
+ * Runs estimatedDocumentCount with a 5 s guard to confirm DB is responding.
+ *
+ * @route GET /health/db
  */
 export const databaseHealth = async (req, res) => {
   try {
     const startTime = Date.now();
-
-    // Test query with timeout
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Database query timeout")), 5000)
-    );
-
-    const queryPromise = Item.countDocuments().limit(1);
-
-    await Promise.race([queryPromise, timeoutPromise]);
-
+    await withQueryTimeout(Item.estimatedDocumentCount(), 5000);
     const queryTime = Date.now() - startTime;
 
     res.status(200).json({
@@ -157,16 +151,16 @@ export const databaseHealth = async (req, res) => {
   } catch (error) {
     res.status(503).json({
       status: "error",
-      database: {
-        connected: false,
-        error: error.message,
-      },
+      database: { connected: false, error: error.message },
     });
   }
 };
 
 /**
- * Redis connection test endpoint
+ * Redis connection test endpoint.
+ * Runs a PING + set/get/del round-trip to verify read-write health.
+ *
+ * @route GET /health/redis
  */
 export const redisHealth = async (req, res) => {
   if (!redis) {

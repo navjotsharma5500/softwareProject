@@ -92,47 +92,8 @@ export const sanitizeSearchQuery = (req, res, next) => {
   next();
 };
 
-/**
- * Validate date parameters
- */
-export const validateDateParams = (paramNames = []) => {
-  return (req, res, next) => {
-    for (const paramName of paramNames) {
-      const dateStr = req.query[paramName] || req.body[paramName];
-
-      if (dateStr !== undefined) {
-        const date = new Date(dateStr);
-
-        if (isNaN(date.getTime())) {
-          return res.status(400).json({
-            message: `Invalid ${paramName}. Must be a valid date.`,
-          });
-        }
-
-        // Check if date is reasonable (not too far in past/future)
-        const now = new Date();
-        const tenYearsAgo = new Date(
-          now.getFullYear() - 10,
-          now.getMonth(),
-          now.getDate(),
-        );
-        const oneYearFuture = new Date(
-          now.getFullYear() + 1,
-          now.getMonth(),
-          now.getDate(),
-        );
-
-        if (date < tenYearsAgo || date > oneYearFuture) {
-          return res.status(400).json({
-            message: `${paramName} must be within the last 10 years and not more than 1 year in the future.`,
-          });
-        }
-      }
-    }
-
-    next();
-  };
-};
+// validateDateParams — reserved; not currently wired to any route
+// export const validateDateParams = (paramNames = []) => { ... };
 
 /**
  * Rate limit body size to prevent memory abuse

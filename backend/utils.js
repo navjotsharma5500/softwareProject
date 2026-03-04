@@ -29,7 +29,7 @@ const connectDB = async () => {
 
     // console.log("mongoDB connected successfully", res.connection.host);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     // Removed Jest-specific error handling for production
 
     process.exit(1);

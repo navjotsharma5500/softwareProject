@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Filter, RefreshCw, FileText, Eye } from 'lucide-react';
+import { ArrowLeft, RefreshCw, FileText, Eye } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../utils/api';
 import { CATEGORIES, CATEGORY_DISPLAY_NAMES } from '../utils/constants';
+import { useCooldown } from '../hooks/useCooldown';
+import ReportFilters from '../components/admin/ReportFilters';
 import Pagination from '../components/admin/Pagination';
 import EmptyState from '../components/EmptyState';
 
@@ -43,8 +45,7 @@ function AdminReports() {
   const reportIdTimeoutRef = useRef(null);
   const reporterNameTimeoutRef = useRef(null);
 
-  const lastRefreshTime = useRef(0);
-  const [refreshCooldown, setRefreshCooldown] = useState(false);
+  const [refreshCooldown, triggerRefresh] = useCooldown(2000);
 
   const fetchReports = useCallback(async (currentPage, currentFilters) => {
     setLoading(true);
@@ -121,20 +122,16 @@ function AdminReports() {
   };
 
   const handleRefresh = async () => {
-    const now = Date.now();
-    if (now - lastRefreshTime.current < 2000) {
+    if (!triggerRefresh()) {
       toast.warning('Please wait before refreshing again');
       return;
     }
-    lastRefreshTime.current = now;
-    setRefreshCooldown(true);
     setRefreshing(true);
     try {
       await fetchReports(page, filters);
       toast.success('Reports refreshed!');
     } finally {
       setRefreshing(false);
-      setTimeout(() => setRefreshCooldown(false), 2000);
     }
   };
 
@@ -163,114 +160,19 @@ function AdminReports() {
         {/* Main Card */}
         <div className="rounded-xl shadow-md p-6 bg-white">
 
-          {/* Filter toggle header */}
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-sm font-medium text-gray-700 flex items-center gap-1">
-              <Filter size={14} /> Filters
-            </h3>
-            <button
-              onClick={() => setShowFilters(prev => !prev)}
-              className="text-sm text-gray-600 hover:underline"
-            >
-              {showFilters ? 'Hide Filters' : 'Show Filters'}
-            </button>
-          </div>
-
-          {showFilters && (
-            <div className="mb-6 space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {/* Search */}
-                <div className="relative sm:col-span-2 lg:col-span-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                  <input
-                    type="text"
-                    placeholder="Search by description, location…"
-                    value={searchInput}
-                    onChange={(e) => handleSearchChange(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                  />
-                </div>
-
-                {/* Report ID */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Filter by Report ID…"
-                    value={reportIdInput}
-                    onChange={(e) => handleReportIdChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                  />
-                </div>
-
-                {/* Reporter Name */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Filter by reporter name/email…"
-                    value={reporterNameInput}
-                    onChange={(e) => handleReporterNameChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                  />
-                </div>
-
-                {/* Category */}
-                <select
-                  name="category"
-                  value={filters.category}
-                  onChange={handleFilterChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                >
-                  <option value="">All Categories</option>
-                  {CATEGORIES.map(cat => (
-                    <option key={cat} value={cat}>{CATEGORY_DISPLAY_NAMES[cat] || cat}</option>
-                  ))}
-                </select>
-
-                {/* Status */}
-                <select
-                  name="status"
-                  value={filters.status}
-                  onChange={handleFilterChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                >
-                  <option value="">All Statuses</option>
-                  <option value="active">Active</option>
-                  <option value="resolved">Resolved</option>
-                  <option value="closed">Closed</option>
-                </select>
-              </div>
-
-              {/* Date range row */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 items-end">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Date Lost — From</label>
-                  <input
-                    type="date"
-                    name="startDate"
-                    value={filters.startDate}
-                    onChange={handleFilterChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Date Lost — To</label>
-                  <input
-                    type="date"
-                    name="endDate"
-                    value={filters.endDate}
-                    onChange={handleFilterChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                  />
-                </div>
-                <button
-                  onClick={handleClearFilters}
-                  className="px-4 py-2 rounded-lg font-semibold transition-all bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm"
-                >
-                  Clear Filters
-                </button>
-              </div>
-            </div>
-          )}
+          <ReportFilters
+            showFilters={showFilters}
+            onToggleFilters={() => setShowFilters(prev => !prev)}
+            searchInput={searchInput}
+            onSearchChange={handleSearchChange}
+            reportIdInput={reportIdInput}
+            onReportIdChange={handleReportIdChange}
+            reporterNameInput={reporterNameInput}
+            onReporterNameChange={handleReporterNameChange}
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            onClearFilters={handleClearFilters}
+          />
 
           {/* Table header with count + refresh */}
           <div className="flex justify-between items-center mb-4">

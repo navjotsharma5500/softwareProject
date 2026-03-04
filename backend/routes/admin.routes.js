@@ -11,9 +11,6 @@ import {
   sanitizeSearchQuery,
 } from "../middlewares/requestValidator.middleware.js";
 import {
-  listPendingClaims,
-  approveClaim,
-  rejectClaim,
   listAllItems,
   createItem,
   updateItem,
@@ -21,7 +18,16 @@ import {
   getItemById,
   getItemClaims,
   downloadDataAsCSV,
-} from "../controllers/admin.controller.js";
+} from "../controllers/admin.items.controller.js";
+import {
+  listPendingClaims,
+  approveClaim,
+  rejectClaim,
+} from "../controllers/admin.claims.controller.js";
+import {
+  listUsers,
+  toggleBlacklist,
+} from "../controllers/admin.users.controller.js";
 
 const router = express.Router();
 
@@ -36,8 +42,10 @@ router.get(
   listAllItems,
 );
 // Admin-only endpoint to list all reports with pagination and filtering
-import { listAllReports } from "../controllers/admin.reports.controller.js";
-import { getReportById } from "../controllers/admin.reports.controller.js";
+import {
+  listAllReports,
+  getReportById,
+} from "../controllers/admin.reports.controller.js";
 router.get(
   "/reports",
   isAuthenticated,
@@ -135,6 +143,24 @@ router.get(
   adminOnly,
   csvDownloadLimiter,
   downloadDataAsCSV,
+);
+
+// User management routes
+router.get(
+  "/users",
+  isAuthenticated,
+  adminOnly,
+  adminLimiter,
+  sanitizeSearchQuery,
+  listUsers,
+);
+router.patch(
+  "/users/:id/blacklist",
+  isAuthenticated,
+  adminOnly,
+  adminLimiter,
+  validateObjectId("id"),
+  toggleBlacklist,
 );
 
 export default router;

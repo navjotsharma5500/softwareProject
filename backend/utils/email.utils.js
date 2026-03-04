@@ -1,8 +1,4 @@
 import transporter from "../config/email.config.js";
-import Item from "../models/item.model.js";
-import User from "../models/user.model.js";
-import Claim from "../models/claim.model.js";
-import Report from "../models/report.model.js";
 
 /**
  * Base email template with consistent branding

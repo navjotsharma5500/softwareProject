@@ -1,5 +1,6 @@
 import express from "express";
 import { isAuthenticated, adminOnly } from "../middlewares/auth.middleware.js";
+import { notBlacklisted } from "../middlewares/auth.middleware.js";
 import {
   claimLimiter,
   searchLimiter,
@@ -10,17 +11,19 @@ import {
   validateObjectId,
   sanitizeSearchQuery,
 } from "../middlewares/requestValidator.middleware.js";
+import { listItems, getItemById } from "../controllers/item.controller.js";
 import {
   claimItem,
   myClaims,
-  listItems,
-  getItemById,
-  getUserHistory,
+  deleteClaim,
+  getMyClaimForItem,
+} from "../controllers/claim.controller.js";
+import {
   getProfile,
   updateProfile,
-  deleteClaim,
+  getUserHistory,
   deleteReport,
-} from "../controllers/user.controller.js";
+} from "../controllers/profile.controller.js";
 
 const router = express.Router();
 
@@ -33,11 +36,18 @@ router.get(
   listItems,
 );
 router.get("/items/:id", validateObjectId("id"), getItemById);
+router.get(
+  "/items/:id/my-claim",
+  isAuthenticated,
+  validateObjectId("id"),
+  getMyClaimForItem,
+);
 
 // Protected routes (authentication required)
 router.post(
   "/items/:id/claim",
   isAuthenticated,
+  notBlacklisted,
   claimLimiter,
   idempotencyMiddleware(86400, true), // Strict mode - prevent duplicate claims
   claimItem,

@@ -8,43 +8,33 @@ const DevelopersPage = () => {
   const [developers, setDevelopers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Developer data - Add more developers here in the future
-  const developersData = [
-    {
-      name: "Surya Kant Tiwari",
-      role: "Lead Developer",
-      github: "SuryaKTiwari11",
-      portfolio: "https://surya-tiwari-portfolio.vercel.app/",
-      contributions: [
-        "Portal Architecture & Design",
-        "Backend Development",
-        "Database Design",
-        "Authentication System"
-      ],
-    },
-    {
-      name: "Akshat Kakkar",
-      role: "Product & Strategy Lead",
-      github: "akshatkakkar1",
-      contributions: [
-        "Original Idea & Vision",
-        "Conceptualization of Portal",
-        "Brainstorming Features",
-        "Product Flow Design"
-      ],
-    }
-    // Add more developers here as needed:
-    // {
-    //   name: "Developer Name",
-    //   role: "Role/Position",
-    //   github: "github-username",
-    //   contributions: ["List", "of", "contributions"],
-    //   bio: "Short bio"
-    // }
-  ];
-
   useEffect(() => {
     // Fetch GitHub profile data for each developer
+    const developersData = [
+      {
+        name: "Surya Kant Tiwari",
+        role: "Lead Developer",
+        github: "SuryaKTiwari11",
+        portfolio: "https://surya-tiwari-portfolio.vercel.app/",
+        contributions: [
+          "Portal Architecture & Design",
+          "Backend Development",
+          "Database Design",
+          "Authentication System"
+        ],
+      },
+      {
+        name: "Akshat Kakkar",
+        role: "Product & Strategy Lead",
+        github: "akshatkakkar1",
+        contributions: [
+          "Original Idea & Vision",
+          "Conceptualization of Portal",
+          "Brainstorming Features",
+          "Product Flow Design"
+        ],
+      }
+    ];
     const fetchGitHubData = async () => {
       try {
         const enrichedDevelopers = await Promise.all(
@@ -70,7 +60,7 @@ const DevelopersPage = () => {
                 avatar: `https://github.com/${dev.github}.png`,
                 githubUrl: `https://github.com/${dev.github}`
               };
-            } catch (error) {
+            } catch {
               // Fallback if API fails
               return {
                 ...dev,

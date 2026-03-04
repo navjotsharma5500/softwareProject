@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Users, FileText, Package, TrendingUp, CheckCircle, Search, ClipboardList } from 'lucide-react';
+import { Users, FileText, Package, TrendingUp, CheckCircle, Search, ClipboardList, Ban } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import api from '../utils/api';
 
@@ -24,11 +24,14 @@ const Stats = () => {
     const fetchStats = async () => {
       setLoading(true);
       try {
-        // Check localStorage for 24-hour client-side cache
+        // Check localStorage for 10-minute client-side cache (matches backend Redis TTL).
         const cached = localStorage.getItem('publicStats');
         if (cached) {
           const parsed = JSON.parse(cached);
-          if (parsed.lastUpdated && (Date.now() - new Date(parsed.lastUpdated).getTime() < 86400000)) {
+          const isFresh = parsed.lastUpdated &&
+            (Date.now() - new Date(parsed.lastUpdated).getTime() < 600000);
+          const hasNewFields = parsed.blacklistedUsers !== undefined;
+          if (isFresh && hasNewFields) {
             setStats(parsed);
             setLoading(false);
             return;
@@ -97,7 +100,7 @@ const Stats = () => {
         </div>
 
         {/* Secondary metrics */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 mb-10">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-5 mb-10">
           <StatCard
             icon={Package}
             label="Total Items"
@@ -118,6 +121,12 @@ const Stats = () => {
             icon={ClipboardList}
             label="Claims Filed"
             value={stats.totalClaims}
+          />
+          <StatCard
+            icon={Ban}
+            label="Blacklisted"
+            value={stats.blacklistedUsers ?? 0}
+            sub="Restricted accounts"
           />
         </div>
 

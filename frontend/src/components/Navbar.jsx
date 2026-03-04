@@ -37,10 +37,12 @@ const Navbar = () => {
             {isAuthenticated ? (
               <>
                 {user?.isAdmin && (
-                  <Link to="/admin" className="text-gray-700 hover:text-gray-900 transition-colors flex items-center gap-1">
-                    <LayoutDashboard size={18} />
-                    Dashboard
-                  </Link>
+                  <>
+                    <Link to="/admin" className="text-gray-700 hover:text-gray-900 transition-colors flex items-center gap-1">
+                      <LayoutDashboard size={18} />
+                      Dashboard
+                    </Link>
+                  </>
                 )}
                 <Link to="/profile" className="text-gray-700 hover:text-gray-900 transition-colors flex items-center gap-1">
                   <User size={18} />
@@ -103,12 +105,14 @@ const Navbar = () => {
             {isAuthenticated ? (
               <>
                 {user?.isAdmin && (
-                  <Link to="/admin" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">
-                    <div className="flex items-center gap-2">
-                      <LayoutDashboard size={18} />
-                      Dashboard
-                    </div>
-                  </Link>
+                  <>
+                    <Link to="/admin" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">
+                      <div className="flex items-center gap-2">
+                        <LayoutDashboard size={18} />
+                        Dashboard
+                      </div>
+                    </Link>
+                  </>
                 )}
                 <Link to="/profile" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">
                   Profile
