@@ -1,3 +1,17 @@
+/**
+ * @file AdminReports.jsx
+ * @description Admin page for browsing, filtering, and reviewing all
+ * lost-item reports submitted by users.
+ *
+ * Features:
+ * - Full-text search (debounced 600 ms), category, status, date-range,
+ *   report-ID, and reporter-name filters.
+ * - Paginated results (30 per page) with auto-fetch on filter/page changes.
+ * - 2-second refresh cooldown via `useCooldown`.
+ * - Navigates to `ReportDetail` on row click.
+ *
+ * @component
+ */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, RefreshCw, FileText, Eye } from 'lucide-react';
@@ -9,8 +23,10 @@ import ReportFilters from '../components/admin/ReportFilters';
 import Pagination from '../components/admin/Pagination';
 import EmptyState from '../components/EmptyState';
 
+/** Number of reports fetched per page. */
 const LIMIT = 30;
 
+/** @private Tailwind class map for report status badges. */
 const STATUS_STYLES = {
   active:   'bg-blue-100 text-blue-800',
   resolved: 'bg-green-100 text-green-800',
@@ -27,6 +43,12 @@ const defaultFilters = {
   reporterName: '',
 };
 
+/**
+ * Admin reports list page.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 function AdminReports() {
   const navigate = useNavigate();
   const [reports, setReports] = useState([]);

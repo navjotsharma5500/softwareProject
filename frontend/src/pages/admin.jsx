@@ -1,4 +1,20 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+﻿/**
+ * @file admin.jsx
+ * @description Admin dashboard page with tabbed views for managing found
+ * items, pending claims, approved claims, and rejected claims.
+ *
+ * Features:
+ * - Active tab persisted via `useFormPersistence` (`admin_active_tab`).
+ * - Item list with search (debounced), category filter, and pagination
+ *   (page persisted).
+ * - Item CRUD: create, edit, delete via modal forms.
+ * - Claim management: approve / reject with confirmation.
+ * - CSV export (`adminApi.exportItemsCsv`).
+ * - Image lightbox for item photos.
+ *
+ * @component
+ */
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Plus, CheckCircle, XCircle, Package, Users,
   RefreshCw, AlertCircle, Download, ArrowLeft, FileText, Shield,
@@ -18,6 +34,12 @@ import useDebounce from '../hooks/useDebounce';
 import useCooldown from '../hooks/useCooldown';
 import ImageLightbox from '../components/ImageLightbox';
 
+/**
+ * Admin dashboard page.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 const Admin = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useFormPersistence('admin_active_tab', 'items'); // items, claims, approved-claims, rejected-claims
@@ -30,7 +52,7 @@ const Admin = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState(''); // create, edit, delete, viewClaims, approveClaim
   const [lightboxImages, setLightboxImages] = useState(null);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [lightboxIndex, _setLightboxIndex] = useState(0);
   
   // Pagination state
   const [itemsPage, setItemsPage] = useFormPersistence('admin_items_page', 1);

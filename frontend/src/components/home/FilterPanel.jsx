@@ -1,8 +1,34 @@
+/**
+ * @file FilterPanel.jsx
+ * @description Search bar and collapsible filter panel for the Home page item
+ * grid.
+ *
+ * @component
+ */
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Search, Filter, X } from 'lucide-react';
 import { CATEGORIES, LOCATIONS, TIME_PERIODS } from '../../utils/constants';
 
+/**
+ * Home page search + filter bar.
+ *
+ * The collapsible filter area reveals category, location, and time-period
+ * selects when expanded. The clear button is disabled during its 1-second
+ * cooldown (`clearCooldown`).
+ *
+ * @component
+ * @param {object}   props
+ * @param {string}   props.searchInput      - Raw (unthrottled) search string.
+ * @param {Function} props.onSearchChange   - Called on each keystroke.
+ * @param {boolean}  props.showFilters      - Whether the filter row is visible.
+ * @param {Function} props.onToggleFilters
+ * @param {{category: string, location: string, timePeriod: string}} props.filters
+ * @param {Function} props.onFilterChange   - Called with `(key, value)` on select change.
+ * @param {Function} props.onClearFilters   - Resets all filters and search.
+ * @param {boolean}  props.clearCooldown    - `true` while the clear cooldown is active.
+ * @returns {JSX.Element}
+ */
 const FilterPanel = ({
   searchInput,
   onSearchChange,

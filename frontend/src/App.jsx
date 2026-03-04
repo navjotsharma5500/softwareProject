@@ -1,3 +1,17 @@
+/**
+ * @file App.jsx
+ * @description Root route table for the Lost & Found Portal.
+ *
+ * Route structure:
+ *  - Public  : `/`, `/item/:id`, `/how-it-works`, `/stats`, `/dev`, `/report-lost-item`
+ *  - PublicRoute (redirects away if authenticated): `/login`
+ *  - ProtectedRoute: `/profile`, `/my-reports`, `/report/:id`
+ *  - ProtectedRoute + adminOnly: `/admin`, `/admin/reports`,
+ *    `/admin/report/:id`, `/admin/users`, `/admin/user/:id`
+ *  - Catch-all: `*` → `<NotFound />`
+ *
+ * `<ScrollToTop />` resets window scroll position on every navigation.
+ */
 import React from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar.jsx'

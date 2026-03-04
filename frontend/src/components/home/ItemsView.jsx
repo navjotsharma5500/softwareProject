@@ -1,7 +1,28 @@
+/**
+ * @file ItemsView.jsx
+ * @description Responsive item grid / list switcher for the Home page.
+ *
+ * @component
+ */
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CATEGORY_DISPLAY_NAMES } from '../../utils/constants';
 
+/**
+ * Renders items in either a 3-column grid or a single-column list.
+ *
+ * Each card has an entrance animation (fade-in + slide-up). Clicking a
+ * non-claimed item calls `onNavigate` with the item's `_id`. Claimed items
+ * are rendered at reduced opacity with no click handler.
+ *
+ * @component
+ * @param {object}      props
+ * @param {object[]}    props.items        - Array of item documents.
+ * @param {'grid'|'list'} props.viewMode  - Current display mode.
+ * @param {Function}    props.onNavigate  - Called with `(itemId)` when a card is clicked.
+ * @param {React.Ref}   props.containerRef - Forwarded ref attached to the wrapper element.
+ * @returns {JSX.Element}
+ */
 const ItemsView = ({ items, viewMode, onNavigate, containerRef }) => {
 
   return (

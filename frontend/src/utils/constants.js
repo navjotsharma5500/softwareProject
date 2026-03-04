@@ -1,3 +1,16 @@
+/**
+ * @file constants.js
+ * @description Shared enumerations used for item categories, campus locations,
+ * time-period filters, and their display-name mappings.
+ *
+ * These arrays are consumed by item-creation forms, filter UIs, and the
+ * backend's Joi validation schemas (kept in sync manually).
+ */
+
+/**
+ * All valid item category slugs accepted by the API.
+ * @type {string[]}
+ */
 export const CATEGORIES = [
   "bottle",
   "earpods",
@@ -18,6 +31,10 @@ export const CATEGORIES = [
   "other",
 ];
 
+/**
+ * All campus location names shown in dropdowns and filter UIs.
+ * @type {string[]}
+ */
 export const LOCATIONS = [
   "COS",
   "Library",
@@ -37,6 +54,10 @@ export const LOCATIONS = [
   "Other",
 ];
 
+/**
+ * Time-period filter options for the item search.
+ * @type {Array<{value: string, label: string}>}
+ */
 export const TIME_PERIODS = [
   { value: "yesterday", label: "Yesterday" },
   { value: "day_before_yesterday", label: "Day Before Yesterday" },
@@ -45,6 +66,10 @@ export const TIME_PERIODS = [
   { value: "last_3_months", label: "Last 3 Months" },
 ];
 
+/**
+ * Human-readable display names for each category slug.
+ * @type {Object.<string, string>}
+ */
 export const CATEGORY_DISPLAY_NAMES = {
   bottle: "Water Bottle",
   earpods: "Earpods",

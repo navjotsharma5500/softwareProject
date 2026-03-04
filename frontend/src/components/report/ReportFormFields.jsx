@@ -1,11 +1,25 @@
+/**
+ * @file ReportFormFields.jsx
+ * @description All text and select fields for the Report Lost Item form,
+ * extracted into a presentational component.
+ *
+ * @component
+ */
 import React from 'react';
 import { CATEGORIES, LOCATIONS, CATEGORY_DISPLAY_NAMES } from '../../utils/constants';
 
 /**
- * All text/select fields for the ReportLostItem form.
- * Props:
- *   formData      – { itemDescription, category, location, dateLost, additionalDetails }
- *   onChange      – (e: ChangeEvent) => void
+ * Form fields for the "Report Lost Item" submission form.
+ *
+ * Fields: item description (100-char limit), category (`<datalist>`),
+ * location, date lost, additional details (textarea).
+ *
+ * @component
+ * @param {object}   props
+ * @param {{itemDescription: string, category: string, location: string,
+ *   dateLost: string, additionalDetails: string}} props.formData
+ * @param {Function} props.onChange - Standard DOM `onChange` event handler.
+ * @returns {JSX.Element}
  */
 const ReportFormFields = ({ formData, onChange }) => {
   return (

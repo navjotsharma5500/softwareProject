@@ -1,6 +1,16 @@
+/**
+ * @file ConfirmModal.jsx
+ * @description Reusable confirmation dialog with three visual variants.
+ *
+ * @component
+ */
 import React from 'react';
 import { AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
 
+/**
+ * Style map for the three visual variants.
+ * @private
+ */
 const VARIANTS = {
   danger: {
     iconBg: 'bg-red-100',
@@ -23,20 +33,25 @@ const VARIANTS = {
 };
 
 /**
- * Reusable confirmation modal.
+ * Reusable confirmation modal with three visual variants.
  *
- * Props:
- *   isOpen        – boolean, whether to show the modal
- *   title         – heading text
- *   subtitle      – optional small line beneath the heading
- *   description   – body text
- *   confirmLabel  – label for the confirm button (default: "Confirm")
- *   confirmIcon   – optional lucide icon component to prefix the confirm button
- *   cancelLabel   – label for the cancel button (default: "Cancel")
- *   variant       – 'danger' | 'warning' | 'success' (default: 'danger')
- *   onConfirm     – called when confirm button is clicked
- *   onCancel      – called when cancel button or backdrop is clicked
- *   children      – optional extra content rendered between description and buttons
+ * Dismisses on backdrop click (delegated via `handleBackdrop`). Renders
+ * `null` when `isOpen` is `false` for zero DOM cost when hidden.
+ *
+ * @component
+ * @param {object}            props
+ * @param {boolean}           props.isOpen        - Whether the modal is visible.
+ * @param {string}            props.title         - Modal heading text.
+ * @param {string}           [props.subtitle]     - Smaller sub-heading beneath the title.
+ * @param {string}            props.description   - Body copy.
+ * @param {string}           [props.confirmLabel='Confirm'] - Confirm button label.
+ * @param {React.ElementType}[props.confirmIcon]  - Lucide icon component for the confirm button.
+ * @param {string}           [props.cancelLabel='Cancel']  - Cancel button label.
+ * @param {'danger'|'warning'|'success'} [props.variant='danger'] - Visual colour scheme.
+ * @param {Function}          props.onConfirm     - Called when the confirm button is pressed.
+ * @param {Function}          props.onCancel      - Called when cancel or backdrop is pressed.
+ * @param {React.ReactNode}  [props.children]     - Extra content between description and buttons.
+ * @returns {JSX.Element|null}
  */
 const ConfirmModal = ({
   isOpen,

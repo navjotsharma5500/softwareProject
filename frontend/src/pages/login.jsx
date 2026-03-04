@@ -1,7 +1,27 @@
+/**
+ * @file login.jsx
+ * @description Google OAuth 2.0 login page.
+ *
+ * Flow:
+ * 1. On load checks `?error` query param and displays a localised error
+ *    message (clears after 5 s).
+ * 2. If `?token` is present (redirected back from the OAuth callback), stores
+ *    the JWT in `localStorage` and performs a full page reload so
+ *    `AuthContext` re-initialises with the new token.
+ * 3. The sign-in button redirects to the backend Google auth route.
+ *
+ * @component
+ */
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { LogIn, AlertCircle, ArrowLeft } from 'lucide-react';
 
+/**
+ * Google sign-in page.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 const Login = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();

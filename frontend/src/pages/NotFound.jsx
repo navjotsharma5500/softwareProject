@@ -1,6 +1,21 @@
+/**
+ * @file NotFound.jsx
+ * @description 404 "Not Found" error page.
+ *
+ * Displays a pulsing 404 heading, an SVG illustration, and buttons to
+ * navigate home or go back.
+ *
+ * @component
+ */
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
+/**
+ * 404 Not Found page.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 const NotFound = () => {
   const navigate = useNavigate();
 

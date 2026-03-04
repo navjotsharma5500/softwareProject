@@ -1,6 +1,31 @@
+/**
+ * @file ReportCard.jsx
+ * @description Profile page card for a single lost-item report with delete
+ * and resolve actions.
+ *
+ * @component
+ */
 import React from 'react';
 import { Trash2, CheckCircle } from 'lucide-react';
 
+/**
+ * Renders a single lost-item report from the user's profile.
+ *
+ * Active reports show both "Delete" and "Mark as Resolved" buttons.
+ * Resolved/closed reports show the delete button only.
+ * Photo thumbnails open the lightbox via `onImageClick`.
+ *
+ * @component
+ * @param {object}   props
+ * @param {object}   props.report               - Report document.
+ * @param {Function} props.onDelete             - Called with the report ID.
+ * @param {string|null} props.deletingReport    - ID of the report being deleted.
+ * @param {Function} props.onResolve            - Called with the report ID.
+ * @param {string|null} props.resolvingReport   - ID of the report being resolved.
+ * @param {Object}   props.CATEGORY_DISPLAY_NAMES
+ * @param {Function} props.onImageClick         - Called with `(photos, index)` to open the lightbox.
+ * @returns {JSX.Element}
+ */
 const ReportCard = ({ report, onDelete, deletingReport, onResolve, resolvingReport, CATEGORY_DISPLAY_NAMES, onImageClick }) => {
   const isActive = report.status === 'active';
 

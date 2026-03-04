@@ -1,4 +1,9 @@
 /**
+ * @file scroll.utils.js
+ * @description Viewport scroll helpers used across the frontend.
+ */
+
+/**
  * Scrolls to the items section on the home page,
  * offsetting by the navbar height.
  *

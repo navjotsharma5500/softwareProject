@@ -1,8 +1,24 @@
+/**
+ * @file DevelopersPage.jsx
+ * @description Team page that fetches live GitHub profile data (avatar, bio,
+ * followers, public repos) for each developer and renders contributor cards.
+ *
+ * GitHub API calls are made in parallel via `Promise.all`. The avatar URL
+ * and stats are merged into the static developer definitions at runtime.
+ *
+ * @component
+ */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 
+/**
+ * Developers / team page.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 const DevelopersPage = () => {
   const navigate = useNavigate();
   const [developers, setDevelopers] = useState([]);

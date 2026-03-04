@@ -1,3 +1,19 @@
+/**
+ * @module routes/user
+ * @description User-facing routes mounted at `/api/user`.
+ *
+ * | Method | Path                     | Auth          | Description                              |
+ * |--------|--------------------------|---------------|------------------------------------------|
+ * | GET    | /items                   | — (public)   | List found items with filters/pagination |
+ * | GET    | /items/:id               | —             | Get single item by MongoDB `_id`         |
+ * | GET    | /items/:id/my-claim      | ✔             | Check authenticated user's claim state   |
+ * | POST   | /items/:id/claim         | ✔ + notBlacklisted | Submit a claim (idempotent, strict) |
+ * | GET    | /my-claims               | ✔             | Paginated list of current user's claims  |
+ * | DELETE | /my-claims/:claimId      | ✔             | Delete a pending claim                   |
+ * | GET    | /profile                 | ✔             | Get authenticated user's profile         |
+ * | PATCH  | /profile                 | ✔             | Update name / rollNo / phone             |
+ * | GET    | /history/:userId         | ✔ + adminOnly | Admin: view a user's full history        |
+ */
 import express from "express";
 import { isAuthenticated, adminOnly } from "../middlewares/auth.middleware.js";
 import { notBlacklisted } from "../middlewares/auth.middleware.js";

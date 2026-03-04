@@ -1,25 +1,41 @@
+/**
+ * @file ItemForm.jsx
+ * @description Multi-purpose admin modal for item CRUD and claim
+ * approve/reject actions.
+ *
+ * @component
+ */
 import React from 'react';
 import { CATEGORIES, LOCATIONS } from '../../utils/constants';
 
 /**
  * Modal dialog for create / edit / delete items and approve / reject claims.
- * Props:
- *   showModal       – boolean
- *   onClose         – () => void
- *   modalType       – 'create' | 'edit' | 'delete' | 'approve' | 'reject'
- *   formData        – item form fields
- *   setFormData     – setter
- *   selectedItem    – current item or claim object
- *   submitting      – boolean
- *   onCreateItem    – (e) => void
- *   onUpdateItem    – (e) => void
- *   onDeleteItem    – () => void
- *   remarkText      – string
- *   setRemarkText   – setter
- *   approveCooldown – boolean
- *   rejectCooldown  – boolean
- *   onApproveClaim  – (claimId) => void
- *   onRejectClaim   – (claimId) => void
+ *
+ * The `modalType` prop switches the rendered form/content:
+ * - `'create'` / `'edit'` — item name, category, location, description, date, status fields.
+ * - `'delete'` — confirmation prompt.
+ * - `'approve'` / `'reject'` — claim detail with optional remark textarea;
+ *   uses `approveCooldown` / `rejectCooldown` to prevent rapid re-submission.
+ *
+ * @component
+ * @param {object}   props
+ * @param {boolean}  props.showModal
+ * @param {Function} props.onClose
+ * @param {'create'|'edit'|'delete'|'approve'|'reject'} props.modalType
+ * @param {object}   props.formData         - Item form field values.
+ * @param {Function} props.setFormData
+ * @param {object}   props.selectedItem     - Current item or claim object.
+ * @param {boolean}  props.submitting
+ * @param {Function} props.onCreateItem
+ * @param {Function} props.onUpdateItem
+ * @param {Function} props.onDeleteItem
+ * @param {string}   props.remarkText       - Remark for approve/reject reason.
+ * @param {Function} props.setRemarkText
+ * @param {boolean}  props.approveCooldown  - `true` while approve API call is in-flight.
+ * @param {boolean}  props.rejectCooldown   - `true` while reject API call is in-flight.
+ * @param {Function} props.onApproveClaim   - Called with `(claimId)`.
+ * @param {Function} props.onRejectClaim    - Called with `(claimId)`.
+ * @returns {JSX.Element|null}
  */
 const ItemForm = ({
   showModal,

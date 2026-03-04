@@ -1,3 +1,13 @@
+/**
+ * @file main.jsx
+ * @description Application entry point.
+ *
+ * Bootstraps the React 18 root, wraps the tree with global providers, and
+ * mounts Vercel Analytics + SpeedInsights for production observability.
+ *
+ * Provider order (outer → inner):
+ *   BrowserRouter → AuthProvider → DarkModeProvider → App + ToastContainer
+ */
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'

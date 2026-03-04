@@ -1,8 +1,23 @@
+/**
+ * @file ItemDetail.jsx
+ * @description Full detail view for a single found item, including the
+ * claim / unclaim workflow.
+ *
+ * Features:
+ * - Fetches item by `:id` route param via `publicApi.getItem`.
+ * - Fetches the authenticated user's own claim via the dedicated
+ *   `/user/items/:id/my-claim` endpoint (avoids cache inconsistency from
+ *   fetching all claims client-side).
+ * - Ref guards (`isClaimingRef`, `isDeletingClaimRef`) prevent double
+ *   submission on rapid clicks.
+ * - A `ConfirmModal` gates both claim and remove-claim actions.
+ *
+ * @component
+ */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MapPin, Calendar, ArrowLeft } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
-// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { publicApi, userApi } from '../utils/api';
@@ -11,6 +26,12 @@ import { CATEGORY_DISPLAY_NAMES } from '../utils/constants';
 import ItemClaimSection from '../components/ItemClaimSection';
 import ConfirmModal from '../components/ConfirmModal';
 
+/**
+ * Item detail page.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 const ItemDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();

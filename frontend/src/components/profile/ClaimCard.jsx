@@ -1,7 +1,29 @@
+/**
+ * @file ClaimCard.jsx
+ * @description Profile page card showing a single claim with its item
+ * details, status badge, and a remove-claim action.
+ *
+ * @component
+ */
 import React from 'react';
 import { Clock, Trash2 } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 
+/**
+ * Renders a single claim from the user's profile.
+ *
+ * Shows item name, category, location, found date, submitted date, and
+ * optional admin remark. A "Remove claim" button is shown only for
+ * pending/approved claims and is disabled while `deletingClaim` is `true`.
+ *
+ * @component
+ * @param {object}   props
+ * @param {object}   props.claim                  - Claim document (populated `item`).
+ * @param {Function} props.onRemove               - Called with the claim object to request deletion.
+ * @param {string|null} props.deletingClaim       - ID of the claim currently being deleted.
+ * @param {Object}   props.CATEGORY_DISPLAY_NAMES - Category slug → display name map.
+ * @returns {JSX.Element}
+ */
 const ClaimCard = ({ claim, onRemove, deletingClaim, CATEGORY_DISPLAY_NAMES }) => {
   return (
     <div className="border rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow border-gray-200 bg-white">

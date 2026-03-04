@@ -1,3 +1,12 @@
+/**
+ * @module controllers/admin.reports
+ * @description Admin view controllers for lost-item reports.
+ *
+ * Provides single-report detail lookup and a multi-filter paginated list
+ * supporting: `reportId`, free-text search (description / category /
+ * location / reporter name or email), `category`, `status`, and a
+ * `dateFrom`/`dateTo` date range against `createdAt`.
+ */
 import Report from "../models/report.model.js";
 import User from "../models/user.model.js";
 import { withQueryTimeout } from "../middlewares/queryTimeout.middleware.js";

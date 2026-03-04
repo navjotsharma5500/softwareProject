@@ -1,6 +1,27 @@
+/**
+ * @file CategoryFilter.jsx
+ * @description Horizontally-scrolling animated chip bar for filtering items
+ * by category on the Home page.
+ *
+ * @component
+ */
 import React from 'react';
 import { motion } from 'framer-motion';
 
+/**
+ * Renders a staggered list of animated category filter chips.
+ *
+ * The "All" chip is always prepended. Selecting a chip calls
+ * `setActiveCategory` with the chip value; the active chip is visually
+ * highlighted.
+ *
+ * @component
+ * @param {object}   props
+ * @param {string[]} props.categories       - Array of category slug strings.
+ * @param {string}   props.activeCategory   - Currently selected slug (or `''` for all).
+ * @param {Function} props.setActiveCategory - Called with the new slug when a chip is clicked.
+ * @returns {JSX.Element}
+ */
 const CategoryFilter = ({ categories, activeCategory, setActiveCategory }) => {
   const containerVariants = {
     hidden: { opacity: 0 },

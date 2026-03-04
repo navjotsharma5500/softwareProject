@@ -1,3 +1,21 @@
+/**
+ * @module utils/s3
+ * @description ImageKit file-management utilities for the Lost & Found Portal.
+ *
+ * This module replaced an earlier AWS S3 implementation; the original S3 code
+ * is preserved below as commented-out blocks for reference.
+ *
+ * Public API:
+ *  - {@link generateUploadUrl}  – returns signed client-side upload params
+ *  - {@link deleteFile}         – deletes a file from ImageKit by `fileId`
+ *  - {@link extractKeyFromUrl}  – extracts `fileId` / path from a CDN URL
+ *  - {@link uploadFileBuffer}   – server-side buffer upload (used by maintenance scripts)
+ *
+ * Required environment variables:
+ *  - `IMAGEKIT_PUBLIC_KEY`
+ *  - `IMAGEKIT_PRIVATE_KEY`
+ *  - `IMAGEKIT_URL_ENDPOINT`
+ */
 // ============================
 // OLD S3 CODE (DEPRECATED - Now using ImageKit)
 // ============================
@@ -94,19 +112,33 @@ const imagekit = new ImageKit({
 });
 
 /**
- * Generate authentication parameters for client-side upload to ImageKit
- * @param {string} folder - Folder name in ImageKit
- * @param {string} fileType - MIME type of the file
- * @returns {Promise<{token: string, expire: number, signature: string, folder: string, fileName: string}>}
+ * Generates ImageKit client-side upload authentication parameters.
+ *
+ * The frontend uses the returned params to upload directly to ImageKit
+ * without routing the file through this server.
+ *
+ * @async
+ * @param {string} [folder='reports'] - Destination folder in ImageKit.
+ * @param {string} fileType           - MIME type of the file (informational only).
+ * @returns {Promise<{
+ *   token: string,
+ *   expire: number,
+ *   signature: string,
+ *   folder: string,
+ *   fileName: string,
+ *   publicKey: string,
+ *   urlEndpoint: string
+ * }>} Auth params to pass to the ImageKit upload SDK on the client.
+ * @throws {Error} If ImageKit auth parameter generation fails.
  */
 export const generateUploadUrl = async (folder = "reports", fileType) => {
   try {
     // Generate unique filename
     const fileName = `${crypto.randomBytes(16).toString("hex")}-${Date.now()}`;
-    
+
     // Get authentication parameters for client-side upload
     const authParams = imagekit.getAuthenticationParameters();
-    
+
     return {
       token: authParams.token,
       expire: authParams.expire,
@@ -123,8 +155,15 @@ export const generateUploadUrl = async (folder = "reports", fileType) => {
 };
 
 /**
- * Delete a file from ImageKit
- * @param {string} fileId - The ImageKit file ID to delete
+ * Deletes a file from ImageKit by its `fileId`.
+ *
+ * `fileId` is returned by ImageKit on upload and stored alongside the
+ * file URL in {@link module:models/report~ReportPhoto}.
+ *
+ * @async
+ * @param {string} fileId - The ImageKit file ID to delete.
+ * @returns {Promise<void>}
+ * @throws {Error} If the ImageKit API call fails.
  */
 export const deleteFile = async (fileId) => {
   try {
@@ -137,18 +176,22 @@ export const deleteFile = async (fileId) => {
 };
 
 /**
- * Extract ImageKit file ID from full URL
- * @param {string} url - Full ImageKit URL
- * @returns {string} - ImageKit file ID (extracted from URL path)
+ * Extracts a file identifier from a full ImageKit CDN URL by returning the
+ * last path segment.
+ *
+ * @param {string} url - Full ImageKit URL (e.g.
+ *   `https://ik.imagekit.io/abc/reports/file.jpg`).
+ * @returns {string|null} Last path segment, or `null` if the URL is falsy or
+ *   cannot be parsed.
  */
 export const extractKeyFromUrl = (url) => {
   if (!url) return null;
-  
+
   // ImageKit URLs typically look like: https://ik.imagekit.io/your_id/folder/filename.jpg
   // We need to extract the file ID which is usually in the path after the domain
   try {
     const urlObj = new URL(url);
-    const pathParts = urlObj.pathname.split('/');
+    const pathParts = urlObj.pathname.split("/");
     // Return the last part as the file identifier
     return pathParts[pathParts.length - 1];
   } catch (error) {
@@ -158,13 +201,21 @@ export const extractKeyFromUrl = (url) => {
 };
 
 /**
- * Upload a file buffer directly to ImageKit (server-side upload)
- * @param {Buffer} fileBuffer - File buffer to upload
- * @param {string} fileName - Name of the file
- * @param {string} folder - Folder path in ImageKit
+ * Uploads a raw file buffer to ImageKit from the server side.
+ * Used by maintenance/migration scripts rather than the main API flow.
+ *
+ * @async
+ * @param {Buffer} fileBuffer        - Raw binary buffer of the file to upload.
+ * @param {string} fileName          - Desired file name in ImageKit.
+ * @param {string} [folder='reports']- Destination folder in ImageKit.
  * @returns {Promise<{fileUrl: string, fileId: string}>}
+ * @throws {Error} If the ImageKit upload fails.
  */
-export const uploadFileBuffer = async (fileBuffer, fileName, folder = "reports") => {
+export const uploadFileBuffer = async (
+  fileBuffer,
+  fileName,
+  folder = "reports",
+) => {
   try {
     const result = await imagekit.upload({
       file: fileBuffer,

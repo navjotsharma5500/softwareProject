@@ -1,10 +1,18 @@
 /**
- * Shared application-level constants and pure helper functions.
- * Used by both report.controller.js and admin.controller.js.
- * Keep this file free of DB / cache / network imports.
+ * @module utils/helpers
+ * @description Shared application-level constants and pure helper functions.
+ *
+ * Used by report and admin controllers. This file intentionally has
+ * **no** DB, cache, or network imports so it remains fast and testable in isolation.
+ *
+ * Exports:
+ *  - {@link VALID_CATEGORIES}      – canonical category slug array
+ *  - {@link CATEGORY_DISPLAY_NAMES}– slug → human-readable name map
+ *  - {@link sanitizeCategory}      – normalises raw category input
+ *  - {@link paginationMeta}        – builds standard pagination envelope
  */
 
-// Canonical category slugs — must match frontend constants.js and all models.
+/** Canonical category slugs — must match `frontend/src/utils/constants.js`. */
 export const VALID_CATEGORIES = [
   "bottle",
   "earpods",
@@ -25,7 +33,7 @@ export const VALID_CATEGORIES = [
   "other",
 ];
 
-// Human-readable display names keyed by slug (backward-compat input normalisation).
+/** Human-readable display names keyed by canonical slug. */
 export const CATEGORY_DISPLAY_NAMES = {
   bottle: "Water Bottle",
   earpods: "Earpods",

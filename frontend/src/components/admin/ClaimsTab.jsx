@@ -1,26 +1,58 @@
+/**
+ * @file ClaimsTab.jsx
+ * @description Tabbed claims list for the admin dashboard, shared across
+ * pending, approved, and rejected views via the `status` prop.
+ *
+ * @component
+ */
 import React from 'react';
 import { Search, RefreshCw, Users, CheckCircle, XCircle } from 'lucide-react';
 import ClaimCard from './ClaimCard';
 import Pagination from './Pagination';
 
+/** @private Heading text keyed by claim status. */
 const HEADING_MAP = {
   pending: 'Pending Claims',
   approved: 'Approved Claims',
   rejected: 'Rejected Claims',
 };
 
+/** @private Refresh button title keyed by claim status. */
 const REFRESH_TITLE_MAP = {
   pending: 'Refresh claims',
   approved: 'Refresh approved claims',
   rejected: 'Refresh rejected claims',
 };
 
+/** @private Empty state config (icon + message) keyed by claim status. */
 const EMPTY_STATE = {
   pending: { Icon: Users, message: 'No pending claims' },
   approved: { Icon: CheckCircle, message: 'No approved claims' },
   rejected: { Icon: XCircle, message: 'No rejected claims' },
 };
 
+/**
+ * Paginated claims list with search, filter toggle, and refresh.
+ *
+ * Shared by all three claim status tabs in the admin dashboard; the
+ * `status` prop controls heading copy, empty-state message, and whether
+ * approve/reject action buttons are shown on each claim card.
+ *
+ * @component
+ * @param {object}   props
+ * @param {'pending'|'approved'|'rejected'} props.status
+ * @param {object[]} props.claims
+ * @param {boolean}  props.loading
+ * @param {object}   props.claimsPagination       - Pagination meta object.
+ * @param {number}   props.claimsPage
+ * @param {Function} props.setClaimsPage
+ * @param {string}   props.claimSearchInput        - Raw (unthrottled) search input.
+ * @param {Function} props.handleClaimSearchChange
+ * @param {boolean}  props.showClaimFilters
+ * @param {Function} props.setShowClaimFilters
+ * @param {Function} props.onClearFilters
+ * @returns {JSX.Element}
+ */
 const ClaimsTab = ({
   status,
   claims,

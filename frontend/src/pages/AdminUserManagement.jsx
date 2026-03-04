@@ -1,3 +1,18 @@
+/**
+ * @file AdminUserManagement.jsx
+ * @description Admin page for searching, filtering, sorting, and managing
+ * platform users, including blacklist toggling.
+ *
+ * Features:
+ * - Search with 500 ms debounce (on the input side), active/blacklisted
+ *   filter, and name/date sort options.
+ * - Paginated table (20 per page).
+ * - Blacklist / unblacklist action guarded by `ConfirmModal`.
+ * - Manual refresh with 2-second cooldown.
+ * - Navigates to `UserActivityHistory` for per-user drill-down.
+ *
+ * @component
+ */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, RefreshCw, User, Ban, CheckCircle, ExternalLink, Shield, SlidersHorizontal } from 'lucide-react';
@@ -6,8 +21,15 @@ import { toast } from 'react-toastify';
 import { adminApi } from '../utils/api';
 import Pagination from '../components/admin/Pagination';
 
+/** Number of users fetched per page. */
 const LIMIT = 20;
 
+/**
+ * Admin user management page.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 function AdminUserManagement() {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);

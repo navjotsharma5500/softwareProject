@@ -1,3 +1,10 @@
+/**
+ * @file ImageLightbox.jsx
+ * @description Fullscreen image lightbox with keyboard navigation, backdrop
+ * dismissal, and image-scraping protections.
+ *
+ * @component
+ */
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 

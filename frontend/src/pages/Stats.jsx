@@ -1,9 +1,30 @@
+/**
+ * @file Stats.jsx
+ * @description Public statistics dashboard showing platform-wide metrics.
+ *
+ * Implements a client-side 10-minute cache in `localStorage` (key
+ * `publicStats`) that mirrors the backend Redis TTL. Stats are refreshed
+ * only when the cached entry is stale or missing the `blacklistedUsers` field
+ * introduced in a later schema version.
+ *
+ * @component
+ */
 import React, { useEffect, useState } from 'react';
 import { Users, FileText, Package, TrendingUp, CheckCircle, Search, ClipboardList, Ban } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import api from '../utils/api';
 
-// eslint-disable-next-line no-unused-vars
+/**
+ * Individual metric card.
+ *
+ * @component
+ * @param {object}            props
+ * @param {React.ElementType} props.icon  - Lucide icon component.
+ * @param {string}            props.label - Metric label.
+ * @param {number|string}     props.value - Metric value.
+ * @param {string}           [props.sub]  - Optional sub-label below the value.
+ * @returns {JSX.Element}
+ */
 const StatCard = ({ icon: Icon, label, value, sub }) => (
   <div className="rounded-xl border border-gray-200 p-6 bg-white shadow-sm flex flex-col gap-3">
     <div className="flex items-center gap-2 text-gray-500">
@@ -15,6 +36,12 @@ const StatCard = ({ icon: Icon, label, value, sub }) => (
   </div>
 );
 
+/**
+ * Public statistics page.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 const Stats = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);

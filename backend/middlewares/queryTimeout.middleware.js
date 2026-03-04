@@ -1,13 +1,20 @@
 /**
- * Query timeout middleware to prevent long-running database queries
- * Adds timeout protection to prevent EC2 overload
+ * @module middlewares/queryTimeout
+ * @description Timeout guards for Mongoose queries and HTTP request/response cycles.
+ *
+ * Prevents slow MongoDB queries from tying up the Node.js event loop or
+ * exhausting the connection pool under load. All three helpers use
+ * `Promise.race` against a rejection timeout so the caller can handle
+ * the `"Database query timeout"` error message with a 504 response.
  */
 
 /**
- * Wraps a database query promise with timeout protection
- * @param {Promise} queryPromise - The database query promise
- * @param {number} timeoutMs - Timeout in milliseconds (default: 10000 = 10s)
- * @returns {Promise} - Race between query and timeout
+ * Races a Mongoose query promise against a rejection timeout.
+ *
+ * @param {Promise<any>} queryPromise - The Mongoose query or `Promise.all` batch.
+ * @param {number} [timeoutMs=10000]  - Milliseconds before the timeout fires.
+ * @returns {Promise<any>} Resolves with the query result or rejects with
+ *   `Error('Database query timeout')`.
  */
 export const withQueryTimeout = (queryPromise, timeoutMs = 10000) => {
   const timeoutPromise = new Promise((_, reject) =>
@@ -18,8 +25,14 @@ export const withQueryTimeout = (queryPromise, timeoutMs = 10000) => {
 };
 
 /**
- * Express middleware to set a global request timeout
- * @param {number} timeoutMs - Timeout in milliseconds (default: 30000 = 30s)
+ * Express middleware that caps the total allowed request/response duration.
+ *
+ * Registers `setTimeout` on both `req` and `res` to handle the case where
+ * either the inbound stream stalls or the server takes too long to write the
+ * full response. Sends HTTP 504 if the deadline is exceeded.
+ *
+ * @param {number} [timeoutMs=30000] - Maximum allowed duration in milliseconds.
+ * @returns {import('express').RequestHandler}
  */
 export const requestTimeout = (timeoutMs = 30000) => {
   return (req, res, next) => {
@@ -48,10 +61,16 @@ export const requestTimeout = (timeoutMs = 30000) => {
 };
 
 /**
- * Helper to execute multiple queries with timeout protection
- * @param {Array<Promise>} queries - Array of query promises
- * @param {number} timeoutMs - Timeout in milliseconds
- * @returns {Promise<Array>} - Results from all queries
+ * Executes multiple independent queries in parallel with a shared timeout.
+ *
+ * Internally calls `Promise.all(queries)` and races it against a timeout
+ * so all queries either complete within the window or the entire batch fails.
+ *
+ * @async
+ * @param {Array<Promise<any>>} queries  - Array of Mongoose query promises.
+ * @param {number} [timeoutMs=10000]     - Shared deadline in milliseconds.
+ * @returns {Promise<Array<any>>} Resolves with an array of results in the
+ *   same order as `queries`, or rejects with `Error('Batch query timeout')`.
  */
 export const executeWithTimeout = async (queries, timeoutMs = 10000) => {
   const timeoutPromise = new Promise((_, reject) =>

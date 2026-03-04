@@ -1,21 +1,30 @@
+/**
+ * @file ProfileHeader.jsx
+ * @description Profile page header card containing avatar, name, admin badge,
+ * edit/save/cancel controls, and the field grid.
+ *
+ * @component
+ */
 import React from 'react';
 import { User, Edit2, Save, X } from 'lucide-react';
 import EditProfileForm from './EditProfileForm';
 
 /**
- * Profile header panel: avatar, name/email, admin badge, edit/save/cancel
- * buttons, and the field grid (via EditProfileForm).
- * Props:
- *   profileData  – user object from server
- *   user         – auth context user
- *   editing      – boolean
- *   saving       – boolean
- *   setEditing   – setter
- *   handleSave   – () => void
- *   handleCancel – () => void
- *   formData     – { rollNo, phone }
- *   setFormData  – setter
- *   onImageClick – (images, index) => void  (opens lightbox)
+ * Profile header panel with avatar, info, and inline edit controls.
+ *
+ * @component
+ * @param {object}   props
+ * @param {object}   props.profileData   - User object returned from server.
+ * @param {object}   props.user          - Auth context user.
+ * @param {boolean}  props.editing       - Whether the form is in edit mode.
+ * @param {boolean}  props.saving        - `true` while the save API call is in-flight.
+ * @param {Function} props.setEditing
+ * @param {Function} props.handleSave
+ * @param {Function} props.handleCancel
+ * @param {{rollNo: string, phone: string}} props.formData
+ * @param {Function} props.setFormData
+ * @param {Function} props.onImageClick  - Called with `(images, index)` to open the lightbox.
+ * @returns {JSX.Element}
  */
 const ProfileHeader = ({
   profileData,

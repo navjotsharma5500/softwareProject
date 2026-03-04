@@ -1,3 +1,14 @@
+/**
+ * @file UserActivityHistory.jsx
+ * @description Admin drill-down page showing all claims and reports for a
+ * specific user, with the ability to toggle the user's blacklist status.
+ *
+ * The `userName` is accepted from `useLocation` state when navigating from
+ * the admin page (avoiding an extra API call). The `fromTab` state is used
+ * to restore the correct tab on the admin page when navigating back.
+ *
+ * @component
+ */
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -7,6 +18,12 @@ import { userApi, adminApi } from '../utils/api';
 import { CATEGORY_DISPLAY_NAMES } from '../utils/constants';
 import ImageLightbox from '../components/ImageLightbox';
 
+/**
+ * User activity history page (admin only).
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 const UserActivityHistory = () => {
   const { userId } = useParams();
   const navigate = useNavigate();

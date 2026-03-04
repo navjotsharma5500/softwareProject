@@ -1,7 +1,23 @@
+/**
+ * @file DarkModeToggle.jsx
+ * @description Fixed-position dark/light mode toggle button.
+ *
+ * @component
+ */
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Moon, Sun } from 'lucide-react';
 
+/**
+ * Renders a fixed button in the top-right area that flips between dark and
+ * light mode. The icon rotates 180° when switching from light to dark.
+ *
+ * @component
+ * @param {object}   props
+ * @param {boolean}  props.darkMode     - Current dark mode state.
+ * @param {Function} props.setDarkMode  - Setter from {@link DarkModeContext}.
+ * @returns {JSX.Element}
+ */
 const DarkModeToggle = ({ darkMode, setDarkMode }) => {
   return (
     <motion.button

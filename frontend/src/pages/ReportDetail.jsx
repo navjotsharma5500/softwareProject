@@ -1,3 +1,10 @@
+/**
+ * @file ReportDetail.jsx
+ * @description Admin-facing detailed view of a single lost-item report,
+ * fetched via the `/admin/reports/:id` endpoint.
+ *
+ * @component
+ */
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, Mail, Tag, MapPin, Calendar, Clock, FileText, Image as ImageIcon, Info } from 'lucide-react';
@@ -7,12 +14,23 @@ import api from '../utils/api';
 import ImageLightbox from '../components/ImageLightbox.jsx';
 import { CATEGORY_DISPLAY_NAMES } from '../utils/constants';
 
+/** @private Tailwind class map for report status badges. */
 const STATUS_STYLES = {
   active:   'bg-blue-100 text-blue-800',
   resolved: 'bg-green-100 text-green-800',
   closed:   'bg-gray-100 text-gray-700',
 };
 
+/**
+ * Compact icon + label + value row used throughout the detail card.
+ *
+ * @component
+ * @param {object}            props
+ * @param {React.ElementType} props.icon  - Lucide icon component.
+ * @param {string}            props.label - Field name.
+ * @param {string}            props.value - Field value; renders `—` when falsy.
+ * @returns {JSX.Element}
+ */
 const DetailRow = ({ icon: Icon, label, value }) => (
   <div className="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0">
     <Icon size={16} className="text-gray-400 mt-0.5 shrink-0" />
@@ -23,6 +41,12 @@ const DetailRow = ({ icon: Icon, label, value }) => (
   </div>
 );
 
+/**
+ * Report detail page — full admin view of a single lost-item report.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 const ReportDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();

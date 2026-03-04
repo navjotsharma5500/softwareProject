@@ -1,7 +1,24 @@
+/**
+ * @file FloatingActionButton.jsx
+ * @description Fixed-position floating action button with pulse animation
+ * and a tooltip for reporting lost/found items.
+ *
+ * @component
+ */
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
 
+/**
+ * Animated FAB fixed to the bottom-right of the viewport.
+ *
+ * Entrance: scale from 0 to 1. Hover: scale 1.1. Tap: scale 0.9.
+ * The inner `Plus` icon rotates 90° on hover. A tooltip slides in from the
+ * right on hover. A repeating pulse ring animates beneath the button.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 const FloatingActionButton = () => {
   return (
     <motion.button

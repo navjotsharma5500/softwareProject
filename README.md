@@ -129,9 +129,13 @@ cd frontend && npm run dev
 - 🌐 Frontend: http://localhost:5173
 - ⚙️ API: http://localhost:3000
 
----
+### 5. Seed test data (optional)
 
-## 🐳 Local MongoDB (Docker)
+```bash
+cd backend && npm run seed
+```
+
+Inserts 1 admin user, 2 regular users, 15 found items, 5 lost-item reports, and 4 claims in mixed states into your local database.
 
 To spin up a local MongoDB instance for development:
 
@@ -162,6 +166,7 @@ db.users.updateOne(
 | GET    | `/api/user/items/:id`            | Public |
 | GET    | `/api/stats`                     | Public |
 | GET    | `/api/health`                    | Public |
+| GET    | `/api/health/detailed`           | Public |
 | GET    | `/api/auth/google`               | —      |
 | POST   | `/api/auth/logout`               | Auth   |
 | GET    | `/api/auth/profile`              | Auth   |
@@ -172,6 +177,7 @@ db.users.updateOne(
 | GET    | `/api/user/profile`              | Auth   |
 | PATCH  | `/api/user/profile`              | Auth   |
 | POST   | `/api/reports`                   | Auth   |
+| POST   | `/api/reports/upload-urls`       | Auth   |
 | GET    | `/api/reports/my-reports`        | Auth   |
 | GET    | `/api/reports/:id`               | Auth   |
 | PATCH  | `/api/reports/:id`               | Auth   |
@@ -182,7 +188,7 @@ db.users.updateOne(
 | PATCH  | `/api/admin/items/:id`           | Admin  |
 | DELETE | `/api/admin/items/:id`           | Admin  |
 | GET    | `/api/admin/items/:id/claims`    | Admin  |
-| GET    | `/api/admin/items/download-csv`  | Admin  |
+| GET    | `/api/admin/download-csv`        | Admin  |
 | GET    | `/api/admin/claims`              | Admin  |
 | PATCH  | `/api/admin/claims/:id/approve`  | Admin  |
 | PATCH  | `/api/admin/claims/:id/reject`   | Admin  |

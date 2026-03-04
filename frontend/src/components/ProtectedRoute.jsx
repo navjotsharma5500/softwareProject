@@ -1,7 +1,30 @@
+/**
+ * @file ProtectedRoute.jsx
+ * @description Route guard that requires authentication (and optionally admin
+ * privileges) before rendering its children.
+ *
+ * @component
+ */
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+/**
+ * Protects a route from unauthenticated or insufficiently privileged access.
+ *
+ * Behaviour:
+ *  - While auth is loading: renders a centred spinner.
+ *  - Not logged in: redirects to `/login?redirect=<current path>` so
+ *    the user is sent back after authentication.
+ *  - Logged in but not admin (when `adminOnly` is `true`): redirects to `/`.
+ *  - Otherwise: renders `children`.
+ *
+ * @component
+ * @param {object}  props
+ * @param {React.ReactNode} props.children   - The route content to protect.
+ * @param {boolean} [props.adminOnly=false]  - When `true`, also requires `isAdmin`.
+ * @returns {JSX.Element}
+ */
 export const ProtectedRoute = ({ children, adminOnly = false }) => {
   const { user, loading, isAdmin } = useAuth();
   const location = useLocation();

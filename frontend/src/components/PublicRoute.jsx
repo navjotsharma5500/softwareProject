@@ -1,11 +1,28 @@
+/**
+ * @file PublicRoute.jsx
+ * @description Route guard that prevents authenticated users from accessing
+ * public-only pages such as `/login`.
+ *
+ * @component
+ */
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 /**
- * PublicRoute - Wrapper for login/signup pages
- * Prevents authenticated users from accessing these pages
- * Redirects logged-in users to home or admin dashboard
+ * Wraps a route that should only be reachable by unauthenticated visitors.
+ *
+ * Behaviour:
+ *  - While auth is loading: renders a centred spinner.
+ *  - Authenticated + `state.from` is set and safe: redirects there.
+ *  - Authenticated admin: redirects to `/admin`.
+ *  - Authenticated non-admin: redirects to `/`.
+ *  - Not authenticated: renders `children`.
+ *
+ * @component
+ * @param {object} props
+ * @param {React.ReactNode} props.children - The page to guard (e.g. login form).
+ * @returns {JSX.Element}
  */
 export const PublicRoute = ({ children }) => {
   const { user, loading, isAdmin } = useAuth();

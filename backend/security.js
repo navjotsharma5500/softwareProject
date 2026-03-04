@@ -1,5 +1,20 @@
-// Complete production-ready security middleware for Express.js
-// Comprehensive security implementation for Lost & Found Portal
+/**
+ * @module security
+ * @description Production-ready Express security middleware stack for the Lost & Found Portal.
+ *
+ * Applies, in order:
+ *  1. Helmet Content-Security-Policy
+ *  2. HSTS (1-year, includeSubDomains, preload)
+ *  3. X-Content-Type-Options / X-Frame-Options / Referrer-Policy
+ *  4. HTTP Parameter Pollution prevention via hpp
+ *  5. gzip response compression (level 6)
+ *  6. express-slow-down (50 req/min, then +500 ms/req delay up to 20 s)
+ *  7. no-store Cache-Control headers
+ *  8. Production security event logger (401 / 403 / 429 responses)
+ *
+ * Body size limits (10 MB) are enforced in {@link module:index}.
+ * Input validation is performed per-route with Joi schemas.
+ */
 
 import helmet from "helmet";
 import hpp from "hpp";
@@ -22,6 +37,12 @@ import slowDown from "express-slow-down";
  * Input sanitization is handled at the route/controller level using Joi validation
  */
 
+/**
+ * Registers all security middleware on the Express application.
+ *
+ * @param {import('express').Application} app - The Express application instance.
+ * @returns {void}
+ */
 export default function securityMiddleware(app) {
   // 1. Advanced Helmet policies for HTTP security headers
   // Note: CORS must be configured BEFORE helmet to avoid conflicts

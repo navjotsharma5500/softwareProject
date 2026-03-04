@@ -1,6 +1,10 @@
 /**
- * Report — User-facing CRUD operations.
- * Handles creating, reading, updating, deleting, and resolving reports.
+ * @module controllers/report.crud
+ * @description User-facing CRUD operations for lost-item reports.
+ *
+ * Handles creating, reading, updating, deleting, and self-resolving reports.
+ * Photos are stored in ImageKit; deletions attempt best-effort remote cleanup
+ * via {@link module:utils/s3}. All writes clear the relevant Redis caches.
  */
 
 import Joi from "joi";

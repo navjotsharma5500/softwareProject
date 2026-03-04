@@ -1,18 +1,31 @@
+/**
+ * @file ItemsTable.jsx
+ * @description Paginated table of found items with edit and delete row
+ * actions for the admin dashboard.
+ *
+ * @component
+ */
 import React from 'react';
 import { Edit2, Trash2 } from 'lucide-react';
 import Pagination from './Pagination';
 
 /**
- * Items table with edit / delete row actions.
- * Props:
- *   items            – array of item objects
- *   loading          – boolean
- *   CATEGORY_DISPLAY_NAMES – map
- *   onEdit           – (item) => void
- *   onDelete         – (item) => void
- *   itemsPage        – number
- *   itemsPagination  – pagination meta object
- *   onSetPage        – (updater) => void
+ * Renders a table of found items with edit/delete actions.
+ *
+ * Shows a centred spinner while `loading` is `true`. Shows an empty state
+ * message when `items` is empty.
+ *
+ * @component
+ * @param {object}    props
+ * @param {object[]}  props.items                 - Array of item documents.
+ * @param {boolean}   props.loading
+ * @param {Object}    props.CATEGORY_DISPLAY_NAMES - Category slug → display name map.
+ * @param {Function}  props.onEdit                - Called with the item to edit.
+ * @param {Function}  props.onDelete              - Called with the item to delete.
+ * @param {number}    props.itemsPage
+ * @param {object}    props.itemsPagination        - Pagination meta object.
+ * @param {Function}  props.onSetPage             - State updater for the page number.
+ * @returns {JSX.Element}
  */
 const ItemsTable = ({
   items,

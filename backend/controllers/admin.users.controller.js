@@ -1,6 +1,9 @@
 /**
- * Admin — User management.
- * Handles listing users and toggling blacklist status.
+ * @module controllers/admin.users
+ * @description Admin controllers for user management.
+ *
+ * Provides paginated, searchable user listing and blacklist toggle.
+ * Admins cannot blacklist other admins (returns 403).
  */
 
 import User from "../models/user.model.js";

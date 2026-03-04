@@ -1,3 +1,10 @@
+/**
+ * @file MyReports.jsx
+ * @description Paginated list of the authenticated user's lost-item reports,
+ * with status filtering and individual deletion via a confirmation modal.
+ *
+ * @component
+ */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -7,6 +14,12 @@ import { CATEGORY_DISPLAY_NAMES, LOCATIONS } from '../utils/constants';
 import ImageLightbox from '../components/ImageLightbox';
 import ConfirmModal from '../components/ConfirmModal';
 
+/**
+ * My Reports page — filtered, paginated view of the user's lost-item reports.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 const MyReports = () => {
   const navigate = useNavigate();
   const [reports, setReports] = useState([]);

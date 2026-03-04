@@ -1,3 +1,17 @@
+/**
+ * @module config/passport
+ * @description Passport.js configuration for Google OAuth 2.0 authentication.
+ *
+ * Restricts sign-in to `@thapar.edu` email addresses only.
+ * On first login a new {@link module:models/user} document is created with the
+ * roll number derived from the email local-part; subsequent logins update
+ * any missing `googleId` / `profilePicture` fields.
+ *
+ * Required environment variables:
+ *  - `GOOGLE_CLIENT_ID`
+ *  - `GOOGLE_CLIENT_SECRET`
+ *  - `GOOGLE_CALLBACK_URL` (defaults to `http://localhost:3000/api/auth/google/callback`)
+ */
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import User from "../models/user.model.js";
@@ -12,12 +26,24 @@ const __dirname = path.dirname(__filename);
 // Load .env from backend root directory explicitly
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
-// Serialize user for session
+/**
+ * Serialises the authenticated user to the session store.
+ * Only the MongoDB `_id` string is persisted, minimising session payload size.
+ *
+ * @param {import('../models/user.model.js').UserDocument} user - Mongoose user document.
+ * @param {Function} done - Passport done callback.
+ */
 passport.serializeUser((user, done) => {
   done(null, user.id);
 });
 
-// Deserialize user from session
+/**
+ * Deserialises a user from the session by fetching the full document from MongoDB.
+ *
+ * @async
+ * @param {string} id - MongoDB `_id` string stored in the session.
+ * @param {Function} done - Passport done callback.
+ */
 passport.deserializeUser(async (id, done) => {
   try {
     const user = await User.findById(id);
@@ -27,7 +53,21 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-// Google OAuth Strategy
+/**
+ * Google OAuth 2.0 strategy verify callback.
+ *
+ * Workflow on every successful Google sign-in:
+ *  1. Reject emails not ending in `@thapar.edu`.
+ *  2. If a matching User document exists, backfill `googleId`/`profilePicture` if absent.
+ *  3. If no matching document exists, create one—deriving `rollNo` from the email local-part.
+ *
+ * @async
+ * @param {string} accessToken  - OAuth access token (not stored).
+ * @param {string} refreshToken - OAuth refresh token (not stored).
+ * @param {object} profile      - Google profile object returned by the strategy.
+ * @param {Function} done       - Passport done callback `(err, user|false, info?)`.
+ * @returns {Promise<void>}
+ */
 passport.use(
   new GoogleStrategy(
     {

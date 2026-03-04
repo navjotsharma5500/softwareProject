@@ -1,10 +1,27 @@
+/**
+ * @module utils/email
+ * @description Transactional email helpers for the Lost & Found Portal.
+ *
+ * All outbound emails are sent via the Nodemailer Gmail transporter
+ * configured in {@link module:config/email}.
+ *
+ * Public API:
+ *  - {@link sendEmail}                   – low-level send wrapper
+ *  - {@link getClaimStatusEmailBody}      – builds HTML for claim approval/rejection
+ *  - {@link getReportSubmissionEmailBody} – builds HTML for report confirmation
+ *
+ * Internal:
+ *  - `getEmailTemplate` – branded full-page HTML wrapper (not exported)
+ */
 import transporter from "../config/email.config.js";
 
 /**
- * Base email template with consistent branding
- * @param {string} content - Main content HTML
- * @param {string} title - Email title
- * @returns {string} Complete HTML email
+ * Wraps content in the portal's branded HTML email chrome.
+ *
+ * @private
+ * @param {string} content - Inner HTML content block.
+ * @param {string} title   - Page `<title>` and pre-header text.
+ * @returns {string} Complete HTML document string.
  */
 function getEmailTemplate(content, title) {
   return `
@@ -72,11 +89,14 @@ function getEmailTemplate(content, title) {
 }
 
 /**
- * Send an email to a user
- * @param {string} to - Recipient email address
- * @param {string} subject - Email subject
- * @param {string} html - Email body (HTML)
- * @returns {Promise}
+ * Sends a transactional email via the Gmail SMTP transporter.
+ *
+ * @async
+ * @param {string} to      - Recipient email address.
+ * @param {string} subject - Email subject line.
+ * @param {string} html    - Full HTML body string.
+ * @returns {Promise<import('nodemailer').SentMessageInfo>} Nodemailer send result.
+ * @throws {Error} When the SMTP transport rejects the message.
  */
 export async function sendEmail(to, subject, html) {
   const mailOptions = {
@@ -91,9 +111,12 @@ export async function sendEmail(to, subject, html) {
 }
 
 /**
- * Generate claim status email body
- * @param {object} claim - Claim object (populated)
- * @param {string} status - approved/rejected
+ * Builds the full HTML email body for a claim status change notification.
+ *
+ * @param {import('../models/claim.model.js').ClaimDocument} claim
+ *   Populated claim document (`.item` must be populated).
+ * @param {'approved'|'rejected'} status - The new claim status.
+ * @returns {string} Complete branded HTML email document.
  */
 export function getClaimStatusEmailBody(claim, status) {
   const isApproved = status.toLowerCase() === "approved";
@@ -192,8 +215,11 @@ export function getClaimStatusEmailBody(claim, status) {
 }
 
 /**
- * Generate report submission email body
- * @param {object} report - Report object (populated)
+ * Builds the full HTML email body confirming a new lost-item report submission.
+ *
+ * @param {import('../models/report.model.js').ReportDocument} report
+ *   The newly created report document.
+ * @returns {string} Complete branded HTML email document.
  */
 export function getReportSubmissionEmailBody(report) {
   const content = `

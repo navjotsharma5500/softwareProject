@@ -1,10 +1,28 @@
+/**
+ * @file AddToHomeScreen.jsx
+ * @description Progressive Web App "Add to Home Screen" install prompt banner.
+ *
+ * Detects platform (iOS Safari / Android Chrome) and renders step-by-step
+ * install instructions. The banner is suppressed when already running in
+ * standalone mode and will not reappear for 2 weeks after being dismissed.
+ *
+ * @component
+ */
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, PlusSquare, ChevronDown } from 'lucide-react';
 
+/** localStorage key used to track dismissal timestamp. */
 const STORAGE_KEY = 'tiet_a2hs_dismissed';
+/** Minimum milliseconds before the banner reappears after dismissal (2 weeks). */
 const RESHOW_AFTER_MS = 7 * 24 * 60 * 60 * 1000 * 2; // 2 weeks
 
+/**
+ * Detects the user's platform and browser from the User-Agent string.
+ *
+ * @returns {{ isIOS: boolean, isAndroid: boolean, isSafari: boolean,
+ *   isChrome: boolean, isStandalone: boolean }}
+ */
 function detectPlatform() {
   const ua = navigator.userAgent || '';
   const isIOS = /iphone|ipad|ipod/i.test(ua);
@@ -32,6 +50,20 @@ const steps = {
   ],
 };
 
+/**
+ * "Add to Home Screen" install prompt banner.
+ *
+ * Shown only when:
+ *  - Running in a browser (not in standalone mode already).
+ *  - Platform is iOS Safari or Android Chrome.
+ *  - The banner has not been dismissed within the last 2 weeks.
+ *
+ * Dismissal stores a timestamp in `localStorage` under `STORAGE_KEY`.
+ * The collapsible step list is toggled via `expanded` state.
+ *
+ * @component
+ * @returns {JSX.Element|null} The banner, or `null` when conditions are not met.
+ */
 export default function AddToHomeScreen() {
   const [show, setShow] = useState(false);
   const [expanded, setExpanded] = useState(false);

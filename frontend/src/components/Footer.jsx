@@ -1,7 +1,22 @@
+/**
+ * @file Footer.jsx
+ * @description Site-wide footer with brand section, quick links, and
+ * support contact info.
+ *
+ * @component
+ */
 import React from 'react'
 import { Link } from 'react-router-dom'
 
- const Footer = () => {
+/**
+ * Site footer rendered below all page content.
+ * Displays a 4-column grid (stacks to 1 col on mobile) with brand copy,
+ * quick navigation links, and support email addresses.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
+const Footer = () => {
 
   return (
     <footer className="bg-gray-100 text-gray-700">

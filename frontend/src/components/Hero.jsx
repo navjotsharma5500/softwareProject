@@ -1,7 +1,22 @@
+/**
+ * @file Hero.jsx
+ * @description Animated hero banner shown at the top of the Home page.
+ *
+ * Uses framer-motion for continuously rotating blurred background orbs
+ * and a staggered entrance animation for the heading and search bar UI.
+ *
+ * @component
+ */
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Search } from 'lucide-react';
 
+/**
+ * Hero section with animated gradient background and search bar display.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 const Hero = () => {
   return (
     <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-100 rounded-3xl mb-16 transition-colors duration-300">

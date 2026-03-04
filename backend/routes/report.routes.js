@@ -1,3 +1,21 @@
+/**
+ * @module routes/report
+ * @description Lost-item report routes mounted at `/api/reports`.
+ *
+ * | Method | Path               | Auth             | Description                                  |
+ * |--------|--------------------|------------------|----------------------------------------------|
+ * | POST   | /upload-urls       | ✔               | Get ImageKit upload auth params (max 3)      |
+ * | DELETE | /orphaned-images   | ✔               | Delete up to 3 orphaned ImageKit files       |
+ * | POST   | /                  | ✔ + notBlacklisted | Submit a new report (idempotent, strict)  |
+ * | GET    | /all               | ✔ + adminOnly   | Admin: list all reports                      |
+ * | GET    | /my-reports        | ✔               | Paginated list of authenticated user's reports |
+ * | GET    | /user/:userId      | ✔ + adminOnly   | Admin: list reports by user ID               |
+ * | GET    | /:id               | ✔               | Get single report by ID                      |
+ * | PATCH  | /:id               | ✔               | Update own report                            |
+ * | DELETE | /:id               | ✔               | Delete own report (best-effort photo cleanup)|
+ * | PATCH  | /:id/resolve       | ✔               | Mark own report as resolved                  |
+ * | PATCH  | /:id/status        | ✔ + adminOnly   | Admin: update report status                  |
+ */
 import express from "express";
 import {
   isAuthenticated,
@@ -14,7 +32,10 @@ import {
   validateObjectId,
   validateBodySize,
 } from "../middlewares/requestValidator.middleware.js";
-import { getUploadUrls } from "../controllers/report.upload.controller.js";
+import {
+  getUploadUrls,
+  deleteOrphanedImages,
+} from "../controllers/report.upload.controller.js";
 import {
   createReport,
   getMyReports,
@@ -38,6 +59,15 @@ router.post(
   uploadLimiter,
   validateBodySize(50),
   getUploadUrls,
+);
+
+// Delete orphaned images uploaded during an aborted or failed report submission
+router.delete(
+  "/orphaned-images",
+  isAuthenticated,
+  uploadLimiter,
+  validateBodySize(10),
+  deleteOrphanedImages,
 );
 
 // Create a new report (with idempotency, rate limiting, and validation to prevent spam)

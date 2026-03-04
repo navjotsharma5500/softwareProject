@@ -1,8 +1,27 @@
+/**
+ * @file Navbar.jsx
+ * @description Sticky top navigation bar.
+ *
+ * Desktop: horizontal link row with auth-aware actions (profile, admin
+ * dashboard, logout). Mobile: hamburger button that toggles a slide-down
+ * drawer with the same links.
+ *
+ * @component
+ */
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { User, LogOut, LayoutDashboard, AlertCircle } from 'lucide-react'
 
+/**
+ * Application-wide sticky navigation bar.
+ *
+ * Reads auth state from {@link AuthContext} to conditionally render the
+ * profile link, admin dashboard link, and logout button.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 const Navbar = () => {
   const [open, setOpen] = useState(false)
   const { user, logout, isAuthenticated } = useAuth()

@@ -1,3 +1,21 @@
+/**
+ * @file ReportLostItem.jsx
+ * @description Multi-step form page for reporting a lost item.
+ *
+ * Features:
+ * - Form state (description, category, location, date, details) persisted to
+ *   `localStorage` via `useFormPersistence` so a page refresh doesn't lose
+ *   progress.
+ * - Up to 3 photos: stored as local `File` objects (with `URL.createObjectURL`
+ *   previews) until the user submits. Images are only uploaded to ImageKit
+ *   during `handleSubmit`, so abandoned forms never leave orphaned files.
+ *   If report creation fails after a successful upload the files are cleaned
+ *   up via `DELETE /reports/orphaned-images`.
+ * - Ref guard (`isSubmittingRef`) prevents double-submission.
+ * - On successful submission both the form and photo state are cleared.
+ *
+ * @component
+ */
 import React, { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -10,15 +28,23 @@ import useFormPersistence from '../hooks/useFormPersistence.jsx';
 import ReportFormFields from '../components/report/ReportFormFields';
 import ImageUploadSection from '../components/report/ImageUploadSection';
 
+/**
+ * Report Lost Item form page.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 const ReportLostItem = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  
+
   // Use ref to prevent spam submissions
   const isSubmittingRef = useRef(false);
-  const [photos, setPhotos, photosControls] = useFormPersistence('reportLost_photos', []);
+  // Photos are stored as { url: objectURL, file: File } until submit.
+  // File objects cannot be serialised to localStorage, so plain useState is used.
+  const [photos, setPhotos] = useState([]);
   const [formData, setFormData, formControls] = useFormPersistence('reportLost_form', {
     itemDescription: '',
     category: '',
@@ -31,34 +57,26 @@ const ReportLostItem = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handlePhotoUpload = async (e) => {
+  const handlePhotoUpload = (e) => {
     const files = Array.from(e.target.files);
-    
+
     if (photos.length + files.length > 3) {
       toast.error('Maximum 3 photos allowed');
       return;
     }
 
-    setUploading(true);
-    try {
-      // Get ImageKit authentication parameters from backend
-      const fileTypes = files.map(f => f.type);
-      const { data } = await reportApi.getUploadUrls(files.length, fileTypes);
-      
-      // Upload files directly to ImageKit
-      const uploadedUrls = await uploadMultipleToImageKit(files, data.uploadParams);
-      
-      setPhotos([...photos, ...uploadedUrls]);
-      toast.success(`${uploadedUrls.length} photo(s) uploaded`);
-    } catch (error) {
-      toast.error('Failed to upload photos');
-      console.error(error);
-    } finally {
-      setUploading(false);
-    }
+    // Store File objects locally with an object-URL for the preview.
+    // Actual upload to ImageKit happens at submit time.
+    const newPhotos = files.map(file => ({
+      url: URL.createObjectURL(file),
+      file,
+    }));
+    setPhotos(prev => [...prev, ...newPhotos]);
   };
 
   const removePhoto = (index) => {
+    // Release the blob URL to free memory
+    URL.revokeObjectURL(photos[index].url);
     setPhotos(photos.filter((_, i) => i !== index));
   };
 
@@ -84,6 +102,8 @@ const ReportLostItem = () => {
 
     isSubmittingRef.current = true;
     setLoading(true);
+    /** @type {Array<{url:string,fileId:string,name:string}>} */
+    let uploadedPhotos = [];
     try {
       // Normalize category to expected enum key (defensive: handle numeric indices or display labels)
       let categoryToSend = formData.category;
@@ -112,19 +132,32 @@ const ReportLostItem = () => {
         return;
       }
 
+      // Upload photos to ImageKit now, at submit time
+      if (photos.length > 0) {
+        setUploading(true);
+        const fileTypes = photos.map(p => p.file.type);
+        const { data } = await reportApi.getUploadUrls(photos.length, fileTypes);
+        uploadedPhotos = await uploadMultipleToImageKit(
+          photos.map(p => p.file),
+          data.uploadParams,
+        );
+      }
+
       const payload = {
         ...formData,
         category: categoryToSend,
-        photos,
+        photos: uploadedPhotos,
       };
 
       await reportApi.createReport(payload);
-      
+
+      // Revoke all blob URLs now that we're done with them
+      photos.forEach(p => URL.revokeObjectURL(p.url));
+
       toast.success('Report submitted successfully! Redirecting to your profile...');
       // clear persisted draft after successful submit
       formControls.clear();
-      photosControls.clear();
-      
+
       // Reset form to initial state
       setFormData({
         itemDescription: '',
@@ -134,14 +167,22 @@ const ReportLostItem = () => {
         additionalDetails: '',
       });
       setPhotos([]);
-      
+
       // Redirect to profile page with reports section selected
       setTimeout(() => {
         navigate('/profile?section=reports');
       }, 1000);
     } catch (error) {
+      // If images were uploaded but report creation failed, remove them from
+      // ImageKit so they don't become permanently orphaned.
+      if (uploadedPhotos.length > 0) {
+        reportApi
+          .deleteOrphanedImages(uploadedPhotos.map(p => p.fileId))
+          .catch(err => console.error('Orphaned image cleanup failed:', err));
+      }
       toast.error(error.response?.data?.message || 'Failed to submit report');
     } finally {
+      setUploading(false);
       isSubmittingRef.current = false;
       setLoading(false);
     }

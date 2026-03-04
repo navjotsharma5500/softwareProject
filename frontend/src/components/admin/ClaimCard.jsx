@@ -1,12 +1,35 @@
+/**
+ * @file ClaimCard.jsx
+ * @description Admin claim card component for the claims tab.
+ *
+ * @component
+ */
 import React from 'react';
 import { CheckCircle, XCircle, FileText, ExternalLink } from 'lucide-react';
 
+/** @private Tailwind border/bg class for each claim status. */
 const CARD_CLASS = {
   pending: 'border rounded-lg p-6 hover:shadow-md transition-shadow border-gray-200',
   approved: 'border rounded-lg p-6 border-green-200 bg-green-50',
   rejected: 'border rounded-lg p-6 border-red-200 bg-red-50',
 };
 
+/**
+ * Renders a single claim row for the admin claims tab.
+ *
+ * Adapts its layout based on `status`: pending claims show approve/reject
+ * action buttons; approved/rejected claims show the outcome badge only.
+ *
+ * @component
+ * @param {object}   props
+ * @param {object}   props.claim                  - Claim document (populated `item`).
+ * @param {'pending'|'approved'|'rejected'} props.status - Current claim status.
+ * @param {Function} props.onApprove              - Called with `(claimId)` to approve.
+ * @param {Function} props.onReject               - Called with `(claimId)` to reject.
+ * @param {Function} props.onViewUser             - Called with `(userId)` to navigate to user history.
+ * @param {Object}   props.CATEGORY_DISPLAY_NAMES - Category slug → display name map.
+ * @returns {JSX.Element}
+ */
 const ClaimCard = ({ claim, status, onApprove, onReject, onViewUser, CATEGORY_DISPLAY_NAMES }) => {
   return (
     <div className={CARD_CLASS[status]}>

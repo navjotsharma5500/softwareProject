@@ -1,21 +1,35 @@
+/**
+ * @file ReportFilters.jsx
+ * @description Collapsible filter bar for the admin reports list page.
+ *
+ * @component
+ */
 import React from 'react';
 import { Search, Filter } from 'lucide-react';
 import { CATEGORIES, CATEGORY_DISPLAY_NAMES } from '../../utils/constants';
 
 /**
- * Filter bar for the admin reports list.
- * Props:
- *   showFilters         – boolean
- *   onToggleFilters     – () => void
- *   searchInput         – string (raw, unthrottled)
- *   onSearchChange      – (value: string) => void
- *   reportIdInput       – string
- *   onReportIdChange    – (value: string) => void
- *   reporterNameInput   – string
- *   onReporterNameChange– (value: string) => void
- *   filters             – { category, status, startDate, endDate }
- *   onFilterChange      – (e) => void  (name/value from select/date inputs)
- *   onClearFilters      – () => void
+ * Collapsible filter bar for the admin reports list.
+ *
+ * Separate controlled inputs are provided for text-search, report ID, and
+ * reporter name (each with its own raw-value prop) because they are debounced
+ * independently in the parent. Selects and date pickers share a single
+ * `onFilterChange` handler.
+ *
+ * @component
+ * @param {object}   props
+ * @param {boolean}  props.showFilters           - Whether the filter panel is expanded.
+ * @param {Function} props.onToggleFilters
+ * @param {string}   props.searchInput            - Raw (unthrottled) text-search value.
+ * @param {Function} props.onSearchChange
+ * @param {string}   props.reportIdInput
+ * @param {Function} props.onReportIdChange
+ * @param {string}   props.reporterNameInput
+ * @param {Function} props.onReporterNameChange
+ * @param {{category: string, status: string, startDate: string, endDate: string}} props.filters
+ * @param {Function} props.onFilterChange        - Called with a synthetic event from select/date inputs.
+ * @param {Function} props.onClearFilters
+ * @returns {JSX.Element}
  */
 const ReportFilters = ({
   showFilters,

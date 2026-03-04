@@ -1,6 +1,10 @@
 /**
- * Admin — Found Item management.
- * Handles create / read / update / delete for found items and the CSV export.
+ * @module controllers/admin.items
+ * @description Admin controllers for found-item management.
+ *
+ * Full CRUD for `Item` documents plus a multi-section CSV export endpoint
+ * that streams Items, Claims, Users, and Reports up to 10 000 rows each.
+ * All writes cascade-clear per-user and global item list caches.
  */
 
 import Joi from "joi";

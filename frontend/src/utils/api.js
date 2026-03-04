@@ -1,6 +1,35 @@
+/**
+ * @file api.js
+ * @description Pre-configured Axios client and namespaced API helper objects
+ * used throughout the frontend.
+ *
+ * ## Exports
+ * | Name          | Type              | Description |
+ * |---------------|-------------------|-------------|
+ * | `publicApi`   | object            | Unauthenticated item/stats endpoints |
+ * | `userApi`     | object            | Profile, claims, lost-item reports |
+ * | `reportApi`   | object            | Report CRUD + image-upload endpoints |
+ * | `adminApi`    | object            | Admin-only management endpoints |
+ *
+ * ## Axios instance details
+ * - `baseURL` from `VITE_API_BASE_URL` (falls back to `http://localhost:3000/api`)
+ * - `withCredentials: true` – sends the httpOnly JWT cookie
+ * - 30-second timeout, no redirect following
+ * - **Request interceptor**: attaches `Authorization: Bearer <token>` from
+ *   `localStorage` and adds an `Idempotency-Key` UUID header to all mutating
+ *   methods (POST, PUT, PATCH, DELETE).
+ * - **Response interceptor**: silently redirects to `/login` on HTTP 401.
+ */
 import axios from "axios";
 
-// Generate secure UUID for idempotency using Web Crypto API
+/**
+ * Generates a UUID v4 string using the Web Crypto API.
+ *
+ * Prefers `crypto.randomUUID()` (available in modern browsers). Falls back
+ * to a manual byte-based implementation for older environments.
+ *
+ * @returns {string} A random UUID v4 string (e.g. `"110e8400-e29b-41d4-..."`)
+ */
 const generateUUID = () => {
   // Use native crypto.randomUUID() if available (modern browsers)
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
@@ -132,6 +161,10 @@ export const reportApi = {
 
   // Get reports by user ID (admin only)
   getReportsByUserId: (userId) => api.get(`/reports/user/${userId}`),
+
+  // Delete orphaned ImageKit files after a failed report submission
+  deleteOrphanedImages: (fileIds) =>
+    api.delete("/reports/orphaned-images", { data: { fileIds } }),
 };
 
 // Admin API calls (admin only)

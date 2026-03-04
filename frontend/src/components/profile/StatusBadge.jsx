@@ -1,6 +1,21 @@
+/**
+ * @file StatusBadge.jsx
+ * @description Coloured pill badge for claim status (approved / rejected /
+ * pending).
+ *
+ * @component
+ */
 import React from 'react';
 import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
+/**
+ * Inline status badge with an icon and colour-coded text.
+ *
+ * @component
+ * @param {object} props
+ * @param {'approved'|'rejected'|'pending'|string} props.status - Claim status value.
+ * @returns {JSX.Element}
+ */
 const StatusBadge = ({ status }) => {
   switch (status) {
     case 'approved':

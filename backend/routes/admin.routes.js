@@ -1,3 +1,25 @@
+/**
+ * @module routes/admin
+ * @description Admin-only routes mounted at `/api/admin`.
+ * Every route in this module applies `isAuthenticated + adminOnly`.
+ *
+ * | Method | Path                         | Description                              |
+ * |--------|------------------------------|------------------------------------------|
+ * | GET    | /items                       | List all items (paginated, searchable)   |
+ * | POST   | /items                       | Create a new found item (idempotent)     |
+ * | GET    | /items/:id                   | Get item by ID                           |
+ * | PATCH  | /items/:id                   | Update item fields                       |
+ * | DELETE | /items/:id                   | Delete item + cascade claims             |
+ * | GET    | /items/:id/claims            | List all claims for an item              |
+ * | GET    | /claims                      | List claims (default: pending)           |
+ * | PATCH  | /claims/:id/approve          | Approve claim + auto-reject others       |
+ * | PATCH  | /claims/:id/reject           | Reject a claim                           |
+ * | GET    | /users                       | List / search users                      |
+ * | PATCH  | /users/:id/blacklist         | Toggle user blacklist status             |
+ * | GET    | /download-csv                | Stream multi-section CSV export          |
+ * | GET    | /reports                     | List all reports (paginated, filtered)   |
+ * | GET    | /reports/:id                 | Get single report detail                 |
+ */
 import express from "express";
 import { isAuthenticated, adminOnly } from "../middlewares/auth.middleware.js";
 import { idempotencyMiddleware } from "../middlewares/idempotency.middleware.js";

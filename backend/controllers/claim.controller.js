@@ -1,3 +1,12 @@
+/**
+ * @module controllers/claim
+ * @description User-facing claim controllers: submit, delete, and list claims.
+ *
+ * Business rules enforced here:
+ *  - A user cannot have more than one non-rejected claim per item.
+ *  - Only **pending** claims may be deleted by the claimant.
+ *  - Caches are invalidated on every write to ensure UI consistency.
+ */
 import Item from "../models/item.model.js";
 import Claim from "../models/claim.model.js";
 import { getNextSequence } from "../models/counter.model.js";
@@ -5,12 +14,24 @@ import { getCache, setCache, clearCachePattern } from "../utils/redisClient.js";
 import { withQueryTimeout } from "../middlewares/queryTimeout.middleware.js";
 
 /**
- * Create a new claim request for a found item.
- * Prevents duplicate pending claims and re-claims after rejection.
- * Clears item and user claims cache on success.
+ * Creates a pending claim for a found item on behalf of the authenticated user.
+ *
+ * Guards:
+ *  - Returns 400 if the item is already claimed.
+ *  - Returns 409 if the user already has a pending claim for this item.
+ *  - Returns 400 if the user has been previously rejected and has not had
+ *    the rejection cleared.
+ *
+ * On success generates a `CLAIM000001`-style sequential ID, persists the
+ * document, and clears relevant Redis caches.
+ *
+ * @async
+ * @param {import('express').Request}  req - `req.params.id` is the Item `_id`.
+ * @param {import('express').Response} res
+ * @returns {Promise<void>}
  *
  * @route POST /user/items/:id/claim
- * @access Protected — authenticated, non-blacklisted users only
+ * @access Protected (authenticated + notBlacklisted)
  */
 export const claimItem = async (req, res) => {
   const userId = req.user?.id;

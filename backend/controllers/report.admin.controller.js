@@ -1,6 +1,9 @@
 /**
- * Report — Admin operations.
- * Handles listing all reports, changing report status, and fetching by user.
+ * @module controllers/report.admin
+ * @description Admin controllers for managing lost-item reports.
+ *
+ * Provides paginated multi-filter listing, single-report detail view,
+ * status updates (`active | resolved | closed`), and per-user report history.
  */
 
 import Joi from "joi";

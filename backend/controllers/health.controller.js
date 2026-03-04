@@ -1,11 +1,29 @@
+/**
+ * @module controllers/health
+ * @description Health-check controllers used by load balancers and ops tooling.
+ *
+ * Exposes four endpoints:
+ *  - `GET /health`          – simple liveness probe (no auth)
+ *  - `GET /health/detailed` – full service + system metrics (admin only)
+ *  - `GET /health/database` – MongoDB round-trip test (admin only)
+ *  - `GET /health/redis`    – Redis PING + read/write round-trip (admin only)
+ */
 import mongoose from "mongoose";
 import redis from "../utils/redisClient.js";
 import Item from "../models/item.model.js";
 import { withQueryTimeout } from "../middlewares/queryTimeout.middleware.js";
 
 /**
- * Basic health check endpoint
- * Returns simple OK status for load balancers
+ * Minimal liveness probe for load balancer health checks.
+ * Always returns HTTP 200 with `{ status: 'ok', timestamp }` as long as
+ * the Node.js process is alive.
+ *
+ * @param {import('express').Request}  req
+ * @param {import('express').Response} res
+ * @returns {void}
+ *
+ * @route GET /health
+ * @access Public
  */
 export const healthCheck = (req, res) => {
   res.status(200).json({
@@ -15,8 +33,23 @@ export const healthCheck = (req, res) => {
 };
 
 /**
- * Detailed health monitoring endpoint
- * Checks all critical services and provides comprehensive status
+ * Comprehensive readiness probe that checks MongoDB state, Redis
+ * availability, response latency, and Node.js memory/uptime.
+ *
+ * Returns HTTP 200 when all services are healthy, 503 when any service
+ * is `degraded`, or 500 on unexpected errors.
+ *
+ * Response shape includes `services.database`, `services.redis`,
+ * `performance.responseTime`, and a full `system` block with heap,
+ * RSS, uptime, and Node version.
+ *
+ * @async
+ * @param {import('express').Request}  req
+ * @param {import('express').Response} res
+ * @returns {Promise<void>}
+ *
+ * @route GET /health/detailed
+ * @access Protected (admin only)
  */
 export const detailedHealth = async (req, res) => {
   const startTime = Date.now();

@@ -1,15 +1,26 @@
+/**
+ * @file EditProfileForm.jsx
+ * @description Profile info grid that switches between display and edit
+ * mode for the rollNo and phoneNumber fields.
+ *
+ * @component
+ */
 import React from 'react';
 import { User, Mail, IdCard, Phone } from 'lucide-react';
 
 /**
- * The 4-field info grid (Name, Email, Roll Number, Phone).
- * Switches between display and edit mode based on `editing` prop.
- * Props:
- *   profileData  – user object from server
- *   user         – auth context user
- *   editing      – boolean
- *   formData     – { rollNo, phone }
- *   setFormData  – setter
+ * 4-field info grid: Name (read-only), Email (read-only), Roll No, Phone.
+ *
+ * In edit mode Roll No and Phone become text inputs bound to `formData`.
+ *
+ * @component
+ * @param {object}   props
+ * @param {object}   props.profileData  - User object returned from the server.
+ * @param {object}   props.user         - Auth context user.
+ * @param {boolean}  props.editing      - Whether the form is in edit mode.
+ * @param {{rollNo: string, phone: string}} props.formData - Editable field values.
+ * @param {Function} props.setFormData  - Setter for `formData`.
+ * @returns {JSX.Element}
  */
 const EditProfileForm = ({ profileData, user, editing, formData, setFormData }) => {
   return (

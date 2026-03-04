@@ -1,7 +1,24 @@
+/**
+ * @file HowItWorks.jsx
+ * @description Static informational page explaining how the Lost & Found
+ * portal works for finders, reporters, and claimants.
+ *
+ * @component
+ */
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
+/**
+ * Reusable content card with a dark header (icon + title) and a white body.
+ *
+ * @component
+ * @param {object}          props
+ * @param {string}          props.title    - Card section heading.
+ * @param {string|number}   props.icon     - Emoji or icon element for the header.
+ * @param {React.ReactNode} props.children - Body content rendered below the header.
+ * @returns {JSX.Element}
+ */
 const StaticCard = ({ title, icon, children }) => {
   return (
     <div className="rounded-xl shadow-lg overflow-hidden bg-white h-full">
@@ -21,6 +38,12 @@ const StaticCard = ({ title, icon, children }) => {
   );
 };
 
+/**
+ * How It Works page — static guide for new users.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 const HowItWorks = () => {
   const navigate = useNavigate();
   

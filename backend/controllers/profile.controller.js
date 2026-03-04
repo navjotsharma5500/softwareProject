@@ -1,3 +1,11 @@
+/**
+ * @module controllers/profile
+ * @description User profile management controllers.
+ *
+ * Covers reading and updating the authenticated user's own profile,
+ * deleting their own reports, and an admin helper to view a user's full
+ * activity history (claims + reports).
+ */
 import Joi from "joi";
 import User from "../models/user.model.js";
 import Claim from "../models/claim.model.js";
@@ -7,12 +15,19 @@ import { getCache, setCache, clearCachePattern } from "../utils/redisClient.js";
 import { withQueryTimeout } from "../middlewares/queryTimeout.middleware.js";
 
 /**
- * Get the authenticated user's profile.
- * Returns name, email, rollNo, phone, profilePicture, isAdmin, createdAt.
- * Cached per user for 5 minutes; bust via updateProfile.
+ * Returns the authenticated user's public profile fields.
+ *
+ * Fields returned: `name`, `email`, `rollNo`, `phone`, `profilePicture`,
+ * `isAdmin`, `createdAt`. Cached per user for 5 minutes; invalidated on
+ * successful profile update.
+ *
+ * @async
+ * @param {import('express').Request}  req - Requires `req.user.id`.
+ * @param {import('express').Response} res
+ * @returns {Promise<void>}
  *
  * @route GET /user/profile
- * @access Protected — authenticated users only
+ * @access Protected
  */
 export const getProfile = async (req, res) => {
   const userId = req.user.id;

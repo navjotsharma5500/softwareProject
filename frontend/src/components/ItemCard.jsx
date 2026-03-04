@@ -1,7 +1,32 @@
+/**
+ * @file ItemCard.jsx
+ * @description Motion-animated card component for displaying a found item
+ * in the home page grid.
+ *
+ * @component
+ */
 import React from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Calendar, Eye } from 'lucide-react';
 
+/**
+ * Animated card representing a single found item.
+ *
+ * Entrance animation: fade-in + slide-up is triggered when the card enters
+ * the viewport (once). Hover effect: card lifts 8 px.
+ *
+ * @component
+ * @param {object} props
+ * @param {object} props.item  - Found item data object.
+ * @param {string} props.item.image    - Image URL shown in the card header.
+ * @param {string} props.item.title    - Display name of the item.
+ * @param {string} props.item.category - Category label shown as a badge.
+ * @param {string} props.item.location - Where the item was found.
+ * @param {string} props.item.date     - Human-readable date found.
+ * @param {number} props.index  - Card position in the grid; used to stagger
+ *   entrance animation timing (delay = `index * 0.1 s`).
+ * @returns {JSX.Element}
+ */
 const ItemCard = ({ item, index }) => {
   return (
     <motion.div

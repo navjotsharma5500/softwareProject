@@ -1,12 +1,26 @@
+/**
+ * @module middlewares/idempotency
+ * @description Redis-backed idempotency middleware that prevents duplicate
+ * mutations caused by retried HTTP requests.
+ *
+ * Clients must send a globally-unique `Idempotency-Key` UUID header with
+ * every mutating request (POST/PUT/PATCH/DELETE). On first receipt the
+ * response is cached in Redis under that key; subsequent requests with the
+ * same key within the TTL window receive the cached response immediately
+ * with an `X-Idempotency-Replay: true` header, and the handler is
+ * **not** executed again.
+ */
 import { getCache, setCache } from "../utils/redisClient.js";
 
 /**
- * Idempotency middleware to prevent duplicate requests
- * Clients should send an `Idempotency-Key` header with a unique UUID
- * If the same key is used within the TTL window, returns the cached response
+ * Factory that returns the idempotency middleware configured with the
+ * supplied TTL and strictness settings.
  *
- * @param {number} ttlSeconds - Time to live for the cached response (default: 86400 = 24 hours)
- * @param {boolean} strict - If true, requires Idempotency-Key header (default: false)
+ * @param {number}  [ttlSeconds=86400] - How long to keep a cached response
+ *   (seconds). Defaults to 24 hours.
+ * @param {boolean} [strict=false]     - When `true`, requests without an
+ *   `Idempotency-Key` header are rejected with HTTP 400.
+ * @returns {import('express').RequestHandler} Configured Express middleware.
  */
 export const idempotencyMiddleware = (ttlSeconds = 86400, strict = false) => {
   return async (req, res, next) => {

@@ -1,4 +1,14 @@
 /**
+ * @file imagekit.js
+ * @description Client-side ImageKit upload utility.
+ *
+ * The backend generates short-lived auth parameters (`token`, `signature`,
+ * `expire`) which this utility embeds into a `multipart/form-data` POST
+ * directly to `https://upload.imagekit.io/api/v1/files/upload`.
+ * No AWS credentials are exposed to the browser.
+ */
+
+/**
  * ImageKit Upload Utility
  * Handles direct client-side uploads to ImageKit
  */
@@ -10,8 +20,7 @@
  * @returns {Promise<string>} - The uploaded file URL
  */
 export const uploadToImageKit = async (file, authParams) => {
-  const { token, signature, expire, folder, fileName, publicKey, urlEndpoint } =
-    authParams;
+  const { token, signature, expire, folder, fileName, publicKey } = authParams;
 
   const formData = new FormData();
   formData.append("file", file);

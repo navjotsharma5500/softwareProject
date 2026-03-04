@@ -1,6 +1,11 @@
 /**
- * Admin — Claim management.
- * Handles listing, approving, and rejecting user claims.
+ * @module controllers/admin.claims
+ * @description Admin controllers for claim lifecycle management.
+ *
+ * Handles listing claims with search/filter, approving a claim
+ * (marks the item as claimed, auto-rejects competing pending claims,
+ * sends approval email), and rejecting a claim (sends rejection email).
+ * All writes clear the relevant per-user and global caches.
  */
 
 import Joi from "joi";

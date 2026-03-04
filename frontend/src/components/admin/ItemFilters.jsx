@@ -1,17 +1,26 @@
+/**
+ * @file ItemFilters.jsx
+ * @description Collapsible filter bar for the admin items tab.
+ *
+ * @component
+ */
 import React from 'react';
 import { Search } from 'lucide-react';
 import { CATEGORIES, LOCATIONS } from '../../utils/constants';
 
 /**
- * Filter bar for the admin items tab.
- * Props:
- *   showItemFilters  – boolean visibility flag
- *   onToggle         – () => void, toggles panel
- *   itemSearchInput  – string, raw (unthrottled) search value
- *   onSearchChange   – (value: string) => void
- *   itemFilters      – { category, location, status }
- *   onFilterChange   – (key: string, value: string) => void
- *   onClearFilters   – () => void
+ * Collapsible filter bar for the admin items tab.
+ *
+ * @component
+ * @param {object}   props
+ * @param {boolean}  props.showItemFilters   - Whether the filter row is expanded.
+ * @param {Function} props.onToggle          - Toggles the filter panel.
+ * @param {string}   props.itemSearchInput   - Raw (unthrottled) search value.
+ * @param {Function} props.onSearchChange    - Called with each new input value.
+ * @param {{category: string, location: string, status: string}} props.itemFilters
+ * @param {Function} props.onFilterChange    - Called with `(key, value)` on select change.
+ * @param {Function} props.onClearFilters    - Resets all filters.
+ * @returns {JSX.Element}
  */
 const ItemFilters = ({
   showItemFilters,

@@ -1,5 +1,23 @@
+/**
+ * @module models/claim
+ * @description Mongoose model representing a user's ownership claim on a found item.
+ *
+ * A user may have at most one non-rejected claim per item at a time.
+ * When an admin approves a claim, all other pending claims for the same
+ * item are automatically rejected and email notifications are sent.
+ */
 import mongoose from "mongoose";
 
+/**
+ * @typedef {object} ClaimDocument
+ * @property {string}   claimId   - Human-readable sequential ID (e.g. `CLAIM000001`).
+ * @property {ObjectId} item      - Ref → Item being claimed.
+ * @property {ObjectId} claimant  - Ref → User who submitted the claim.
+ * @property {'pending'|'approved'|'rejected'} status - Lifecycle state of the claim.
+ * @property {string}   [remarks] - Optional admin note attached at approval/rejection.
+ * @property {Date}     createdAt - Auto-managed by `timestamps`.
+ * @property {Date}     updatedAt - Auto-managed by `timestamps`.
+ */
 const claimSchema = new mongoose.Schema(
   {
     claimId: { type: String, required: true, unique: true },

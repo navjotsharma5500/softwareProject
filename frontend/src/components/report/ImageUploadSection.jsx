@@ -1,13 +1,25 @@
+/**
+ * @file ImageUploadSection.jsx
+ * @description Photo upload area for the Report Lost Item form.
+ *
+ * @component
+ */
 import React from 'react';
 import { Upload, X } from 'lucide-react';
 
 /**
- * Photo upload area for ReportLostItem.
- * Props:
- *   photos    – array of { url, ... }
- *   uploading – boolean
- *   onUpload  – (e: ChangeEvent) => void  (file input handler, kept in parent)
- *   onRemove  – (index: number) => void
+ * Photo upload area and preview grid.
+ *
+ * Shows the upload label/input while fewer than 3 photos are attached.
+ * Each uploaded photo can be individually removed.
+ *
+ * @component
+ * @param {object}   props
+ * @param {Array<{url: string}>} props.photos  - Currently attached photo objects.
+ * @param {boolean}  props.uploading            - `true` while an upload is in-flight.
+ * @param {Function} props.onUpload             - File input `onChange` handler (kept in parent).
+ * @param {Function} props.onRemove             - Called with `(index)` to remove a photo.
+ * @returns {JSX.Element}
  */
 const ImageUploadSection = ({ photos, uploading, onUpload, onRemove }) => {
   return (

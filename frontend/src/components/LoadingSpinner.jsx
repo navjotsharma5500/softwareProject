@@ -1,5 +1,13 @@
+/**
+ * @file LoadingSpinner.jsx
+ * @description Full-screen animated loading indicator with cycling messages
+ * and orbiting emoji items.
+ *
+ * @component
+ */
 import React, { useState, useEffect } from 'react';
 
+/** Messages that cycle every 2.2 s while the spinner is displayed. */
 const searchMessages = [
   'Searching every corner…',
   'Checking lost & found…',
@@ -11,6 +19,19 @@ const searchMessages = [
 
 const floatingItems = ['🔑', '👜', '📱', '💳', '🎒', '👓'];
 
+/**
+ * Displays an orbiting emoji animation and a cycling status message.
+ *
+ * Messages cycle every 2.2 s with a 300 ms fade-out/fade-in transition.
+ * Pass a custom `message` prop to override the cycling messages with a
+ * fixed string.
+ *
+ * @component
+ * @param {object} [props]
+ * @param {string} [props.message] - Static message string. When provided,
+ *   overrides the automatic cycling behaviour.
+ * @returns {JSX.Element}
+ */
 const LoadingSpinner = ({ message }) => {
   const [msgIndex, setMsgIndex] = useState(0);
   const [fade, setFade] = useState(true);
@@ -105,7 +126,7 @@ const LoadingSpinner = ({ message }) => {
         className="text-base font-semibold text-gray-800 dark:text-white transition-opacity duration-300"
         style={{ opacity: fade ? 1 : 0 }}
       >
-        {searchMessages[msgIndex]}
+        {message != null ? message : searchMessages[msgIndex]}
       </p>
       <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
         Hang tight while we search for you

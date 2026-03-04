@@ -1,3 +1,12 @@
+/**
+ * @module controllers/auth
+ * @description Authentication controllers for the Google OAuth 2.0 flow.
+ *
+ * Exposes three endpoints consumed by {@link module:routes/auth}:
+ *  - `googleCallback` – finalises OAuth, issues JWT, redirects to frontend
+ *  - `logout`         – clears the httpOnly JWT cookie
+ *  - `getProfile`     – returns the authenticated user's document
+ */
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
@@ -5,7 +14,7 @@ import { withQueryTimeout } from "../middlewares/queryTimeout.middleware.js";
 
 dotenv.config();
 
-// Shared cookie config — single source of truth for both set and clear
+/** @type {import('cookie').CookieSerializeOptions} Shared options for set and clear operations. */
 const cookieOptions = {
   httpOnly: true,
   secure: true,
@@ -15,9 +24,19 @@ const cookieOptions = {
 };
 
 /**
- * Handle Google OAuth callback.
- * Signs a 7-day JWT, sets it as an httpOnly cookie, and redirects to frontend.
- * Supports optional base64-encoded state.redirect for deep-link redirects.
+ * Finalises the Google OAuth 2.0 callback.
+ *
+ * Signs a 7-day JWT containing the user's `_id`, `isAdmin`, and `email`,
+ * stores it as an httpOnly + Secure + SameSite=None cookie, then redirects
+ * the browser to the frontend.
+ *
+ * Supports optional `state` query parameter encoded as a base64 JSON object
+ * with a `redirect` field for deep-link post-login navigation.
+ *
+ * @async
+ * @param {import('express').Request}  req - Must have `req.user` populated by Passport.
+ * @param {import('express').Response} res
+ * @returns {Promise<void>}
  *
  * @route GET /auth/google/callback
  */

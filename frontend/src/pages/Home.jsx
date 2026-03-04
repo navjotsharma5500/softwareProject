@@ -1,3 +1,21 @@
+/**
+ * @file Home.jsx
+ * @description Main landing page for the Lost & Found portal.
+ *
+ * Features:
+ * - Paginated item grid/list view with persisted view-mode preference.
+ * - Category, location, time-period, and text-search filters (persisted via
+ *   `useFormPersistence`).
+ * - Debounced search input (400 ms) and request cancellation via
+ *   `AbortController` on each filter change.
+ * - Tab switching between "available" and "claimed" items.
+ * - Refresh button with 2-second cooldown and "Clear Filters" button with
+ *   1-second cooldown (both via `useCooldown`).
+ * - Scroll-restoration: navigates back to `#items-section` on filter changes.
+ * - PWA install prompt (`AddToHomeScreen`).
+ *
+ * @component
+ */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RefreshCw, Grid, List, Search, Filter, X } from 'lucide-react';
@@ -15,6 +33,12 @@ import { CATEGORIES, LOCATIONS, TIME_PERIODS } from '../utils/constants';
 import { scrollToItemsSection } from '../utils/scroll.utils';
 import AddToHomeScreen from '../components/AddToHomeScreen';
 
+/**
+ * Home page — item discovery grid with filters, tabs, and pagination.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 const Home = () => {
   const navigate = useNavigate();
   const [items, setItems] = useState([]);

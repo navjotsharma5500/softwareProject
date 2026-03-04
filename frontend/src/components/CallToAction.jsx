@@ -1,7 +1,23 @@
+/**
+ * @file CallToAction.jsx
+ * @description Hero-style call-to-action banner with three feature explanation
+ * cards rendered on the Home page.
+ *
+ * @component
+ */
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FileText, Search, Bell } from 'lucide-react';
 
+/**
+ * Renders a gradient CTA banner and three icon-based feature cards.
+ *
+ * All elements use `framer-motion` viewport-triggered entrance animations.
+ * The CTA banner links to `/report-lost-item`.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 const CallToAction = () => {
   const features = [
     {

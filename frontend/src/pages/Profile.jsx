@@ -1,3 +1,21 @@
+/**
+ * @file Profile.jsx
+ * @description Authenticated user profile page showing account info, active
+ * claims, and submitted reports.
+ *
+ * Features:
+ * - Edit mode for `displayName` and `phoneNumber`.
+ * - Two tabs ("My Claims" / "My Reports"), persisted via URL `?section=`.
+ * - Claims and reports are paginated; page is persisted in the URL.
+ * - `isInitialLoad` ref is reset on tab switch so the full spinner shows
+ *   correctly on each tab's cold start.
+ * - Image lightbox for report photos.
+ * - Claim deletion and report deletion/resolution via guarded `ConfirmModal`.
+ * - Ref guards prevent double-submission on rapid clicks.
+ * - 2-second refresh cooldown via `useCooldown`.
+ *
+ * @component
+ */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Package, RefreshCw, FileText } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -16,6 +34,12 @@ import Pagination from '../components/admin/Pagination';
 import EmptyState from '../components/EmptyState';
 import ConfirmModal from '../components/ConfirmModal';
 
+/**
+ * User profile page.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 const Profile = () => {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();

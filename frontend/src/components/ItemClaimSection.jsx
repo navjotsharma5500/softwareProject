@@ -1,19 +1,37 @@
+/**
+ * @file ItemClaimSection.jsx
+ * @description Claim / unclaim action area rendered at the bottom of the
+ * `ItemDetail` page. Covers all claim lifecycle states.
+ *
+ * @component
+ */
 import React from 'react';
 import { Trash2, User } from 'lucide-react';
 
 /**
- * Claim/unclaim action area for ItemDetail page.
- * Props:
- *   item               – item object
- *   claiming           – boolean
- *   deletingClaim      – boolean
- *   checkingClaim      – boolean
- *   userHasClaimed     – boolean
- *   userHasRejectedClaim – boolean
- *   user               – auth user object (can be null)
- *   onClaim            – () => void
- *   onRemoveClaim      – () => void
- *   onNavigateProfile  – () => void
+ * Renders the appropriate CTA for the current claim state.
+ *
+ * State matrix handled:
+ *  - Not logged in         → "Login to claim" prompt
+ *  - Item already claimed  → shows current owner info
+ *  - User has approved     → already-claimed badge
+ *  - User has pending      → "Remove claim" button
+ *  - User was rejected     → rejected banner
+ *  - Available to claim    → "Claim this item" button
+ *
+ * @component
+ * @param {object}   props
+ * @param {object}   props.item                 - The item document.
+ * @param {boolean}  props.claiming             - `true` while the claim POST is in-flight.
+ * @param {boolean}  props.deletingClaim        - `true` while the DELETE is in-flight.
+ * @param {boolean}  props.checkingClaim        - `true` while the GET my-claim is in-flight.
+ * @param {boolean}  props.userHasClaimed       - `true` if the authenticated user has an active claim.
+ * @param {boolean}  props.userHasRejectedClaim - `true` if the authenticated user's claim was rejected.
+ * @param {object|null} props.user              - Auth user object; `null` if not logged in.
+ * @param {Function} props.onClaim              - Called when the user presses "Claim".
+ * @param {Function} props.onRemoveClaim        - Called when the user presses "Remove claim".
+ * @param {Function} props.onNavigateProfile    - Called when the user needs to go to their profile first.
+ * @returns {JSX.Element}
  */
 const ItemClaimSection = ({
   item,

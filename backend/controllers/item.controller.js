@@ -1,14 +1,33 @@
+/**
+ * @module controllers/item
+ * @description Public read-only item controllers for the user-facing API.
+ *
+ * All responses are Redis-cached (5-minute TTL) keyed on the full filter
+ * state to avoid redundant MongoDB queries under moderate traffic.
+ */
 import Item from "../models/item.model.js";
 import { getCache, setCache } from "../utils/redisClient.js";
 import { withQueryTimeout } from "../middlewares/queryTimeout.middleware.js";
 
 /**
- * List all items with optional filters and pagination.
- * PUBLIC — no authentication required.
- * Supports filtering by category, location, claimed status, timePeriod, and free-text search.
- * Results are cached for 5 minutes per unique query combination.
+ * Returns a paginated, filterable list of found items.
+ *
+ * Supported query parameters:
+ *  - `page` / `limit`    – pagination (limit capped at 100)
+ *  - `category`          – slug filter (e.g. `phone`)
+ *  - `location`          – exact `foundLocation` filter
+ *  - `claimed`/`isClaimed` – boolean filter
+ *  - `timePeriod`        – one of `yesterday | day_before_yesterday |
+ *                          last_week | last_month | last_3_months`
+ *  - `search`            – full-text search on `name` and `itemId`
+ *
+ * @async
+ * @param {import('express').Request}  req
+ * @param {import('express').Response} res
+ * @returns {Promise<void>}
  *
  * @route GET /user/items
+ * @access Public
  */
 export const listItems = async (req, res) => {
   try {

@@ -1,5 +1,23 @@
+/**
+ * @file Pagination.jsx
+ * @description Simple Previous / Next pagination control used across all
+ * admin list views.
+ *
+ * @component
+ */
 import React from 'react';
 
+/**
+ * Previous / Next pagination bar.
+ *
+ * @component
+ * @param {object}   props
+ * @param {number}   props.page        - Current 1-based page number.
+ * @param {object}   props.pagination  - Pagination meta: `{ total, totalPages, hasPrev, hasNext }`.
+ * @param {Function} props.onPrev      - Called when the Previous button is clicked.
+ * @param {Function} props.onNext      - Called when the Next button is clicked.
+ * @returns {JSX.Element}
+ */
 const Pagination = ({ page, pagination, onPrev, onNext }) => {
   return (
     <div className="mt-6 flex justify-between items-center">
