@@ -20,6 +20,7 @@ import { MapPin, Calendar, ArrowLeft } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
+import confetti from 'canvas-confetti';
 import { publicApi, userApi } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { CATEGORY_DISPLAY_NAMES } from '../utils/constants';
@@ -103,6 +104,14 @@ const ItemDetail = () => {
     checkUserClaimStatus(item);
   }, [item, checkUserClaimStatus]);
 
+  const triggerClaimConfetti = () => {
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+    });
+  };
+
   const handleClaim = async () => {
     if (!isAuthenticated) {
       toast.info('Please login to claim this item');
@@ -123,7 +132,8 @@ const ItemDetail = () => {
     setClaiming(true);
     try {
       await userApi.claimItem(id);
-      toast.success('Claim request submitted successfully!');
+      toast.success('Claim request submitted successfully!', { autoClose: 5000 });
+      triggerClaimConfetti();
       setUserHasClaimed(true);
       fetchItemDetails();
     } catch (error) {
