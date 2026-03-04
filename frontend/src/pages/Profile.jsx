@@ -14,6 +14,7 @@ import ReportCard from '../components/profile/ReportCard';
 import ProfileHeader from '../components/profile/ProfileHeader';
 import Pagination from '../components/admin/Pagination';
 import EmptyState from '../components/EmptyState';
+import ConfirmModal from '../components/ConfirmModal';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -26,6 +27,7 @@ const Profile = () => {
   const [deletingClaim, setDeletingClaim] = useState(null);
   const [deletingReport, setDeletingReport] = useState(null);
   const [resolvingReport, setResolvingReport] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null); // { key, ...payload }
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -170,14 +172,6 @@ const Profile = () => {
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
   const handleSave = async () => {
     if (isSavingRef.current || saving) {
       console.log('Duplicate save blocked');
@@ -261,12 +255,12 @@ const Profile = () => {
     setEditing(false);
   };
 
-  const handleRemoveClaim = async (claimId, itemName) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to remove your claim for "${itemName}"?`
-    );
-    if (!confirmed) return;
+  const handleRemoveClaim = (claimId, itemName) => {
+    setConfirmAction({ key: 'removeClaim', claimId, itemName });
+  };
 
+  const executeRemoveClaim = async (claimId) => {
+    setConfirmAction(null);
     if (isDeletingClaimRef.current || deletingClaim === claimId) {
       console.log('Duplicate claim deletion blocked');
       return;
@@ -296,12 +290,12 @@ const Profile = () => {
     }
   };
 
-  const handleRemoveReport = async (reportId, itemName) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete your report for "${itemName}"?`
-    );
-    if (!confirmed) return;
+  const handleRemoveReport = (reportId, itemName) => {
+    setConfirmAction({ key: 'removeReport', reportId, itemName });
+  };
 
+  const executeRemoveReport = async (reportId) => {
+    setConfirmAction(null);
     if (isDeletingReportRef.current || deletingReport === reportId) {
       console.log('Duplicate report deletion blocked');
       return;
@@ -327,12 +321,12 @@ const Profile = () => {
     }
   };
 
-  const handleResolveReport = async (reportId, itemName) => {
-    const confirmed = window.confirm(
-      `Mark your report for "${itemName}" as resolved? This means you found your item.`
-    );
-    if (!confirmed) return;
+  const handleResolveReport = (reportId, itemName) => {
+    setConfirmAction({ key: 'resolveReport', reportId, itemName });
+  };
 
+  const executeResolveReport = async (reportId) => {
+    setConfirmAction(null);
     if (isResolvingReportRef.current || resolvingReport === reportId) {
       console.log('Duplicate report resolve blocked');
       return;
@@ -528,6 +522,33 @@ const Profile = () => {
           )}
         </div>
       </div>
+
+      {/* Confirm Modals */}
+      <ConfirmModal
+        isOpen={confirmAction?.key === 'removeClaim'}
+        title="Remove Claim?"
+        description={`Are you sure you want to remove your claim for "${confirmAction?.itemName}"?`}
+        confirmLabel="Remove Claim"
+        onConfirm={() => executeRemoveClaim(confirmAction.claimId)}
+        onCancel={() => setConfirmAction(null)}
+      />
+      <ConfirmModal
+        isOpen={confirmAction?.key === 'removeReport'}
+        title="Delete Report?"
+        description={`Are you sure you want to delete your report for "${confirmAction?.itemName}"?`}
+        confirmLabel="Delete Report"
+        onConfirm={() => executeRemoveReport(confirmAction.reportId)}
+        onCancel={() => setConfirmAction(null)}
+      />
+      <ConfirmModal
+        isOpen={confirmAction?.key === 'resolveReport'}
+        variant="success"
+        title="Mark as Resolved?"
+        description={`Mark your report for "${confirmAction?.itemName}" as resolved? This means you found your item.`}
+        confirmLabel="Yes, Mark Resolved"
+        onConfirm={() => executeResolveReport(confirmAction.reportId)}
+        onCancel={() => setConfirmAction(null)}
+      />
 
       {/* Image Lightbox */}
       {lightboxImages && (

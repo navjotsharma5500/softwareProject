@@ -5,6 +5,7 @@ import { reportApi } from '../utils/api';
 import { FileText, Calendar, MapPin, Tag, Trash2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { CATEGORY_DISPLAY_NAMES, LOCATIONS } from '../utils/constants';
 import ImageLightbox from '../components/ImageLightbox';
+import ConfirmModal from '../components/ConfirmModal';
 
 const MyReports = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const MyReports = () => {
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1 });
   const [lightboxImages, setLightboxImages] = useState(null);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   const fetchReports = async (page = 1) => {
     setLoading(true);
@@ -40,9 +42,13 @@ const MyReports = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter]);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this report?')) return;
+  const handleDelete = (id) => {
+    setConfirmDeleteId(id);
+  };
 
+  const executeDelete = async () => {
+    const id = confirmDeleteId;
+    setConfirmDeleteId(null);
     try {
       await reportApi.deleteReport(id);
       toast.success('Report deleted successfully');
@@ -180,7 +186,7 @@ const MyReports = () => {
                         {report.photos.map((photo, index) => (
                           <img
                             key={index}
-                            src={photo}
+                            src={photo.url}
                             alt={`Photo ${index + 1}`}
                             className="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
                             onClick={() => {
@@ -201,20 +207,20 @@ const MyReports = () => {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex md:flex-col gap-2">
-                                <div className="flex gap-2 mb-4">
-                                  {report.photos.map((photo, index) => (
-                                    <img
-                                      key={index}
-                                      src={photo.url}
-                                      alt={`Photo ${index + 1}`}
-                                      className="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                                      onClick={() => {
-                                        setLightboxImages(report.photos);
-                                        setLightboxIndex(index);
-                                      }}
-                                      onContextMenu={(e) => e.preventDefault()}
-                                    />
+                  <div className="flex md:flex-col gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => handleDelete(report._id)}
+                      className="flex items-center gap-1.5 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium"
+                    >
+                      <Trash2 size={15} />
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Pagination */}
         {pagination.totalPages > 1 && (
@@ -262,6 +268,15 @@ const MyReports = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={!!confirmDeleteId}
+        title="Delete Report?"
+        description="Are you sure you want to delete this report? This action cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={executeDelete}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
 
       {/* Image Lightbox */}
       {lightboxImages && (

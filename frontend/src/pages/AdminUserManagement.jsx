@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, RefreshCw, User, Ban, CheckCircle, ExternalLink, Shield } from 'lucide-react';
+import { ArrowLeft, Search, RefreshCw, User, Ban, CheckCircle, ExternalLink, Shield, SlidersHorizontal } from 'lucide-react';
+import ConfirmModal from '../components/ConfirmModal';
 import { toast } from 'react-toastify';
 import { adminApi } from '../utils/api';
 import Pagination from '../components/admin/Pagination';
@@ -12,22 +13,26 @@ function AdminUserManagement() {
   const [users, setUsers] = useState([]);
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('');       // '' | 'active' | 'blacklisted'
+  const [sortBy, setSortBy] = useState('newest'); // 'newest' | 'oldest' | 'name_asc' | 'name_desc'
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({ total: 0, totalPages: 1, hasNext: false, hasPrev: false });
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [togglingId, setTogglingId] = useState(null);
+  const [confirmUser, setConfirmUser] = useState(null); // user pending blacklist confirmation
 
   const searchTimeoutRef = useRef(null);
   const lastRefreshTime = useRef(0);
   const [refreshCooldown, setRefreshCooldown] = useState(false);
 
-  const fetchUsers = useCallback(async (currentPage, currentSearch, isRefresh = false) => {
+  const fetchUsers = useCallback(async (currentPage, currentSearch, currentFilter, currentSortBy, isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const params = { page: currentPage, limit: LIMIT };
+      const params = { page: currentPage, limit: LIMIT, sortBy: currentSortBy };
       if (currentSearch) params.search = currentSearch;
+      if (currentFilter) params.filter = currentFilter;
       const res = await adminApi.getUsers(params);
       setUsers(res.data.users || []);
       setMeta(res.data.pagination || { total: 0, totalPages: 1, hasNext: false, hasPrev: false });
@@ -41,8 +46,8 @@ function AdminUserManagement() {
   }, []);
 
   useEffect(() => {
-    fetchUsers(page, search);
-  }, [page, search, fetchUsers]);
+    fetchUsers(page, search, filter, sortBy);
+  }, [page, search, filter, sortBy, fetchUsers]);
 
   const handleSearchChange = (value) => {
     setSearchInput(value);
@@ -62,10 +67,20 @@ function AdminUserManagement() {
     lastRefreshTime.current = now;
     setRefreshCooldown(true);
     setTimeout(() => setRefreshCooldown(false), 5000);
-    fetchUsers(page, search, true);
+    fetchUsers(page, search, filter, sortBy, true);
   };
 
-  const handleToggleBlacklist = async (user) => {
+  const handleToggleBlacklist = (user) => {
+    // Unblacklisting: do it immediately; blacklisting: require confirmation
+    if (!user.isBlacklisted) {
+      setConfirmUser(user);
+      return;
+    }
+    executeToggle(user);
+  };
+
+  const executeToggle = async (user) => {
+    setConfirmUser(null);
     if (togglingId) return;
     setTogglingId(user._id);
     try {
@@ -84,6 +99,29 @@ function AdminUserManagement() {
 
   return (
     <div className="min-h-screen py-8 bg-gray-50">
+
+      {/* Blacklist Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!confirmUser}
+        title="Blacklist User?"
+        subtitle="This action can be reversed later."
+        description="Blacklisted users cannot log in or perform any actions on the platform."
+        confirmLabel="Yes, Blacklist"
+        confirmIcon={Ban}
+        onConfirm={() => executeToggle(confirmUser)}
+        onCancel={() => setConfirmUser(null)}
+      >
+        {confirmUser && (
+          <>
+            <p className="text-sm text-gray-700 mb-1">You are about to blacklist:</p>
+            <div className="bg-gray-50 rounded-lg px-4 py-3 mb-4 border border-gray-200">
+              <p className="font-semibold text-gray-900">{confirmUser.name}</p>
+              <p className="text-sm text-gray-500">{confirmUser.email}</p>
+            </div>
+          </>
+        )}
+      </ConfirmModal>
+
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Back */}
@@ -116,8 +154,9 @@ function AdminUserManagement() {
           </button>
         </div>
 
-        {/* Search */}
-        <div className="bg-white rounded-xl shadow-md p-5 mb-6">
+        {/* Search + Filters */}
+        <div className="bg-white rounded-xl shadow-md p-5 mb-6 space-y-4">
+          {/* Search input */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input
@@ -128,13 +167,76 @@ function AdminUserManagement() {
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
             />
           </div>
-          {search && (
-            <button
-              onClick={() => { setSearchInput(''); setSearch(''); setPage(1); }}
-              className="mt-2 text-sm text-gray-500 hover:text-gray-800 underline"
-            >
-              Clear search
-            </button>
+
+          {/* Filter row */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            {/* Status filter */}
+            <div className="flex items-center gap-1.5">
+              <SlidersHorizontal size={15} className="text-gray-400 flex-shrink-0" />
+              <span className="text-sm text-gray-500 mr-1">Status:</span>
+              {[
+                { label: 'All', value: '' },
+                { label: 'Active', value: 'active' },
+                { label: 'Blacklisted', value: 'blacklisted' },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => { setFilter(opt.value); setPage(1); }}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                    filter === opt.value
+                      ? opt.value === 'blacklisted'
+                        ? 'bg-red-600 text-white'
+                        : opt.value === 'active'
+                        ? 'bg-green-600 text-white'
+                        : 'bg-gray-900 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Sort */}
+            <div className="flex items-center gap-2 sm:ml-auto">
+              <span className="text-sm text-gray-500">Sort:</span>
+              <select
+                value={sortBy}
+                onChange={e => { setSortBy(e.target.value); setPage(1); }}
+                className="text-sm border border-gray-300 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white"
+              >
+                <option value="newest">Newest first</option>
+                <option value="oldest">Oldest first</option>
+                <option value="name_asc">Name A → Z</option>
+                <option value="name_desc">Name Z → A</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Active filter chips / clear */}
+          {(search || filter) && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {search && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded-full">
+                  Search: "{search}"
+                  <button onClick={() => { setSearchInput(''); setSearch(''); setPage(1); }} className="ml-1 hover:text-red-600">✕</button>
+                </span>
+              )}
+              {filter && (
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full ${
+                  filter === 'blacklisted' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                }`}>
+                  {filter === 'blacklisted' ? 'Blacklisted only' : 'Active only'}
+                  <button onClick={() => { setFilter(''); setPage(1); }} className="ml-1 hover:opacity-70">✕</button>
+                </span>
+              )}
+              <button
+                onClick={() => { setSearchInput(''); setSearch(''); setFilter(''); setPage(1); }}
+                className="text-xs text-gray-400 hover:text-gray-700 underline ml-1"
+              >
+                Clear all
+              </button>
+            </div>
           )}
         </div>
 

@@ -20,21 +20,40 @@ export const listUsers = async (req, res) => {
     const skip = (page - 1) * limit;
     const search = req.query.search?.trim() || "";
 
-    const query = search
-      ? {
-          $or: [
-            { name: { $regex: search, $options: "i" } },
-            { email: { $regex: search, $options: "i" } },
-            { rollNo: { $regex: search, $options: "i" } },
-          ],
-        }
-      : {};
+    // Filter by blacklist status: "active" | "blacklisted" | "" (all)
+    const filter = req.query.filter || "";
+    // Sort: "newest" (default) | "oldest" | "name_asc" | "name_desc"
+    const sortBy = req.query.sortBy || "newest";
+
+    const sortMap = {
+      newest: { createdAt: -1 },
+      oldest: { createdAt: 1 },
+      name_asc: { name: 1 },
+      name_desc: { name: -1 },
+    };
+    const sort = sortMap[sortBy] || { createdAt: -1 };
+
+    const query = {};
+
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+        { rollNo: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    if (filter === "blacklisted") {
+      query.isBlacklisted = true;
+    } else if (filter === "active") {
+      query.isBlacklisted = { $ne: true };
+    }
 
     const [users, total] = await Promise.all([
       withQueryTimeout(
         User.find(query)
           .select("name email phone profilePicture isBlacklisted createdAt")
-          .sort({ createdAt: -1 })
+          .sort(sort)
           .skip(skip)
           .limit(limit)
           .lean(),

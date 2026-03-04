@@ -9,6 +9,7 @@ import { publicApi, userApi } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { CATEGORY_DISPLAY_NAMES } from '../utils/constants';
 import ItemClaimSection from '../components/ItemClaimSection';
+import ConfirmModal from '../components/ConfirmModal';
 
 const ItemDetail = () => {
   const { id } = useParams();
@@ -23,6 +24,7 @@ const ItemDetail = () => {
   const [userClaimId, setUserClaimId] = useState(null);
   const [checkingClaim, setCheckingClaim] = useState(true);
   const [userHasRejectedClaim, setUserHasRejectedClaim] = useState(false);
+  const [pendingConfirm, setPendingConfirm] = useState(null); // 'claim' | 'removeClaim'
   
   // Use refs to prevent spam submissions
   const isClaimingRef = useRef(false);
@@ -87,13 +89,10 @@ const ItemDetail = () => {
       navigate(`/login?redirect=${encodeURIComponent(currentPath)}`);
       return;
     }
-
     if (userHasClaimed) {
       toast.warning('You already have a claim request for this item');
       return;
     }
-
-    // Prevent spam claiming
     if (isClaimingRef.current || claiming) {
       console.log('Duplicate claim blocked');
       return;
@@ -104,8 +103,8 @@ const ItemDetail = () => {
     try {
       await userApi.claimItem(id);
       toast.success('Claim request submitted successfully!');
-      setUserHasClaimed(true); // Optimistic update
-      fetchItemDetails(); // Refresh item details (triggers claim status check via useEffect)
+      setUserHasClaimed(true);
+      fetchItemDetails();
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to submit claim';
       toast.error(message);
@@ -116,10 +115,14 @@ const ItemDetail = () => {
     }
   };
 
-  const handleRemoveClaim = async () => {
+  const handleRemoveClaim = () => {
     if (!userClaimId) return;
+    setPendingConfirm('removeClaim');
+  };
 
-    // Prevent spam deletion
+  const executeRemoveClaim = async () => {
+    setPendingConfirm(null);
+    if (!userClaimId) return;
     if (isDeletingClaimRef.current || deletingClaim) {
       console.log('Duplicate deletion blocked');
       return;
@@ -337,6 +340,15 @@ const ItemDetail = () => {
           </ol>
         </motion.div>
       </div>
+
+      <ConfirmModal
+        isOpen={pendingConfirm === 'removeClaim'}
+        title="Remove Claim?"
+        description="Are you sure you want to withdraw your claim request for this item?"
+        confirmLabel="Remove Claim"
+        onConfirm={executeRemoveClaim}
+        onCancel={() => setPendingConfirm(null)}
+      />
     </div>
   );
 };
