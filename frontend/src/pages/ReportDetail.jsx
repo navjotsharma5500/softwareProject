@@ -31,12 +31,12 @@ const STATUS_STYLES = {
  * @param {string}            props.value - Field value; renders `—` when falsy.
  * @returns {JSX.Element}
  */
-const DetailRow = ({ icon: Icon, label, value }) => (
+const DetailRow = ({ icon: Icon, label, value, breakAll = false }) => (
   <div className="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0">
     <Icon size={16} className="text-gray-400 mt-0.5 shrink-0" />
-    <div className="min-w-0">
+    <div className="min-w-0 flex-1">
       <p className="text-xs text-gray-500 mb-0.5">{label}</p>
-      <p className="text-sm text-gray-900 font-medium break-words">{value || '—'}</p>
+      <p className={`text-sm text-gray-900 font-medium ${breakAll ? 'break-all' : 'break-words'}`}>{value || '—'}</p>
     </div>
   </div>
 );
@@ -187,7 +187,7 @@ const ReportDetail = () => {
               <h2 className="text-base font-semibold text-gray-900 mb-2">Reporter</h2>
               <div className="divide-y divide-gray-100">
                 <DetailRow icon={User} label="Name" value={report.user?.name} />
-                <DetailRow icon={Mail} label="Email" value={report.user?.email} />
+                <DetailRow icon={Mail} label="Email" value={report.user?.email} breakAll />
               </div>
             </div>
 

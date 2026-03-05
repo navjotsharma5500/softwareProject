@@ -44,7 +44,7 @@ const ReportLostItem = () => {
   // Use ref to prevent spam submissions
   const isSubmittingRef = useRef(false);
   // Photos are stored as { url: objectURL, file: File } until submit.
-  // File objects cannot be serialised to localStorage, so plain useState is used.
+  // File objects cannot be serialized to localStorage, so plain useState is used.
   const [photos, setPhotos] = useState([]);
   const [formData, setFormData, formControls] = useFormPersistence('reportLost_form', {
     itemDescription: '',
