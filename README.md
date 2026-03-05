@@ -2,7 +2,7 @@
 
 ![Banner](./banner.jpg)
 
-A full-stack web application for managing lost and found items at **Thapar Institute of Engineering and Technology**. Users can browse found items, report lost ones, claim them back — all with admin oversight.
+A full-stack web application for managing lost and found items at **Thapar Institute of Engineering and Technology**. Users can browse found items, report lost ones, claim them back — all with admin oversight by **[Surya](https://surya-tiwari-portfolio.vercel.app/)** and **[Akshat](https://github.com/akshatkakkar1)**.
 
 ## 🔗 **Live:** [CHECK IT OUT](https://lost-and-found-portal-six.vercel.app)
 
@@ -202,12 +202,6 @@ db.users.updateOne(
 | PATCH  | `/api/admin/users/:id/blacklist` | Admin  |
 
 > ⚡ Critical write endpoints (`/claim`, `POST /reports`, approve/reject) support idempotency via the `Idempotency-Key` request header.
-
----
-
-## 📞 Contact
-
-[stiwari2_be23@thapar.edu](mailto:stiwari2_be23@thapar.edu)
 
 ---
 
