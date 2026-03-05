@@ -77,7 +77,7 @@ function IOSScreen({ step }) {
         {/* Safari address bar */}
         <div className="bg-gray-200 px-2 py-1.5 flex items-center gap-1.5">
           <div className="flex-1 bg-white rounded-lg px-2 py-1 text-[9px] text-gray-500 truncate border border-gray-300">
-            tiet-lnf.vercel.app
+           lostnfound.thapar.edu
           </div>
           <motion.div
             animate={step === 0 ? { scale: [1, 1.25, 1], opacity: [1, 0.55, 1] } : {}}
