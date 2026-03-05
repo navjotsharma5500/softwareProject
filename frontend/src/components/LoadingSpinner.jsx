@@ -123,12 +123,12 @@ const LoadingSpinner = ({ message }) => {
 
       {/* Cycling message — always rotates through search phrases */}
       <p
-        className="text-base font-semibold text-gray-800 dark:text-white transition-opacity duration-300"
+        className="text-base font-semibold text-gray-800 transition-opacity duration-300"
         style={{ opacity: fade ? 1 : 0 }}
       >
         {message != null ? message : searchMessages[msgIndex]}
       </p>
-      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+      <p className="text-xs text-gray-400 mt-1">
         Hang tight while we search for you
       </p>
 
