@@ -20,6 +20,7 @@ import React, { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import confetti from 'canvas-confetti';
 import { reportApi } from '../utils/api';
 import { uploadMultipleToImageKit } from '../utils/imagekit';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
@@ -154,7 +155,8 @@ const ReportLostItem = () => {
       // Revoke all blob URLs now that we're done with them
       photos.forEach(p => URL.revokeObjectURL(p.url));
 
-      toast.success('Report submitted successfully! Redirecting to your profile...');
+      toast.success('Report submitted successfully! Redirecting to your profile...', { autoClose: 5000 });
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
       // clear persisted draft after successful submit
       formControls.clear();
 
@@ -171,7 +173,7 @@ const ReportLostItem = () => {
       // Redirect to profile page with reports section selected
       setTimeout(() => {
         navigate('/profile?section=reports');
-      }, 1000);
+      }, 2400);
     } catch (error) {
       // If images were uploaded but report creation failed, remove them from
       // ImageKit so they don't become permanently orphaned.
