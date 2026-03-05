@@ -17,7 +17,7 @@ jobs:
                   username: ubuntu
                   key: ${{ secrets.DEPLOY_KEY }}
                   script: |
-                      cd /var/www/softwareProject
+                      cd ~/softwareProject
                       git pull origin main
                       cd backend
                       npm install --omit=dev
