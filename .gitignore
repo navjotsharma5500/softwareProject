@@ -48,6 +48,10 @@ coverage/
 # Environment variables (CONTAINS SENSITIVE DATA - MONGODB URI, JWT SECRET, AWS KEYS)
 .env
 .env.*.local
+
+# SSH keys - NEVER commit these
+*.pem
+*.key
 .env.local
 .env.test
 
