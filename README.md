@@ -1,5 +1,7 @@
 ﻿# 🎓 Thapar Institute Lost & Found System
 
+![Banner](./banner.jpg)
+
 A full-stack web application for managing lost and found items at **Thapar Institute of Engineering and Technology**. Users can browse found items, report lost ones, claim them back — all with admin oversight.
 
 ## 🔗 **Live:** [CHECK IT OUT](https://lost-and-found-portal-six.vercel.app)
