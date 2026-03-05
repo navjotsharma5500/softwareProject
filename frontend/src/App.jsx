@@ -32,6 +32,7 @@ import { ProtectedRoute } from './components/ProtectedRoute.jsx'
 import { PublicRoute } from './components/PublicRoute.jsx'
 import NotFound from './pages/NotFound.jsx'
 import DevelopersPage from './pages/DevelopersPage.jsx'
+import InstallApp from './pages/InstallApp.jsx'
 import ScrollToTop from './components/ScrollToTop.jsx'
 
 const App = () => {
@@ -59,6 +60,7 @@ const App = () => {
           <Route path='/report-lost-item' element={<ReportLostItem />} />
           <Route path='/how-it-works' element={<HowItWorks />} />
           <Route path='/stats' element={<Stats />} />
+          <Route path='/install' element={<InstallApp />} />
           {/* Admin Routes */}
           <Route path='/admin' element={
             <ProtectedRoute adminOnly={true}>
