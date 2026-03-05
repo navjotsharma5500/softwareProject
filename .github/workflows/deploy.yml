@@ -15,7 +15,7 @@ jobs:
               with:
                   host: 43.205.143.123
                   username: ubuntu
-                  key: ${{ secrets.EC2_SSH_KEY }}
+                  key: ${{ secrets.DEPLOY_KEY }}
                   script: |
                       cd /var/www/softwareProject
                       git pull origin main
