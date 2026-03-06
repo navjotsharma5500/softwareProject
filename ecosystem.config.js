@@ -19,11 +19,12 @@ module.exports = {
       host: "43.205.143.123",
       ref: "origin/main",
       repo: "git@github.com:navjotsharma5500/softwareProject.git",
-      path: "/var/www/softwareProject",
+      path: "/home/ubuntu/softwareProject",
       "post-deploy":
-        "cd /var/www/softwareProject && git pull && cd backend && npm install && pm2 restart backend",
+        "cd ~/softwareProject && git pull && cd backend && npm install --omit=dev && pm2 restart backend && pm2 save",
       ssh_options:
         "StrictHostKeyChecking=no -i C:/Users/SURYA/.ssh/lost&found.pem",
+        //add your path ig
     },
   },
 };
