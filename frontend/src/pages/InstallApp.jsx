@@ -24,7 +24,7 @@ const STEPS = {
     {
       icon: <Share2 className="text-blue-600" size={28} />,
       title: 'Tap the Share button',
-      description: 'Find the Share button (□↑) in the Safari toolbar at the bottom of your screen.',
+      description: 'Find the Share button in the Safari toolbar at the bottom of your screen.',
       hint: 'It looks like a box with an arrow pointing upward',
     },
     {
