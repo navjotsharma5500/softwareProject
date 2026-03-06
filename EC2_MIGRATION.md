@@ -75,13 +75,20 @@ scp -i your-key.pem ubuntu@OLD_IP:~/softwareProject/backend/.env ./backend.env
 scp -i your-key.pem ./backend.env ubuntu@NEW_IP:~/softwareProject/backend/.env
 ```
 
+---
+
 ## Step 5 — Configure Nginx
+
+> **Why Nginx if you have Cloudflare?**
+> Cloudflare proxies traffic _to_ your EC2, but something on the server still needs to receive on port 80/443 and forward to Node.js on port 3000. Nginx handles that reverse proxy, plus SSL termination, security headers, CORS, and upload size limits. The flow is:
+> `Browser → Cloudflare → Nginx (port 443) → Node.js (port 3000)`
 
 ```bash
 sudo cp ~/softwareProject/nginx.conf /etc/nginx/sites-available/lostandfoundapi
 sudo ln -s /etc/nginx/sites-available/lostandfoundapi /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default   # remove default if present
-sudo nginx -t                                  # test config
+sudo nginx -t                                  # verify config before applying
+sudo systemctl enable nginx
 sudo systemctl reload nginx
 ```
 
@@ -102,11 +109,13 @@ Certbot will automatically update your Nginx config with the new cert paths.
 
 ## Step 7 — Start the App with PM2
 
+On first boot, start PM2 manually (GitHub Actions will handle all future deploys):
+
 ```bash
-cd ~/softwareProject
-pm2 start ecosystem.config.js
+cd ~/softwareProject/backend
+pm2 start index.js --name backend
 pm2 save
-pm2 startup   # run the printed command to enable auto-start on reboot
+pm2 startup   # copy and run the printed command to enable auto-start on reboot
 ```
 
 Check that the app is running:
@@ -118,21 +127,9 @@ pm2 logs backend
 
 ---
 
-## Step 8 — Update the New IP in Config Files
+## Step 8 — Update Config & Secrets for the New Instance
 
-**`ecosystem.config.js`** — update the host and path:
-
-```js
-// Before:
-host: "43.205.143.123",
-path: "/home/ubuntu/softwareProject",
-
-// After:
-host: "NEW_EC2_PUBLIC_IP",
-path: "/home/ubuntu/softwareProject",
-```
-
-**`.github/workflows/deploy.yml`** — update the host:
+**`.github/workflows/deploy.yml`** — update the host IP:
 
 ```yaml
 # Before:
@@ -142,9 +139,12 @@ host: 43.205.143.123
 host: NEW_EC2_PUBLIC_IP
 ```
 
-Also update the `DEPLOY_KEY` secret in **GitHub → Settings → Secrets** to the new instance's private key.
+**GitHub Secrets** — update `DEPLOY_KEY` with the new instance's SSH private key:
 
-Commit and push these changes to the repository.
+1. Go to **GitHub → Settings → Secrets and variables → Actions**
+2. Edit `DEPLOY_KEY` and paste the new instance's private key contents.
+
+Commit and push the `deploy.yml` change. The next push to `main` will deploy to the new instance.
 
 ---
 
@@ -186,5 +186,6 @@ In **Cloudflare**:
 - [ ] Health endpoint responds: `GET /health`
 - [ ] HTTPS works: `https://lostandfoundapi.guestapp.in`
 - [ ] Frontend on Vercel authenticates and fetches data correctly
-- [ ] `ecosystem.config.js` updated with new IP and committed
+- [ ] `deploy.yml` updated with new IP and committed
+- [ ] `DEPLOY_KEY` GitHub secret updated
 - [ ] Old EC2 instance stopped/terminated
