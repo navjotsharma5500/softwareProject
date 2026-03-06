@@ -8,7 +8,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-
+import SafariBrowser from '../components/safari';
 /**
  * Reusable content card with a dark header (icon + title) and a white body.
  *
@@ -75,16 +75,10 @@ const HowItWorks = () => {
             </h2>
           </div>
           <div className="p-6 bg-gray-50">
-            <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-              <iframe
-                className="absolute top-0 left-0 w-full h-full rounded-lg shadow-md"
-                src="https://www.youtube.com/embed/1jpuFnmjzVs"
-                title="How to Use Lost & Found Portal"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
-            </div>
+             <SafariBrowser
+              url="LOST AND FOUND TUTORIAL"
+              iframeSrc="https://www.youtube.com/embed/1jpuFnmjzVs"
+            />
             <p className="text-sm text-gray-600 text-center mt-4">
               Watch this quick tutorial to learn how to report lost items and claim found items on the portal.
             </p>
