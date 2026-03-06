@@ -52,7 +52,7 @@ cd ~
 Clone repository:
 
 ```bash
-git clone https://github.com/<your-org>/<repo>.git softwareProject
+git clone https://github.com/<your-org>/<repo>.git 
 ```
 
 Enter project root:
