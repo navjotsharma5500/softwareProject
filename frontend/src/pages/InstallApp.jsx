@@ -417,7 +417,7 @@ export default function InstallApp() {
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              {p === 'ios' ? '🍎  iOS Safari' : '🤖  Android Chrome'}
+              {p === 'ios' ? 'iOS Safari' : 'Android Chrome'}
             </button>
           ))}
         </div>
