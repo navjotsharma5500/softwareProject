@@ -49,6 +49,7 @@ import {
 import {
   listUsers,
   toggleBlacklist,
+  deleteUser,
 } from "../controllers/admin.users.controller.js";
 
 const router = express.Router();
@@ -183,6 +184,15 @@ router.patch(
   adminLimiter,
   validateObjectId("id"),
   toggleBlacklist,
+);
+router.delete(
+  "/users/:id",
+  isAuthenticated,
+  adminOnly,
+  adminLimiter,
+  validateObjectId("id"),
+  idempotencyMiddleware(86400, true),
+  deleteUser,
 );
 
 export default router;

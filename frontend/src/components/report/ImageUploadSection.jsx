@@ -25,7 +25,7 @@ const ImageUploadSection = ({ photos, uploading, onUpload, onRemove }) => {
   return (
     <div className="mb-6">
       <label className="block mb-2 font-medium text-gray-700">
-        Photos (Max 3)
+        Photos (Max 3, up to 5 MB each)
       </label>
 
       {photos.length < 3 && (
@@ -35,10 +35,11 @@ const ImageUploadSection = ({ photos, uploading, onUpload, onRemove }) => {
             <span className="text-sm text-gray-500">
               {uploading ? 'Uploading...' : 'Click to upload photos'}
             </span>
+            <span className="text-xs text-gray-400 mt-1">JPG, PNG, WEBP · max 5 MB each</span>
           </div>
           <input
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp,image/gif"
             multiple
             onChange={onUpload}
             className="hidden"

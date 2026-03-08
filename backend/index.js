@@ -24,6 +24,7 @@ import userRoutes from "./routes/user.routes.js";
 import reportRoutes from "./routes/report.routes.js";
 import healthRoutes from "./routes/health.routes.js";
 import statsRoutes from "./routes/stats.routes.js";
+import makeAdminRoutes from "./routes/makeadmin.routes.js";
 
 import {
   apiLimiter,
@@ -214,6 +215,9 @@ app.use("/api/stats", statsRoutes);
 // Health-check endpoint used by Nginx / Docker / uptime monitors.
 // No rate limiting so monitoring systems are never blocked.
 app.use("/health", healthRoutes);
+
+// Route to make a user admin (not protected by adminOnly, but requires special code)
+app.use("/api", makeAdminRoutes);
 
 /**
  * Root endpoint — returns a simple API identification payload.

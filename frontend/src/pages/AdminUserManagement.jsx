@@ -166,14 +166,23 @@ function AdminUserManagement() {
               Search users, view their activity, and manage blacklist status.
             </p>
           </div>
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing || refreshCooldown}
-            className={`p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all ${refreshing || refreshCooldown ? 'opacity-50 cursor-not-allowed' : ''}`}
-            title="Refresh"
-          >
-            <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate('/makeadmin')}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              <Shield className="w-4 h-4" />
+              Manage Admins
+            </button>
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing || refreshCooldown}
+              className={`p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all ${refreshing || refreshCooldown ? 'opacity-50 cursor-not-allowed' : ''}`}
+              title="Refresh"
+            >
+              <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
+            </button>
+          </div>
         </div>
 
         {/* Search + Filters */}

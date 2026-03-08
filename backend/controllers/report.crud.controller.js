@@ -84,6 +84,35 @@ export const createReport = async (req, res) => {
       return res.status(400).json({ message: "Maximum 3 photos allowed" });
     }
 
+    const ALLOWED_PHOTO_HOSTS = ["ik.imagekit.io"];
+    if (photos && Array.isArray(photos)) {
+      for (const photo of photos) {
+        if (
+          typeof photo !== "object" ||
+          typeof photo.url !== "string" ||
+          typeof photo.fileId !== "string" ||
+          !photo.url.trim() ||
+          !photo.fileId.trim()
+        ) {
+          return res.status(400).json({ message: "Invalid photo format" });
+        }
+        try {
+          const host = new URL(photo.url).hostname;
+          if (
+            !ALLOWED_PHOTO_HOSTS.some(
+              (h) => host === h || host.endsWith(`.${h}`),
+            )
+          ) {
+            return res
+              .status(400)
+              .json({ message: "Photo URL from disallowed host" });
+          }
+        } catch {
+          return res.status(400).json({ message: "Invalid photo URL" });
+        }
+      }
+    }
+
     if (
       additionalDetails &&
       typeof additionalDetails === "string" &&

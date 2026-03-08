@@ -159,7 +159,7 @@ function IOSScreen({ step }) {
                     </div>
                     <div className="text-left">
                       <p className="text-[8px] font-bold text-gray-900">TIET L&F</p>
-                      <p className="text-[6px] text-gray-500">tiet-lnf.vercel.app</p>
+                      <p className="text-[6px] text-gray-500">lostnfound.thapar.edu</p>
                     </div>
                   </div>
                 </div>

@@ -61,8 +61,26 @@ const ReportLostItem = () => {
   const handlePhotoUpload = (e) => {
     const files = Array.from(e.target.files);
 
+    const nonImages = files.filter(f => !f.type.startsWith('image/'));
+    if (nonImages.length > 0) {
+      toast.error('Only image files are allowed (JPG, PNG, WEBP, etc.). Videos and other files are not accepted.');
+      e.target.value = '';
+      return;
+    }
+
     if (photos.length + files.length > 3) {
       toast.error('Maximum 3 photos allowed');
+      e.target.value = '';
+      return;
+    }
+
+    const MAX_SIZE_MB = 5;
+    const oversized = files.filter(f => f.size > MAX_SIZE_MB * 1024 * 1024);
+    if (oversized.length > 0) {
+      toast.error(
+        `${oversized.map(f => f.name).join(', ')} exceed${oversized.length === 1 ? 's' : ''} the ${MAX_SIZE_MB} MB limit. Please compress or choose a smaller file.`
+      );
+      e.target.value = '';
       return;
     }
 

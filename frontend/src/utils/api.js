@@ -204,6 +204,11 @@ export const adminApi = {
   // User management
   getUsers: (params) => api.get("/admin/users", { params }),
   toggleBlacklist: (userId) => api.patch(`/admin/users/${userId}/blacklist`),
+  deleteUser: (userId) => api.delete(`/admin/users/${userId}`),
+
+  // Admin privilege management
+  makeAdmin: (email, code) => api.post("/makeadmin", { email, code }),
+  removeAdmin: (email, code) => api.post("/removeadmin", { email, code }),
 };
 
 export default api;

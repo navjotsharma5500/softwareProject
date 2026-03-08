@@ -18,6 +18,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Plus, CheckCircle, XCircle, Package, Users,
   RefreshCw, AlertCircle, Download, ArrowLeft, FileText, Shield,
+  UserPlus,
 } from 'lucide-react';
 import Pagination from '../components/admin/Pagination';
 import ClaimsTab from '../components/admin/ClaimsTab';
@@ -453,6 +454,12 @@ const Admin = () => {
                 className="flex items-center gap-2 px-6 py-4 font-semibold transition-colors whitespace-nowrap text-gray-600 hover:text-gray-900"
               >
                 <Shield size={20} /> Users
+              </button>
+              <button
+                onClick={() => navigate('/makeadmin')}
+                className="flex items-center gap-2 px-6 py-4 font-semibold transition-colors whitespace-nowrap text-gray-600 hover:text-gray-900"
+              >
+                <UserPlus size={20} /> access control
               </button>
             </div>
           </div>

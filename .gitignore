@@ -1,5 +1,8 @@
 # Migration documentation
 migration-lostnfound.md
+
+# Nginx config (lives on the server at /etc/nginx/sites-available/ — not tracked in Git)
+nginx.conf
 # .gitignore - common frontend + backend ignores
 
 # OS
@@ -14,7 +17,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-
+microo*
+mirco*
+micro*
 # Runtime data
 pids
 *.pid
@@ -289,7 +294,9 @@ fampay_cover_letter.txt
 readmeml.md
 resume.tex
 
-
+/nginx/live
+.env.production
+.pem
 
 EXTERNAL*.md
 

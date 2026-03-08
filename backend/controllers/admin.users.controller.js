@@ -7,7 +7,11 @@
  */
 
 import User from "../models/user.model.js";
+import Claim from "../models/claim.model.js";
+import Report from "../models/report.model.js";
+import { deleteFile } from "../utils/s3.utils.js";
 import { withQueryTimeout } from "../middlewares/queryTimeout.middleware.js";
+import { clearCachePattern } from "../utils/redisClient.js";
 import { paginationMeta } from "../utils/helpers.js";
 
 /**
@@ -103,6 +107,76 @@ export const toggleBlacklist = async (req, res) => {
     });
   } catch (error) {
     console.error("toggleBlacklist error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+/**
+ * Permanently delete a user account and cascade-remove all their data.
+ *
+ * Cascade order:
+ *  1. Delete all reports by the user (best-effort ImageKit photo cleanup per report).
+ *  2. Delete all claims by the user.
+ *  3. Clear per-user Redis caches.
+ *  4. Delete the User document.
+ *
+ * Admins cannot delete other admin accounts.
+ * An admin cannot delete their own account via this endpoint.
+ *
+ * @route DELETE /admin/users/:id
+ * @access Protected — admins only
+ */
+export const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (id === req.user.id) {
+      return res
+        .status(403)
+        .json({ message: "You cannot delete your own account." });
+    }
+
+    const user = await withQueryTimeout(User.findById(id));
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.isAdmin) {
+      return res
+        .status(403)
+        .json({ message: "Cannot delete an admin account." });
+    }
+
+    // 1. Delete all reports owned by this user, cleaning up ImageKit photos.
+    const reports = await withQueryTimeout(
+      Report.find({ user: id }).select("photos").lean(),
+    );
+    for (const report of reports) {
+      for (const photo of report.photos || []) {
+        if (photo.fileId) {
+          try {
+            await deleteFile(photo.fileId);
+          } catch (err) {
+            console.error("ImageKit photo cleanup failed:", err.message);
+          }
+        }
+      }
+    }
+    await Report.deleteMany({ user: id });
+
+    // 2. Delete all claims made by this user.
+    await Claim.deleteMany({ claimant: id });
+
+    // 3. Clear caches.
+    await clearCachePattern(`user:${id}:*`);
+    await clearCachePattern(`user:profile:${id}`);
+
+    // 4. Delete the user.
+    await User.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      message: `User "${user.name}" and all associated data have been deleted.`,
+    });
+  } catch (error) {
+    console.error("deleteUser error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };

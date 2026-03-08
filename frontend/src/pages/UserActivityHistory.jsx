@@ -12,11 +12,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { ArrowLeft, AlertCircle, Package, MapPin, Clock, Calendar, Ban, CheckCircle } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Package, MapPin, Clock, Calendar, Ban, CheckCircle, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { userApi, adminApi } from '../utils/api';
 import { CATEGORY_DISPLAY_NAMES } from '../utils/constants';
 import ImageLightbox from '../components/ImageLightbox';
+import ConfirmModal from '../components/ConfirmModal';
 
 /**
  * User activity history page (admin only).
@@ -38,6 +39,8 @@ const UserActivityHistory = () => {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [isBlacklisted, setIsBlacklisted] = useState(false);
   const [togglingBlacklist, setTogglingBlacklist] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
@@ -78,6 +81,23 @@ const UserActivityHistory = () => {
     }
   };
 
+  const handleDeleteUser = async () => {
+    setConfirmDelete(false);
+    setDeleting(true);
+    try {
+      const res = await adminApi.deleteUser(userId);
+      toast.success(res.data.message);
+      // Navigate back since this user no longer exists
+      fromTab === 'users'
+        ? navigate('/admin/users')
+        : navigate('/admin', { state: { tab: fromTab } });
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete user');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <>
       <div className="min-h-screen py-8 bg-gray-50">
@@ -115,10 +135,11 @@ const UserActivityHistory = () => {
                 </p>
               )}
             </div>
+            <div className="flex items-center gap-2 self-start flex-wrap">
             <button
               onClick={handleToggleBlacklist}
               disabled={togglingBlacklist || loading}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors self-start ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
                 isBlacklisted
                   ? 'bg-green-600 hover:bg-green-700 text-white'
                   : 'bg-red-600 hover:bg-red-700 text-white'
@@ -136,6 +157,15 @@ const UserActivityHistory = () => {
               )}
               {togglingBlacklist ? 'Updating...' : isBlacklisted ? 'Unblacklist User' : 'Blacklist User'}
             </button>
+            <button
+              onClick={() => setConfirmDelete(true)}
+              disabled={deleting || loading}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-colors bg-gray-800 hover:bg-gray-900 text-white ${deleting || loading ? 'opacity-60 cursor-not-allowed' : ''}`}
+            >
+              <Trash2 size={15} />
+              {deleting ? 'Deleting...' : 'Delete User'}
+            </button>
+            </div>
           </div>
 
           {loading ? (
@@ -421,6 +451,18 @@ const UserActivityHistory = () => {
           onClose={() => setLightboxImages(null)}
         />
       )}
+      <ConfirmModal
+        isOpen={confirmDelete}
+        variant="danger"
+        title="Delete User Account?"
+        subtitle={userName || undefined}
+        description="This will permanently delete this user and all their reports, claims, and photos. This action cannot be undone."
+        confirmLabel="Yes, Delete"
+        confirmIcon={Trash2}
+        cancelLabel="Cancel"
+        onConfirm={handleDeleteUser}
+        onCancel={() => setConfirmDelete(false)}
+      />
     </>
   );
 };

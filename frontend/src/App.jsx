@@ -34,6 +34,7 @@ import NotFound from './pages/NotFound.jsx'
 import DevelopersPage from './pages/DevelopersPage.jsx'
 import InstallApp from './pages/InstallApp.jsx'
 import ScrollToTop from './components/ScrollToTop.jsx'
+import MakeAdmin from './pages/MakeAdmin.jsx'
 
 const App = () => {
   return (
@@ -85,6 +86,11 @@ const App = () => {
           <Route path='/admin/user/:userId' element={
             <ProtectedRoute adminOnly={true}>
               <UserActivityHistory />
+            </ProtectedRoute>
+          } />
+          <Route path='/makeadmin' element={
+            <ProtectedRoute adminOnly={true}>
+              <MakeAdmin />
             </ProtectedRoute>
           } />
           <Route path="*" element={<NotFound />} />
