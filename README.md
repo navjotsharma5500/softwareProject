@@ -2,7 +2,7 @@
 
 ![Banner](./banner.jpg)
 
-A full-stack web application for managing lost and found items at **Thapar Institute of Engineering and Technology**. Users can browse found items, report lost ones, claim them back — all with admin oversight by **[Surya](https://surya-tiwari-portfolio.vercel.app/)** and **[Akshat](https://github.com/akshatkakkar1)** under the guidance of **[Navjot Sharma](https://github.com/navjotsharma5500)**.
+A full-stack web application for managing lost and found items at **Thapar Institute of Engineering and Technology**. Users can browse found items, report lost ones, and claim them back — all maintained by **[Surya](https://surya-tiwari-portfolio.vercel.app/)** and **[Akshat](https://github.com/akshatkakkar1)** under the guidance of **[Navjot Sharma](https://github.com/navjotsharma5500)**.
 
 ## 🔗 **Live:** [CHECK IT OUT](https://lost-and-found-portal-six.vercel.app)
 
