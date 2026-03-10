@@ -206,3 +206,20 @@ db.users.updateOne(
 ---
 
 _Made with ❤️ for Thapar Institute of Engineering and Technology_
+
+## 📜 License
+
+This project is licensed under the **Surya Custom Source License (SCSL v1.0)**.
+
+Key restrictions:
+
+- Permission required before use
+- Non-commercial use only
+- Must give credit to the author
+- Improvements must remain open source
+- Cannot resell the software
+- Cannot use the code to train AI models
+
+The software remains the intellectual property of **Surya Tiwari**.
+
+Thapar Institute of Engineering and Technology is granted permission to use this system internally.

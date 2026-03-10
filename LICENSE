@@ -1,0 +1,86 @@
+Surya Custom Source License (SCSL) v1.0
+Copyright (c) 2026 Surya Tiwari <github.com/suryaktiwari11>
+
+Project: Thapar Institute Lost & Found System
+
+1. Ownership
+
+This software and its source code are the intellectual property of Surya Tiwari.
+The software has been developed for use by Thapar Institute of Engineering and Technology.
+
+Ownership of the code remains with the author unless explicitly transferred in writing. 
+
+2. Permission Requirement
+
+No individual, organization, or institution may deploy, use, modify, distribute,
+or host this software without prior written permission from the author.
+
+Permission may be requested from:
+Surya Tiwari
+
+3. Non-Commercial Use Only
+
+This software may not be used for any commercial purposes.
+Commercial use includes but is not limited to:
+
+- Selling the software
+- Charging for access
+- Integrating into paid products or services
+- Using it within a commercial platform
+
+4. Attribution Requirement
+
+Any permitted use must clearly credit the original author.
+
+Required attribution:
+
+"Original software developed by Surya Tiwari"
+
+Credit must appear in:
+
+- Documentation
+- Source code
+- User interface or project description
+
+5. Open Source Improvements
+
+If permission is granted to modify or extend the software,
+any improvements, modifications, or derivative works must:
+
+- Be publicly available
+- Include the original copyright notice
+- Include this license
+
+6. No Resale
+
+This software or any modified version of it may not be sold,
+licensed for profit, or redistributed as a commercial product.
+
+7. AI / Machine Learning Restriction
+
+This software, its source code, documentation, and associated
+data may NOT be used to train, fine-tune, or improve any
+Artificial Intelligence or Machine Learning models without
+explicit written permission from the author.
+
+8. Institutional Use
+
+Thapar Institute of Engineering and Technology is granted
+permission to deploy and use this system internally.
+
+This permission does not transfer ownership.
+
+9. Liability Disclaimer
+
+This software is provided "AS IS" without warranty of any kind.
+The author shall not be liable for any damages arising from
+the use of the software.
+
+10. Termination
+
+Violation of any of the above terms automatically terminates
+all permissions granted by this license.
+
+11. Contact
+
+Permission requests and inquiries should be directed to the author.
