@@ -35,7 +35,7 @@ function AdminUserManagement() {
   const [users, setUsers] = useState([]);
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState('');       // '' | 'active' | 'blacklisted'
+  const [filter, setFilter] = useState('');       // '' | 'active' | 'blacklisted' | 'admin'
   const [sortBy, setSortBy] = useState('newest'); // 'newest' | 'oldest' | 'name_asc' | 'name_desc'
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({ total: 0, totalPages: 1, hasNext: false, hasPrev: false });
@@ -209,6 +209,7 @@ function AdminUserManagement() {
                 { label: 'All', value: '' },
                 { label: 'Active', value: 'active' },
                 { label: 'Blacklisted', value: 'blacklisted' },
+                { label: 'Admins', value: 'admin' },
               ].map(opt => (
                 <button
                   key={opt.value}
@@ -219,6 +220,8 @@ function AdminUserManagement() {
                         ? 'bg-red-600 text-white'
                         : opt.value === 'active'
                         ? 'bg-green-600 text-white'
+                        : opt.value === 'admin'
+                        ? 'bg-amber-500 text-white'
                         : 'bg-gray-900 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
@@ -255,9 +258,11 @@ function AdminUserManagement() {
               )}
               {filter && (
                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full ${
-                  filter === 'blacklisted' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                  filter === 'blacklisted' ? 'bg-red-100 text-red-700'
+                  : filter === 'admin' ? 'bg-amber-100 text-amber-700'
+                  : 'bg-green-100 text-green-700'
                 }`}>
-                  {filter === 'blacklisted' ? 'Blacklisted only' : 'Active only'}
+                  {filter === 'blacklisted' ? 'Blacklisted only' : filter === 'admin' ? 'Admins only' : 'Active only'}
                   <button onClick={() => { setFilter(''); setPage(1); }} className="ml-1 hover:opacity-70">✕</button>
                 </span>
               )}
@@ -296,7 +301,11 @@ function AdminUserManagement() {
                 <div
                   key={user._id}
                   className={`border rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition-shadow hover:shadow-sm ${
-                    user.isBlacklisted ? 'border-red-200 bg-red-50' : 'border-gray-200'
+                    user.isBlacklisted
+                      ? 'border-red-200 bg-red-50'
+                      : user.isAdmin
+                      ? 'border-amber-300 bg-amber-50'
+                      : 'border-gray-200 bg-white'
                   }`}
                 >
                   {/* User Info */}
@@ -316,6 +325,11 @@ function AdminUserManagement() {
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-semibold text-gray-900">{user.name}</span>
+                        {user.isAdmin && (
+                          <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full flex items-center gap-1">
+                            <Shield size={11} /> Admin
+                          </span>
+                        )}
                         {user.isBlacklisted && (
                           <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full flex items-center gap-1">
                             <Ban size={11} /> Blacklisted

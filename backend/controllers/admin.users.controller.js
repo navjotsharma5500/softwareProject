@@ -54,12 +54,16 @@ export const listUsers = async (req, res) => {
       query.isBlacklisted = true;
     } else if (filter === "active") {
       query.isBlacklisted = { $ne: true };
+    } else if (filter === "admin") {
+      query.isAdmin = true;
     }
 
     const [users, total] = await Promise.all([
       withQueryTimeout(
         User.find(query)
-          .select("name email phone profilePicture isBlacklisted createdAt")
+          .select(
+            "name email phone profilePicture isBlacklisted isAdmin createdAt",
+          )
           .sort(sort)
           .skip(skip)
           .limit(limit)
