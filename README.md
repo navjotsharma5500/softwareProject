@@ -162,50 +162,59 @@ db.users.updateOne(
 
 ## 📖 API Reference
 
-| Method | Endpoint                         | Auth   |
-| ------ | -------------------------------- | ------ |
-| GET    | `/api/user/items`                | Public |
-| GET    | `/api/user/items/:id`            | Public |
-| GET    | `/api/stats`                     | Public |
-| GET    | `/api/health`                    | Public |
-| GET    | `/api/health/detailed`           | Public |
-| GET    | `/api/auth/google`               | —      |
-| POST   | `/api/auth/logout`               | Auth   |
-| GET    | `/api/auth/profile`              | Auth   |
-| POST   | `/api/user/items/:id/claim`      | Auth   |
-| GET    | `/api/user/my-claims`            | Auth   |
-| DELETE | `/api/user/my-claims/:claimId`   | Auth   |
-| GET    | `/api/user/items/:id/my-claim`   | Auth   |
-| GET    | `/api/user/profile`              | Auth   |
-| PATCH  | `/api/user/profile`              | Auth   |
-| POST   | `/api/reports`                   | Auth   |
-| POST   | `/api/reports/upload-urls`       | Auth   |
-| GET    | `/api/reports/my-reports`        | Auth   |
-| GET    | `/api/reports/:id`               | Auth   |
-| PATCH  | `/api/reports/:id`               | Auth   |
-| DELETE | `/api/reports/:id`               | Auth   |
-| PATCH  | `/api/reports/:id/resolve`       | Auth   |
-| GET    | `/api/admin/items`               | Admin  |
-| POST   | `/api/admin/items`               | Admin  |
-| PATCH  | `/api/admin/items/:id`           | Admin  |
-| DELETE | `/api/admin/items/:id`           | Admin  |
-| GET    | `/api/admin/items/:id/claims`    | Admin  |
-| GET    | `/api/admin/download-csv`        | Admin  |
-| GET    | `/api/admin/claims`              | Admin  |
-| PATCH  | `/api/admin/claims/:id/approve`  | Admin  |
-| PATCH  | `/api/admin/claims/:id/reject`   | Admin  |
-| GET    | `/api/admin/reports`             | Admin  |
-| GET    | `/api/admin/reports/:id`         | Admin  |
-| PATCH  | `/api/admin/reports/:id/status`  | Admin  |
-| GET    | `/api/admin/users`               | Admin  |
-| GET    | `/api/user/history/:userId`      | Admin  |
-| PATCH  | `/api/admin/users/:id/blacklist` | Admin  |
+| Method | Endpoint                         | Auth         |
+| ------ | -------------------------------- | ------------ |
+| GET    | `/api/user/items`                | Public       |
+| GET    | `/api/user/items/:id`            | Public       |
+| GET    | `/api/stats`                     | Public       |
+| GET    | `/api/health`                    | Public       |
+| GET    | `/api/health/detailed`           | Public       |
+| GET    | `/api/health/database`           | Admin        |
+| GET    | `/api/health/redis`              | Admin        |
+| GET    | `/api/auth/google`               | —            |
+| GET    | `/api/auth/google/callback`      | —            |
+| POST   | `/api/auth/logout`               | Auth         |
+| GET    | `/api/auth/profile`              | Auth         |
+| POST   | `/api/user/items/:id/claim`      | Auth         |
+| GET    | `/api/user/my-claims`            | Auth         |
+| DELETE | `/api/user/my-claims/:claimId`   | Auth         |
+| GET    | `/api/user/items/:id/my-claim`   | Auth         |
+| GET    | `/api/user/profile`              | Auth         |
+| PATCH  | `/api/user/profile`              | Auth         |
+| GET    | `/api/user/history/:userId`      | Admin        |
+| POST   | `/api/reports`                   | Auth         |
+| POST   | `/api/reports/upload-urls`       | Auth         |
+| DELETE | `/api/reports/orphaned-images`   | Auth         |
+| GET    | `/api/reports/all`               | Admin        |
+| GET    | `/api/reports/my-reports`        | Auth         |
+| GET    | `/api/reports/user/:userId`      | Admin        |
+| GET    | `/api/reports/:id`               | Auth         |
+| PATCH  | `/api/reports/:id`               | Auth         |
+| DELETE | `/api/reports/:id`               | Auth         |
+| PATCH  | `/api/reports/:id/resolve`       | Auth         |
+| PATCH  | `/api/reports/:id/status`        | Admin        |
+| GET    | `/api/admin/items`               | Admin        |
+| POST   | `/api/admin/items`               | Admin        |
+| GET    | `/api/admin/items/:id`           | Admin        |
+| PATCH  | `/api/admin/items/:id`           | Admin        |
+| DELETE | `/api/admin/items/:id`           | Admin        |
+| GET    | `/api/admin/items/:id/claims`    | Admin        |
+| GET    | `/api/admin/download-csv`        | Admin        |
+| GET    | `/api/admin/claims`              | Admin        |
+| PATCH  | `/api/admin/claims/:id/approve`  | Admin        |
+| PATCH  | `/api/admin/claims/:id/reject`   | Admin        |
+| GET    | `/api/admin/reports`             | Admin        |
+| GET    | `/api/admin/reports/:id`         | Admin        |
+| PATCH  | `/api/admin/reports/:id/status`  | Admin        |
+| GET    | `/api/admin/users`               | Admin        |
+| PATCH  | `/api/admin/users/:id/blacklist` | Admin        |
+| DELETE | `/api/admin/users/:id`           | Admin        |
+| POST   | `/api/makeadmin`                 | Special code |
+| POST   | `/api/removeadmin`               | Special code |
 
 > ⚡ Critical write endpoints (`/claim`, `POST /reports`, approve/reject) support idempotency via the `Idempotency-Key` request header.
 
 ---
-
-_Made with ❤️ for Thapar Institute of Engineering and Technology_
 
 ## 📜 License
 
