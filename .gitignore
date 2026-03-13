@@ -1,3 +1,7 @@
+# Ignore root markdown files
+test.md
+explain.md
+final_OT.md
 # Migration documentation
 migration-lostnfound.md
 

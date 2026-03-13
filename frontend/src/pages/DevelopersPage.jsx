@@ -31,6 +31,7 @@ const DevelopersPage = () => {
         name: "Surya Kant Tiwari",
         role: "Lead Developer",
         github: "SuryaKTiwari11",
+        year: "COE 27'",
         portfolio: "https://surya-tiwari-portfolio.vercel.app/",
         contributions: [
           "Portal Architecture & Design",
@@ -41,6 +42,7 @@ const DevelopersPage = () => {
       },
       {
         name: "Akshat Kakkar",
+        year: "COE 27'",
         role: "Product & Strategy Lead",
         github: "akshatkakkar1",
         contributions: [
@@ -145,8 +147,8 @@ const DevelopersPage = () => {
                   </div>
 
                   {/* Content */}
-                  <div className="pt-20 px-6 pb-6">
-                    {/* Name and Role */}
+                  <div className="pt-20 px-6 pb-6 flex flex-col h-full">
+                    {/* Name, Role, and Year */}
                     <div className="text-center mb-4">
                       <h2 className="text-2xl font-bold mb-1 text-gray-900">
                         {dev.name}
@@ -154,6 +156,7 @@ const DevelopersPage = () => {
                       <p className="text-sm font-medium text-gray-800">
                         {dev.role}
                       </p>
+                      <span className="block text-xs text-gray-500 mt-1">{dev.year}</span>
                     </div>
 
                     {/* Contributions */}
@@ -235,8 +238,14 @@ const DevelopersPage = () => {
                 </span>
               </a>
             </div>
+
+            <div className="mt-12 flex justify-center px-2">
+              <span className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-gray-800 to-gray-900 text-white text-sm font-semibold shadow-lg text-center break-words max-w-full sm:max-w-md">
+                🚀 Live in production since January 2026
+              </span>
+            </div>
           </>
-        )}
+        )} 
       </div>
     </div>
   );
