@@ -45,7 +45,7 @@ const Navbar = () => {
               {/* Desktop View */}
               <div className="hidden lg:flex flex-col leading-tight">
                 <span className="text-gray-900 font-bold text-sm">Thapar Institute of Engineering and Technology</span>
-                <span className="text-red-600 text-xs font-semibold">Created by DoSA Office</span>
+                <span className="text-red-600 text-xs font-semibold">Managed by DoSA Office</span>
               </div>
               {/* Tablet View */}
               <span className="hidden sm:inline lg:hidden text-gray-900 font-bold text-sm">TIET</span>

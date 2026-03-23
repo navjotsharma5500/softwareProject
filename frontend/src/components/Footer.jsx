@@ -87,9 +87,6 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-gray-300 mt-8 pt-8">
           <div className="flex flex-col items-center space-y-2">
-            <p className="text-gray-600 text-sm text-center">
-            Managed by DOSA office 
-            </p>
             <div className="flex items-center text-gray-600 text-sm space-x-4">
               <span>Crafted by</span>
               <a 
