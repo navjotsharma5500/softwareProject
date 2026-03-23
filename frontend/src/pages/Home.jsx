@@ -283,26 +283,18 @@ const Home = () => {
 
       <div className="px-4 sm:px-6 md:px-8 lg:px-16 xl:px-24 py-12">
         {/* Hero Section */}
-        <div className="text-center mb-16 mt-8">
+        <div className="text-center mb-16 mt-0">
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl md:text-4xl font-bold mb-8 text-gray-900"
+            className="text-5xl md:text-6xl font-bold mb-8"
           >
-            <motion.span 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-              className="bg-gradient-to-r from-red-700 to-red-600 bg-clip-text text-transparent block mb-2 pb-2 leading-tight"
-              style={{ WebkitBoxDecorationBreak: 'clone' }}
-            >
-              Thapar Institute of Engineering and Technology
-            </motion.span>
             <motion.span
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.5 }}
-              className="block mt-2"
+              className="block bg-gradient-to-r from-red-700 to-red-600 bg-clip-text text-transparent"
+              style={{ WebkitBoxDecorationBreak: 'clone' }}
             >
               Lost & Found
             </motion.span>
@@ -341,7 +333,7 @@ const Home = () => {
               onClick={() => handleTabChange('claimed')}
               className={`px-8 py-3 rounded-lg font-semibold transition-all ${
                 activeTab === 'claimed'
-                  ? 'bg-gradient-to-r from-gray-800 to-gray-900 text-white shadow-lg'
+                  ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
