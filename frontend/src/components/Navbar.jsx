@@ -36,14 +36,21 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex items-center text-gray-900 font-bold text-sm sm:text-base lg:text-lg">
+            <Link to="/" className="flex items-center gap-2">
               <img 
                 src="/Thapar_Logo-Photoroom.png" 
                 alt="Thapar Institute Logo" 
-                className="h-8 w-auto sm:h-10 mr-2 sm:mr-3"
+                className="h-8 w-auto sm:h-10"
               />
-              <span className="hidden sm:inline ">TIET</span>
-              <span className="sm:hidden">TIET</span>
+              {/* Desktop View */}
+              <div className="hidden lg:flex flex-col leading-tight">
+                <span className="text-gray-900 font-bold text-sm">Thapar Institute of Engineering and Technology</span>
+                <span className="text-red-600 text-xs font-semibold">Created by DoSA Office</span>
+              </div>
+              {/* Tablet View */}
+              <span className="hidden sm:inline lg:hidden text-gray-900 font-bold text-sm">TIET</span>
+              {/* Mobile View */}
+              <span className="sm:hidden text-gray-900 font-bold text-sm">TIET</span>
             </Link>
           </div>
 
