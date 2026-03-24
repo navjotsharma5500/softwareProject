@@ -207,9 +207,9 @@ const Profile = () => {
     try {
       if (formData.rollNo && formData.rollNo.toString().trim() !== '') {
         const rollNoStr = formData.rollNo.toString().trim();
-        if (!/^\d{9}$/.test(rollNoStr)) {
+        if (!/^\d{9,10}$/.test(rollNoStr)) {
           toast.error(
-            `Roll number must be exactly 9 digits long. You entered ${rollNoStr.length} digits.`
+            `Roll number must be 9 or 10 digits long. You entered ${rollNoStr.length} digits.`
           );
           return;
         }

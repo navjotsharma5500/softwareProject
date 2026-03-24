@@ -23,6 +23,7 @@ import { toast } from 'react-toastify';
 import confetti from 'canvas-confetti';
 import { reportApi } from '../utils/api';
 import { uploadMultipleToImageKit } from '../utils/imagekit';
+import { compressImageTo1MB } from '../utils/imageCompression';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { CATEGORIES, CATEGORY_DISPLAY_NAMES } from '../utils/constants';
 import useFormPersistence from '../hooks/useFormPersistence.jsx';
@@ -154,10 +155,14 @@ const ReportLostItem = () => {
       // Upload photos to ImageKit now, at submit time
       if (photos.length > 0) {
         setUploading(true);
-        const fileTypes = photos.map(p => p.file.type);
-        const { data } = await reportApi.getUploadUrls(photos.length, fileTypes);
+        // Compress each photo to under 1MB before uploading
+        const compressedFiles = await Promise.all(
+          photos.map(async (p) => await compressImageTo1MB(p.file))
+        );
+        const fileTypes = compressedFiles.map(f => f.type);
+        const { data } = await reportApi.getUploadUrls(compressedFiles.length, fileTypes);
         uploadedPhotos = await uploadMultipleToImageKit(
-          photos.map(p => p.file),
+          compressedFiles,
           data.uploadParams,
         );
       }

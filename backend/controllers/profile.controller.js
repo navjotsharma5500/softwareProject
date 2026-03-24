@@ -83,12 +83,9 @@ export const updateProfile = async (req, res) => {
 
   const schema = Joi.object({
     name: Joi.string().min(2).max(100),
-    rollNo: Joi.alternatives().try(
-      Joi.number().integer().min(100000).max(999999999999999),
-      Joi.string()
-        .pattern(/^\d{6,15}$/)
-        .message("Roll number must be 6-15 digits"),
-    ),
+    rollNo: Joi.string()
+      .pattern(/^\d{9,10}$/)
+      .message("Roll number must be 9 or 10 digits"),
     phone: Joi.string()
       .pattern(/^\d{10,15}$/)
       .allow(null, ""),
