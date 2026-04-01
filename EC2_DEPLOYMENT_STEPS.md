@@ -216,7 +216,7 @@ GEMINI_API_KEY=your-gemini-api-key
 **⚠️ IMPORTANT:**
 
 - `FRONTEND_URL` must be: `https://campusconnect.thapar.edu/lostnfound`
-- `GOOGLE_CALLBACK_URL` must be: `https://campusconnect.thapar.edu/api/auth/google/callback`
+- `GOOGLE_CALLBACK_URL` must be: `https://campusconnect.thapar.edu/api/lostnfound/auth/google/callback`
 - DO NOT use localhost or IP addresses
 - DO NOT use different domains
 - These must match what's actually running on your EC2
