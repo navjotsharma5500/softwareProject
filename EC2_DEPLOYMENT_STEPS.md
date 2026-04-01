@@ -1,121 +1,268 @@
 # Lost & Found Portal — EC2 Deployment Guide (Production)
 
-This guide explains **exactly** how to deploy your Lost & Found portal on a new EC2 instance where Node, Nginx, PM2, and MongoDB are already installed and a previous website is running.
+This guide explains **exactly** how to deploy your Lost & Found portal on a new EC2 instance where Node, Nginx, PM2, and MongoDB are already installed.
+
+**What You're Building:**
+
+You have been given the domain: **https://campusconnect.thapar.edu/**
+
+This is a SHARED domain with other services (like `/api/venue/enquiry/...`), so your Lost & Found API is namespaced:
+
+- **Frontend:** https://campusconnect.thapar.edu/lostnfound/ (and all its routes)
+- **API:** https://campusconnect.thapar.edu/api/lostnfound/ (all backend endpoints)
+
+This means:
+
+- ✅ No separate domain needed
+- ✅ No Vercel domain needed
+- ✅ Everything runs under campusconnect.thapar.edu
+- ✅ API is namespaced to avoid conflicts with other services
+- ✅ Nginx routes both paths to the correct services
+
+**How It Works:**
+
+Your EC2 instance will:
+
+1. Serve React frontend static files at `/lostnfound/` path
+2. Proxy API requests at `/api/lostnfound/` path to Node.js backend running on port 3000
+3. Both use the same domain (campusconnect.thapar.edu)
 
 ---
 
-## CampusConnect Production Deployment (with Nginx, Custom URLs)
+## Prerequisites
 
-### 1. Nginx Configuration (Step-by-Step)
+Before starting, ensure you have:
 
-**Goal:**
+- [ ] **DNS verified:** Domain `campusconnect.thapar.edu` has DNS A record pointing to your EC2's public IP
+  - Test with: `ping campusconnect.thapar.edu` or `nslookup campusconnect.thapar.edu`
+  - If not set up, ask your administrator to create the DNS A record
+- [ ] SSH access to your EC2 instance
+- [ ] Node.js 20+ installed
+- [ ] Nginx installed and running
+- [ ] MongoDB running and accessible
+- [ ] Your production `.env` values ready
+- [ ] Git installed
 
-- Serve frontend at: https://campusconnect.thapar.edu/lostnfound/
-- Serve backend API at: https://campusconnect.thapar.edu/api/
+---
 
-**Step 1:** SSH into your EC2 instance.
+## Understanding the Architecture
 
-**Step 2:** Open or create the Nginx config file:
+**DNS Setup (Already done for you):**
+
+- When someone visits `https://campusconnect.thapar.edu/lostnfound/`, their browser looks up the DNS A record
+- DNS points to your EC2's public IP address
+- The request reaches your EC2's Nginx web server
+
+**Nginx Routing (What we'll configure):**
+
+- All requests come to Nginx listening on port 80 (HTTP) or 443 (HTTPS)
+- Nginx looks at the request path:
+  - If path is `/lostnfound/*` → serve React static files
+  - If path is `/api/lostnfound/*` → forward to Node.js backend on localhost:3000 (stripping the `/lostnfound` part)
+- Both responses go back with the same domain in the URL
+
+**Example Request Flow:**
+
+```
+User visits: https://campusconnect.thapar.edu/lostnfound/
+                    ↓
+           DNS resolves to EC2 IP
+                    ↓
+           Nginx receives request on port 80/443
+                    ↓
+           Nginx sees /lostnfound/ path
+                    ↓
+           Sends static files from /var/www/lostfound/frontend/dist/
+                    ↓
+           Browser renders React app
+
+---
+
+User's app calls: https://campusconnect.thapar.edu/api/lostnfound/user/items
+                    ↓
+           Nginx receives request on port 80/443
+                    ↓
+           Nginx sees /api/lostnfound/ path
+                    ↓
+           Nginx rewrites to /api/user/items (strips /lostnfound)
+                    ↓
+           Nginx proxies to http://127.0.0.1:3000/api/user/items
+                    ↓
+           Node.js backend responds
+                    ↓
+           Nginx returns response to browser
+```
+
+---
+
+## Complete Deployment Steps
+
+### Step 0: Clone the Repository
+
+SSH into your EC2 and clone the project:
+
+```sh
+cd /var/www
+sudo mkdir -p lostfound
+sudo chown $USER:$USER lostfound
+cd lostfound
+
+# Clone the repository
+git clone https://github.com/navjotsharma5500/softwareProject.git .
+
+# Verify the clone
+ls -la  # Should show backend, frontend, .git, etc.
+```
+
+---
+
+### Step 1: Configure Nginx
+
+1. **Create the Nginx config file:**
 
 ```sh
 sudo nano /etc/nginx/sites-available/lostfound
 ```
 
-**Step 3:** Paste this config (edit paths if your project root is different):
+2. **Paste this config:**
 
 ```nginx
 server {
-  listen 80;
-  server_name campusconnect.thapar.edu;
+    listen 80;
+    server_name campusconnect.thapar.edu;
 
-  # Serve frontend static files
-  location /lostnfound/ {
-    alias /var/www/lostfound/frontend/dist/;
-    try_files $uri $uri/ /lostnfound/index.html;
-  }
+    # Serve frontend static files
+    location /lostnfound/ {
+        alias /var/www/lostfound/frontend/dist/;
+        try_files $uri $uri/ /lostnfound/index.html;
+    }
 
-  # Proxy API requests to backend
-  location /api/ {
-    proxy_pass http://127.0.0.1:3000/api/;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-  }
+    # Proxy Lost & Found API requests to backend
+    # This rewrites /api/lostnfound/... to /api/... before proxying
+    location /api/lostnfound/ {
+        # Rewrite: strip /lostnfound from the path
+        rewrite ^/api/lostnfound(/.*)$ /api$1 break;
+
+        # Proxy to Node.js backend
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
 }
 ```
 
-**Step 4:** Enable the config:
+3. **Enable the config:**
 
 ```sh
 sudo ln -sf /etc/nginx/sites-available/lostfound /etc/nginx/sites-enabled/lostfound
 ```
 
-**Step 5:** Test and reload Nginx:
+4. **Test and reload:**
 
 ```sh
 sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-**What to copy for Nginx:**
-
-- The entire contents of your frontend build folder (`frontend/dist/`) must be present at `/var/www/lostfound/frontend/dist/`.
-- Nginx does NOT copy files itself; you must copy them after every frontend build (see below for commands).
-
 ---
 
-### 2. What to Copy Where (Detailed)
+### Step 2: Setup Backend
 
-**Frontend:**
-
-1. Build the frontend:
-
-```sh
-cd /var/www/lostfound/frontend
-npm install
-npm run build
-```
-
-2. Copy the build output to the Nginx-served directory (if not already there):
-
-```sh
-sudo mkdir -p /var/www/lostfound/frontend/dist
-sudo cp -r dist/* /var/www/lostfound/frontend/dist/
-```
-
-- If you build in-place, just ensure `/var/www/lostfound/frontend/dist/` contains your latest build.
-
-**Backend:**
-
-1. Start the backend (from `/var/www/lostfound/backend`):
+1. **Navigate to backend folder and setup .env:**
 
 ```sh
 cd /var/www/lostfound/backend
+cp .env.example .env
+nano .env
+```
+
+2. **Edit and fill these critical values:**
+
+```env
+# Server Configuration
+PORT=3000
+NODE_ENV=production
+
+# Database
+MONGO_URI=mongodb://localhost:27017/lostfound
+MONGODB_URI=mongodb://localhost:27017/lostfound
+
+# Authentication
+JWT_SECRET=your-production-secret-here
+
+# Frontend URL (MUST use the domain you were given)
+FRONTEND_URL=https://campusconnect.thapar.edu/lostnfound
+
+# Google OAuth Callback (MUST use the namespaced API domain)
+GOOGLE_CALLBACK_URL=https://campusconnect.thapar.edu/api/lostnfound/auth/google/callback
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# Email
+GMAIL_USER=your-gmail-address
+GMAIL_PASS=your-gmail-app-password
+
+# Image Upload
+IMAGEKIT_PUBLIC_KEY=your-imagekit-public-key
+IMAGEKIT_PRIVATE_KEY=your-imagekit-private-key
+IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your_imagekit_id
+
+# AI/Chatbot
+GEMINI_API_KEY=your-gemini-api-key
+```
+
+**⚠️ IMPORTANT:**
+
+- `FRONTEND_URL` must be: `https://campusconnect.thapar.edu/lostnfound`
+- `GOOGLE_CALLBACK_URL` must be: `https://campusconnect.thapar.edu/api/auth/google/callback`
+- DO NOT use localhost or IP addresses
+- DO NOT use different domains
+- These must match what's actually running on your EC2
+
+3. **Install dependencies and start with PM2:**
+
+```sh
 npm install --omit=dev
 pm2 start index.js --name backend
 pm2 save
 ```
 
-- The backend listens on `127.0.0.1:3000` (not public), as required by Nginx proxy.
+4. **Enable PM2 to restart automatically on server reboot:**
+
+```sh
+# Generate the startup command
+pm2 startup
+
+# This will output a command like:
+# sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u ubuntu --hp /home/ubuntu
+
+# Copy and run the entire command from the output above
+sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u $USER --hp $HOME
+
+# Save the process list again
+pm2 save
+```
+
+5. **Verify PM2 startup is enabled:**
+
+```sh
+pm2 status
+pm2 logs backend  # Check for any errors
+```
+
+**Important:** After you reboot your EC2 instance, the backend will automatically start via PM2. You can verify this with:
+
+```sh
+pm2 status  # Should show your backend process as online
+```
 
 ---
 
-### 3. What URLs to Use (Summary)
+### Step 3: Setup Frontend
 
-- **Frontend:**
-  - Users visit: `https://campusconnect.thapar.edu/lostnfound/`
-- **API:**
-  - All API calls go to: `https://campusconnect.thapar.edu/api/`
-  - No Vercel or other host needed; everything is on this EC2.
-
----
-
-### 4. .env Settings (Where and What)
-
-**Frontend:**
-
-1. Go to the frontend folder:
+1. **Navigate to frontend folder and setup .env:**
 
 ```sh
 cd /var/www/lostfound/frontend
@@ -123,98 +270,270 @@ cp .env.example .env
 nano .env
 ```
 
-2. Set:
+2. **Edit with ONLY these two values:**
 
-```
-VITE_API_BASE_URL=https://campusconnect.thapar.edu/api
+```env
+# This MUST point to the namespaced API on the SAME domain you were given
+VITE_API_BASE_URL=https://campusconnect.thapar.edu/api/lostnfound
+
+# Production environment
 VITE_NODE_ENV=production
 ```
 
-**Backend:**
+**⚠️ IMPORTANT:**
 
-1. Go to the backend folder:
+- `VITE_API_BASE_URL` must be: `https://campusconnect.thapar.edu/api/lostnfound`
+- DO NOT use `https://campusconnect.thapar.edu/api` (that's for other services)
+- DO NOT use localhost
+- DO NOT use a different domain
+- This tells your React app where to send API requests
+- When user logs in or submits a report, it will call this namespaced URL
+
+3. **Install dependencies:**
 
 ```sh
-cd /var/www/lostfound/backend
-cp .env.example .env
-nano .env
+npm install
 ```
 
-2. Set:
+4. **Build the frontend:**
 
-```
-FRONTEND_URL=https://campusconnect.thapar.edu/lostnfound
-GOOGLE_CALLBACK_URL=https://campusconnect.thapar.edu/api/auth/google/callback
-PORT=3000
-NODE_ENV=production
-# ...other secrets (see .env.example)
+```sh
+npm run build
 ```
 
----
+5. **Copy build to Nginx directory:**
 
-### 5. How to Test (Checklist)
+```sh
+sudo mkdir -p /var/www/lostfound/frontend/dist
+sudo cp -r dist/* /var/www/lostfound/frontend/dist/
 
-1. Open your browser and go to: `https://campusconnect.thapar.edu/lostnfound/`
-2. Try logging in, submitting a report, etc.
-3. Open browser dev tools > Network tab:
-
-- Confirm all API requests go to `/api/` (not localhost or Vercel).
-
-4. If you see 404s or blank pages:
-
-- Check that `/var/www/lostfound/frontend/dist/` contains your build.
-- Check Nginx config and reload if changed.
-- Check PM2 status: `pm2 status`
-- Check backend logs: `pm2 logs backend`
+# Verify files are there
+ls -la /var/www/lostfound/frontend/dist/ | head -20
+```
 
 ---
 
----
+### Step 4: Verify Everything Works
 
-**Summary:**
+1. **Check backend status:**
 
-- Nginx serves `/lostnfound/` from `/var/www/lostfound/frontend/dist/`
-- Nginx proxies `/api/` to backend running on `127.0.0.1:3000`
-- All URLs are under `https://campusconnect.thapar.edu/`
-- .env files must be set as above, in the correct folders
-- Always reload Nginx after changing config or copying new frontend builds
+```sh
+pm2 status
+pm2 logs backend  # Check for errors
+```
 
-If you need the config as a file or want SSL (HTTPS) config, let me know!
+2. **Verify frontend files exist:**
 
-git clone https://github.com/navjotsharma5500/softwareProject.git .
+```sh
+ls -la /var/www/lostfound/frontend/dist/
+```
 
-## Checklist
+3. **Test in your browser:**
+   - Visit: `https://campusconnect.thapar.edu/lostnfound/`
+   - Try logging in
+   - Submit a report
+   - Upload images
 
-- [ ] Backend runs (`pm2 status` shows backend online)
-- [ ] Frontend builds (`frontend/dist/` exists and is served by Nginx)
-- [ ] API connected (frontend can call backend endpoints)
-- [ ] Images upload (ImageKit keys set)
-- [ ] Emails send (Gmail SMTP works)
-- [ ] Database connected (MongoDB URI correct)
-- [ ] Site accessible via public IP/domain
-
----
-
-## Troubleshooting
-
-- **CORS errors:** Check `FRONTEND_URL` in backend `.env` and `VITE_API_BASE_URL` in frontend `.env`.
-- **API 404:** Make sure Nginx proxies `/api/` to backend.
-- **Image upload/email issues:** Check `.env` secrets.
-- **MongoDB connection:** Ensure MongoDB is running and accessible.
+4. **Check network requests:**
+   - Open browser dev tools > Network tab
+   - Confirm all API requests go to `/api/lostnfound/` (not `/api/` alone)
+   - URL examples you should see:
+     - `https://campusconnect.thapar.edu/api/lostnfound/user/items`
+     - `https://campusconnect.thapar.edu/api/lostnfound/reports`
+     - `https://campusconnect.thapar.edu/api/lostnfound/auth/google/callback`
+   - Should NOT see: localhost, `/api/venue/`, or external URLs
 
 ---
 
-## 10. Updating the Site
+### Step 5: Migrate from Vercel to campusconnect Domain
+
+Your frontend is currently at the Vercel default URL: `https://lost-and-found-portal-six.vercel.app/`
+
+After migration, everything moves to: `https://campusconnect.thapar.edu/lostnfound/`
+
+**Users need to use the NEW URL.** Vercel default domains cannot be redirected, but you can:
+
+#### Option A: Add a redirect to your Vercel app (Optional)
+
+1. Add `vercel.json` to your Vercel project root:
+
+```json
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://campusconnect.thapar.edu/lostnfound/:1",
+      "permanent": true
+    }
+  ]
+}
+```
+
+2. Deploy to Vercel (this is optional - you can also just leave the old Vercel app as-is)
+
+#### Option B: Tell users about the new URL (Recommended)
+
+The simplest approach:
+
+- Update any bookmarks, links, or documentation to use: `https://campusconnect.thapar.edu/lostnfound/`
+- Send an announcement to users about the new URL
+- After users migrate, you can disable the old Vercel app to save costs
+
+---
+
+### Step 6: Update the Site (Future Deployments)
+
+When you need to deploy updates:
 
 ```sh
 cd /var/www/lostfound
 
+# Get latest code
 git pull
-cd backend && npm install --omit=dev && pm2 restart backend
-cd ../frontend && npm install && npm run build && sudo cp -r dist/* /var/www/lostfound/frontend/dist/
+
+# Update backend
+cd backend
+npm install --omit=dev
+pm2 restart backend
+pm2 save
+
+# Update frontend
+cd ../frontend
+npm install
+npm run build
+sudo cp -r dist/* /var/www/lostfound/frontend/dist/
+
+# Reload Nginx
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
 ---
 
-**Done! Your Lost & Found portal should now be live on your new EC2.**
+## Final Checklist
+
+- [ ] **DNS verified:** `ping campusconnect.thapar.edu` resolves to your EC2's public IP
+- [ ] Cloned repository to `/var/www/lostfound/` (Step 0)
+- [ ] Nginx config created and reloaded (Step 1)
+- [ ] Backend running (`pm2 status` shows "online") (Step 2)
+- [ ] Backend `.env` filled with all values (Step 2)
+- [ ] Frontend built and copied to `/var/www/lostfound/frontend/dist/` (Step 3)
+- [ ] Frontend `.env` filled with correct API URL (Step 3)
+- [ ] Can visit: https://campusconnect.thapar.edu/lostnfound/ (Step 4)
+- [ ] API calls work (check Network tab in dev tools) (Step 4)
+- [ ] API requests go to `/api/` path (not separate domain) (Step 4)
+- [ ] Login works (Google OAuth) (Step 4)
+- [ ] Reports and images upload (Step 4)
+- [ ] Emails send (test with a claim) (Step 4)
+- [ ] MongoDB connected (check logs) (Step 4)
+- [ ] Old domain redirects to new URL (if applicable) (Step 5)
+
+---
+
+## How to Verify You're Using the Right Domain
+
+In your browser, do this:
+
+1. **Visit the frontend:**
+   - Go to: https://campusconnect.thapar.edu/lostnfound/
+   - Check the URL bar - should show: `https://campusconnect.thapar.edu/lostnfound/`
+
+2. **Check API calls:**
+   - Open Dev Tools (F12)
+   - Go to Network tab
+   - Login or submit a report
+   - Look at the network requests
+   - API calls should go to: `https://campusconnect.thapar.edu/api/lostnfound/...`
+   - Should NOT show: localhost, 127.0.0.1, Vercel, or any other domain
+
+3. **Test from different devices:**
+   - Try accessing from your phone
+   - Should work since DNS points to public IP
+
+---
+
+## Troubleshooting
+
+| Issue                                    | Solution                                                                                        |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| **404 on frontend**                      | Verify `/var/www/lostfound/frontend/dist/index.html` exists with `ls -la`                       |
+| **API 404**                              | Check Nginx config proxies `/api/lostnfound/` to `127.0.0.1:3000` - run `sudo nginx -t`         |
+| **CORS errors**                          | Verify `FRONTEND_URL` in backend `.env` and `VITE_API_BASE_URL` in frontend `.env` match domain |
+| **Images not uploading**                 | Check ImageKit credentials in backend `.env` are correct                                        |
+| **Emails not sending**                   | Verify Gmail App Password (not regular password) in backend `.env`                              |
+| **MongoDB connection fails**             | Verify `MONGO_URI` is correct and MongoDB is running `sudo systemctl status mongod`             |
+| **PM2 not starting**                     | Check logs: `pm2 logs backend` - see actual error message                                       |
+| **Nginx won't reload**                   | Check syntax: `sudo nginx -t` - fix any errors shown                                            |
+| **Git clone slow**                       | This is normal - be patient, large projects take time                                           |
+| **PM2 not auto-restarting after reboot** | Run `pm2 startup` again and copy/paste the full sudo command output, then `pm2 save`            |
+| **PM2 auto-start broken after update**   | Run `pm2 unstartup` then `pm2 startup` to regenerate startup script                             |
+
+---
+
+## Quick Commands Reference
+
+```sh
+# Check backend status
+pm2 status
+
+# View backend logs
+pm2 logs backend
+
+# Restart backend
+pm2 restart backend
+
+# Save process list (important for auto-start)
+pm2 save
+
+# Check if PM2 startup is enabled
+pm2 startup
+
+# Remove PM2 startup (if needed)
+pm2 unstartup
+
+# Restart backend and save
+pm2 restart backend && pm2 save
+
+# Check Nginx status
+sudo systemctl status nginx
+
+# Reload Nginx
+sudo nginx -t && sudo systemctl reload nginx
+
+# Check if port 3000 is listening
+netstat -tulpn | grep 3000
+
+# View system reboot logs (to verify PM2 auto-start works)
+sudo dmesg | tail -20
+```
+
+---
+
+**Done! Your Lost & Found portal is live at https://campusconnect.thapar.edu/lostnfound/**
+
+---
+
+## Summary: Domain Architecture
+
+You were given ONE shared domain: `https://campusconnect.thapar.edu/`
+
+This domain is shared with other microservices (e.g., `/api/venue/enquiry/...`). Your Lost & Found API is namespaced at `/api/lostnfound/` to avoid conflicts.
+
+You use it for BOTH frontend and backend:
+
+| Component            | URL                                                                  | Served By                 |
+| -------------------- | -------------------------------------------------------------------- | ------------------------- |
+| Frontend (React App) | https://campusconnect.thapar.edu/lostnfound/                         | Nginx (static files)      |
+| Backend API          | https://campusconnect.thapar.edu/api/lostnfound/                     | Node.js (via Nginx proxy) |
+| Login Callback       | https://campusconnect.thapar.edu/api/lostnfound/auth/google/callback | Node.js                   |
+| Check Items API      | https://campusconnect.thapar.edu/api/lostnfound/user/items           | Node.js                   |
+| Submit Report API    | https://campusconnect.thapar.edu/api/lostnfound/reports              | Node.js                   |
+
+**Namespaced API Benefits:**
+
+- `campusconnect.thapar.edu` runs multiple services
+- Lost & Found API is `/api/lostnfound/`
+- Other services use different paths: `/api/venue/`, `/api/enquiry/`, etc.
+- No conflicts between different apps
+- Clean, organized API structure
+
+When users visit your site, they only need to know ONE URL: `https://campusconnect.thapar.edu/lostnfound/`
