@@ -345,39 +345,67 @@ ls -la /var/www/lostfound/frontend/dist/
 
 ---
 
-### Step 5: Migrate from Vercel to campusconnect Domain
+### Step 5: Set Up Vercel Redirect (Optional but Recommended)
 
-Your frontend is currently at the Vercel default URL: `https://lost-and-found-portal-six.vercel.app/`
+After your EC2 deployment is COMPLETE and you've verified everything works at `https://campusconnect.thapar.edu/lostnfound/`, set up a redirect so old bookmarks don't break.
 
-After migration, everything moves to: `https://campusconnect.thapar.edu/lostnfound/`
+**⚠️ ONLY DO THIS AFTER STEP 4 IS FULLY VERIFIED**
 
-**Users need to use the NEW URL.** Vercel default domains cannot be redirected, but you can:
+#### Steps to Enable the Redirect:
 
-#### Option A: Add a redirect to your Vercel app (Optional)
+1. **Find the redirect configuration:**
+   - Open `VERCEL_REDIRECT_READY.txt` in your repo root
+   - Copy the entire configuration code (the JSON block)
 
-1. Add `vercel.json` to your Vercel project root:
+2. **Update `frontend/vercel.json`:**
 
-```json
-{
-  "redirects": [
-    {
-      "source": "/(.*)",
-      "destination": "https://campusconnect.thapar.edu/lostnfound/:1",
-      "permanent": true
-    }
-  ]
-}
+```sh
+# Edit frontend/vercel.json
+nano frontend/vercel.json
 ```
 
-2. Deploy to Vercel (this is optional - you can also just leave the old Vercel app as-is)
+3. **Replace the entire file content with the code from VERCEL_REDIRECT_READY.txt**
+   - The new config redirects Vercel traffic to your EC2 domain
+   - Keep the routes section (it's still needed for local Vercel previews)
 
-#### Option B: Tell users about the new URL (Recommended)
+4. **Commit and push:**
 
-The simplest approach:
+```sh
+git add frontend/vercel.json
+git commit -m "Enable redirect from Vercel to campusconnect domain"
+git push
+```
 
-- Update any bookmarks, links, or documentation to use: `https://campusconnect.thapar.edu/lostnfound/`
-- Send an announcement to users about the new URL
-- After users migrate, you can disable the old Vercel app to save costs
+5. **Vercel deploys automatically:**
+   - After ~1-2 minutes, anyone visiting `https://lost-and-found-portal-six.vercel.app/` will redirect to `https://campusconnect.thapar.edu/lostnfound/`
+   - All old bookmarks/links work automatically
+   - Search engines will update over time
+
+**⚠️ IMPORTANT: Keep the Vercel App Running**
+
+- **DO NOT delete the old Vercel app** (`lost-and-found-portal-six.vercel.app`)
+- The Vercel app is what SERVES the redirect to users
+- If you delete it, the redirect stops working (404 error for old links)
+- You can disable billing or scale down resources, but keep the app deployed
+- The app doesn't need to serve your actual app anymore - it just redirects
+
+**What You CAN Do:**
+
+- ✅ Disable or pause your EC2 instance (your actual app runs there now)
+- ✅ Stop paying for compute on EC2 if you want (but it won't be accessible)
+- ✅ Keep Vercel app running (it's cheap and needed for the redirect)
+
+**What You SHOULD NOT Do:**
+
+- ❌ Delete the Vercel app (breaks all old links)
+- ❌ Disable the Vercel deployment (breaks all old links)
+
+**Summary:**
+
+| Component      | Status            | Cost                       | Need for Redirect?       |
+| -------------- | ----------------- | -------------------------- | ------------------------ |
+| Old Vercel App | **KEEP DEPLOYED** | ~$0 (free tier or minimal) | ✅ YES - serves redirect |
+| EC2 Instance   | Can pause/close   | Save money                 | No - main app is there   |
 
 ---
 
@@ -420,12 +448,12 @@ sudo nginx -t && sudo systemctl reload nginx
 - [ ] Frontend `.env` filled with correct API URL (Step 3)
 - [ ] Can visit: https://campusconnect.thapar.edu/lostnfound/ (Step 4)
 - [ ] API calls work (check Network tab in dev tools) (Step 4)
-- [ ] API requests go to `/api/` path (not separate domain) (Step 4)
+- [ ] API requests go to `/api/lostnfound/` path (Step 4)
 - [ ] Login works (Google OAuth) (Step 4)
 - [ ] Reports and images upload (Step 4)
 - [ ] Emails send (test with a claim) (Step 4)
 - [ ] MongoDB connected (check logs) (Step 4)
-- [ ] Old domain redirects to new URL (if applicable) (Step 5)
+- [ ] Vercel redirect configured and deployed (Step 5 - AFTER step 4 is verified)
 
 ---
 
@@ -537,3 +565,64 @@ You use it for BOTH frontend and backend:
 - Clean, organized API structure
 
 When users visit your site, they only need to know ONE URL: `https://campusconnect.thapar.edu/lostnfound/`
+
+---
+
+## Post-Deployment: Managing Vercel and EC2
+
+**After everything is live and the redirect is deployed, here's what to do:**
+
+### Platform Responsibilities After Migration
+
+| Platform                                            | Purpose                        | Keep Running?       | Cost             |
+| --------------------------------------------------- | ------------------------------ | ------------------- | ---------------- |
+| **Vercel** (`lost-and-found-portal-six.vercel.app`) | Serves redirect to EC2         | ✅ **YES - ALWAYS** | $0-20/month      |
+| **EC2** (`campusconnect.thapar.edu`)                | Runs actual frontend + backend | ✅ As needed        | Depends on usage |
+
+### What You Can Do:
+
+**✅ Safe to do:**
+
+- Stop/pause the EC2 instance if you don't need it running 24/7 (saves money)
+- Scale down EC2 resources if traffic is low
+- Delete unnecessary files from EC2
+- Update code and redeploy to EC2
+- Monitor Vercel for redirect traffic
+
+**❌ DO NOT do:**
+
+- **Delete the Vercel app** - it serves the redirect, without it old links break
+- **Disable Vercel deployment** - redirect won't work
+- **Delete `frontend/vercel.json`** - redirect configuration is there
+- **Remove the redirect** unless you're 100% sure no one uses the old URL
+
+### Checking the Redirect Works:
+
+```bash
+# Test from command line (should show 301 redirect)
+curl -I https://lost-and-found-portal-six.vercel.app/
+# Should show: HTTP/1.1 308 Permanent Redirect
+# Location: https://campusconnect.thapar.edu/lostnfound/
+
+# Or visit in Vercel dashboard
+# Settings > Redirects > Should show your redirect rule
+```
+
+### If You Ever Need to Change the Redirect:
+
+```sh
+# Edit frontend/vercel.json
+nano frontend/vercel.json
+
+# Change the "destination" URL to wherever you want
+# Then push to git
+git add frontend/vercel.json
+git commit -m "Update redirect destination"
+git push
+
+# Vercel redeploys automatically
+```
+
+---
+
+**🎉 Your Lost & Found portal is now professionally deployed!**

@@ -106,6 +106,8 @@ nginx.conf.backup
 !.env.example
 backend/.env
 frontend/.env
+backend/.env.copy
+frontend/.env.copy
 
 # Database connection and credentials
 **/MONGODB_URI*
