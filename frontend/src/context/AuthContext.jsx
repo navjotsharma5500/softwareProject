@@ -88,7 +88,8 @@ export const AuthProvider = ({ children }) => {
     } finally {
       localStorage.removeItem('token');
       setUser(null);
-      navigate('/');
+      // Navigate within Lost & Found, not to root
+      navigate('/', { replace: true });
     }
   };
 

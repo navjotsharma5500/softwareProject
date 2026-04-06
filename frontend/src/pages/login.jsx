@@ -57,8 +57,10 @@ const Login = () => {
       localStorage.setItem('token', token);
       // Get redirect URL if present
       const redirect = searchParams.get('redirect') || '/';
-      // Force a full page reload to trigger AuthContext
-      window.location.href = decodeURIComponent(redirect);
+      // Reload page to trigger AuthContext re-initialization with new token
+      // This will keep us on the same Lost & Found path (already in URL)
+      const decodedRedirect = decodeURIComponent(redirect);
+      window.location.href = decodedRedirect === '/' ? '/lostnfound/' : `/lostnfound${decodedRedirect}`;
     }
   }, [searchParams]);
 

@@ -86,7 +86,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Unauthorized - clear token and redirect to login
       localStorage.removeItem("token");
-      window.location.href = "/login";
+      window.location.href = "/lostnfound/login";
     }
     return Promise.reject(error);
   },

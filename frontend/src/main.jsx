@@ -19,8 +19,8 @@ import 'react-toastify/dist/ReactToastify.css'
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/react"
 createRoot(document.getElementById('root')).render(
-  <BrowserRouter>
-    <AuthProvider>
+  <BrowserRouter basename="/lostnfound">
+    <AuthProvider> 
         <App />
         <ToastContainer 
           position="top-right"

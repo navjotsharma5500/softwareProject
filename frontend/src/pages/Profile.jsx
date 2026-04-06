@@ -26,7 +26,7 @@ import useFormPersistence from '../hooks/useFormPersistence.jsx';
 import { useCooldown } from '../hooks/useCooldown';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ImageLightbox from '../components/ImageLightbox';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import ClaimCard from '../components/profile/ClaimCard';
 import ReportCard from '../components/profile/ReportCard';
 import ProfileHeader from '../components/profile/ProfileHeader';
@@ -42,6 +42,7 @@ import ConfirmModal from '../components/ConfirmModal';
  */
 const Profile = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [profileData, setProfileData] = useState(null);
   const [claims, setClaims] = useState([]);
@@ -79,7 +80,7 @@ const Profile = () => {
   });
 
   const handleBack = () => {
-    window.history.length > 1 ? window.history.back() : (window.location.href = '/');
+    window.history.length > 1 ? window.history.back() : navigate('/');
   };
 
   const [pagination, setPagination] = useState({

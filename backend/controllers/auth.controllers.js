@@ -20,7 +20,10 @@ const cookieOptions = {
   secure: true,
   sameSite: "none",
   path: "/",
-  domain: process.env.NODE_ENV === "production" ? ".guestapp.in" : undefined,
+  domain:
+    process.env.NODE_ENV === "production"
+      ? ".campusconnect.thapar.edu"
+      : undefined,
 };
 
 /**
