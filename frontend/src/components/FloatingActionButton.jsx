@@ -1,0 +1,62 @@
+/**
+ * @file FloatingActionButton.jsx
+ * @description Fixed-position floating action button with pulse animation
+ * and a tooltip for reporting lost/found items.
+ *
+ * @component
+ */
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Plus } from 'lucide-react';
+
+/**
+ * Animated FAB fixed to the bottom-right of the viewport.
+ *
+ * Entrance: scale from 0 to 1. Hover: scale 1.1. Tap: scale 0.9.
+ * The inner `Plus` icon rotates 90° on hover. A tooltip slides in from the
+ * right on hover. A repeating pulse ring animates beneath the button.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
+const FloatingActionButton = () => {
+  return (
+    <motion.button
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
+      className="fixed bottom-8 right-8 z-50 bg-gradient-to-r from-gray-800 to-gray-900 text-white p-5 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 group"
+      aria-label="Add new item"
+    >
+      <motion.div
+        animate={{ rotate: 0 }}
+        whileHover={{ rotate: 90 }}
+        transition={{ duration: 0.3 }}
+      >
+        <Plus size={32} strokeWidth={2.5} />
+      </motion.div>
+      
+      {/* Tooltip */}
+      <div className={`absolute right-full mr-4 top-1/2 -translate-y-1/2 bg-gray-900 text-white px-4 py-2 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`}>
+        Report Lost/Found Item
+      </div>
+
+      {/* Pulse effect */}
+      <motion.div 
+        className="absolute inset-0 rounded-full bg-gradient-to-r from-gray-800 to-gray-900"
+        animate={{
+          scale: [1, 1.3, 1],
+          opacity: [0.5, 0, 0.5],
+        }}
+        transition={{
+          duration: 2,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      />
+    </motion.button>
+  );
+};
+
+export default FloatingActionButton;

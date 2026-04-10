@@ -1,0 +1,126 @@
+/**
+ * @file ConfirmModal.jsx
+ * @description Reusable confirmation dialog with three visual variants.
+ *
+ * @component
+ */
+import React from 'react';
+import { AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
+
+/**
+ * Style map for the three visual variants.
+ * @private
+ */
+const VARIANTS = {
+  danger: {
+    iconBg: 'bg-red-100',
+    iconColor: 'text-red-600',
+    btnClass: 'bg-red-600 hover:bg-red-700 text-white',
+    DefaultIcon: AlertTriangle,
+  },
+  warning: {
+    iconBg: 'bg-yellow-100',
+    iconColor: 'text-yellow-600',
+    btnClass: 'bg-yellow-500 hover:bg-yellow-600 text-white',
+    DefaultIcon: AlertCircle,
+  },
+  success: {
+    iconBg: 'bg-green-100',
+    iconColor: 'text-green-600',
+    btnClass: 'bg-green-600 hover:bg-green-700 text-white',
+    DefaultIcon: CheckCircle,
+  },
+};
+
+/**
+ * Reusable confirmation modal with three visual variants.
+ *
+ * Dismisses on backdrop click (delegated via `handleBackdrop`). Renders
+ * `null` when `isOpen` is `false` for zero DOM cost when hidden.
+ *
+ * @component
+ * @param {object}            props
+ * @param {boolean}           props.isOpen        - Whether the modal is visible.
+ * @param {string}            props.title         - Modal heading text.
+ * @param {string}           [props.subtitle]     - Smaller sub-heading beneath the title.
+ * @param {string}            props.description   - Body copy.
+ * @param {string}           [props.confirmLabel='Confirm'] - Confirm button label.
+ * @param {React.ElementType}[props.confirmIcon]  - Lucide icon component for the confirm button.
+ * @param {string}           [props.cancelLabel='Cancel']  - Cancel button label.
+ * @param {'danger'|'warning'|'success'} [props.variant='danger'] - Visual colour scheme.
+ * @param {Function}          props.onConfirm     - Called when the confirm button is pressed.
+ * @param {Function}          props.onCancel      - Called when cancel or backdrop is pressed.
+ * @param {React.ReactNode}  [props.children]     - Extra content between description and buttons.
+ * @returns {JSX.Element|null}
+ */
+const ConfirmModal = ({
+  isOpen,
+  title,
+  subtitle,
+  description,
+  confirmLabel = 'Confirm',
+  confirmIcon: ConfirmIcon,
+  cancelLabel = 'Cancel',
+  variant = 'danger',
+  onConfirm,
+  onCancel,
+  children,
+}) => {
+  if (!isOpen) return null;
+
+  const { iconBg, iconColor, btnClass, DefaultIcon } =
+    VARIANTS[variant] ?? VARIANTS.danger;
+
+  const handleBackdrop = (e) => {
+    if (e.target === e.currentTarget) onCancel();
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4"
+      onClick={handleBackdrop}
+    >
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+        {/* Icon + Title */}
+        <div className="flex items-center gap-3 mb-4">
+          <div
+            className={`flex-shrink-0 w-11 h-11 rounded-full ${iconBg} flex items-center justify-center`}
+          >
+            <DefaultIcon className={iconColor} size={22} />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+            {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+          </div>
+        </div>
+
+        {/* Description */}
+        {description && (
+          <p className="text-sm text-gray-600 mb-4">{description}</p>
+        )}
+
+        {/* Extra slot (e.g. info box) */}
+        {children}
+
+        {/* Buttons */}
+        <div className="flex gap-3 justify-end mt-5">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors text-sm font-medium"
+          >
+            {cancelLabel}
+          </button>
+          <button
+            onClick={onConfirm}
+            className={`px-4 py-2 rounded-lg transition-colors text-sm font-medium flex items-center gap-2 ${btnClass}`}
+          >
+            {ConfirmIcon && <ConfirmIcon size={15} />}
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ConfirmModal;

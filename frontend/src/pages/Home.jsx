@@ -1,0 +1,572 @@
+/**
+ * @file Home.jsx
+ * @description Main landing page for the Lost & Found portal.
+ *
+ * Features:
+ * - Paginated item grid/list view with persisted view-mode preference.
+ * - Category, location, time-period, and text-search filters (persisted via
+ *   `useFormPersistence`).
+ * - Debounced search input (400 ms) and request cancellation via
+ *   `AbortController` on each filter change.
+ * - Tab switching between "available" and "claimed" items.
+ * - Refresh button with 2-second cooldown and "Clear Filters" button with
+ *   1-second cooldown (both via `useCooldown`).
+ * - Scroll-restoration: navigates back to `#items-section` on filter changes.
+ * - PWA install prompt (`AddToHomeScreen`).
+ *
+ * @component
+ */
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { RefreshCw, Grid, List, Search, Filter, X } from 'lucide-react';
+import { toast } from 'react-toastify';
+import { publicApi } from '../utils/api';
+import axios from 'axios';
+import useFormPersistence from '../hooks/useFormPersistence';
+import { useCooldown } from '../hooks/useCooldown';
+import { useDebounce } from '../hooks/useDebounce';
+import { motion } from 'framer-motion';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ItemsView from '../components/home/ItemsView';
+import EmptyState from '../components/EmptyState';
+import { CATEGORIES, LOCATIONS, TIME_PERIODS } from '../utils/constants';
+import { scrollToItemsSection } from '../utils/scroll.utils';
+import AddToHomeScreen from '../components/AddToHomeScreen';
+
+/**
+ * Home page — item discovery grid with filters, tabs, and pagination.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
+const Home = () => {
+  const navigate = useNavigate();
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [viewMode, setViewMode] = useFormPersistence('home_view', 'grid'); // 'grid' or 'list'
+  const [isScrolled, setIsScrolled] = useState(false);
+  const isInitialLoad = useRef(true);
+  const itemsContainerRef = useRef(null);
+
+  // Rate limiting state
+  const lastPageChangeTime = useRef(0);
+  const abortControllerRef = useRef(null);
+  const [refreshCooldown, triggerRefresh] = useCooldown(2000);
+  const [clearCooldown, triggerClearFilters] = useCooldown(1000);
+
+  // Tab state (not persisted - always start on available)
+  const [activeTab, setActiveTab] = useState('available'); // 'available' or 'claimed'
+
+  // Filters (persisted)
+  const [filters, setFilters, filtersControls] = useFormPersistence('home_filters', {
+    category: '',
+    location: '',
+    timePeriod: '',
+    search: '',
+    page: 1,
+    limit: 12
+  });
+  // Local state for search input to avoid lag
+  const [searchInput, setSearchInput] = useState(filters.search || '');
+  
+  // Sync searchInput with filters.search when filters change externally
+  useEffect(() => {
+    setSearchInput(filters.search || '');
+  }, [filters.search]);
+
+  // Debounce search input and sync to filters
+  const debouncedSearch = useDebounce(searchInput, 300);
+
+  useEffect(() => {
+    setFilters(prev => {
+      if (prev.search === debouncedSearch) return prev;
+      return { ...prev, search: debouncedSearch, page: 1 };
+    });
+  }, [debouncedSearch, setFilters]);
+  
+  const [pagination, setPagination] = useState({
+    total: 0,
+    totalPages: 0,
+    hasNext: false,
+    hasPrev: false
+  });
+
+  const fetchItems = async () => {
+    // Cancel any existing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    abortControllerRef.current = new AbortController();
+    setLoading(true);
+    
+    try {
+      // Remove empty filters and add status based on active tab
+      const params = Object.entries(filters).reduce((acc, [key, value]) => {
+        if (value) acc[key] = value;
+        return acc;
+      }, {});
+      
+      // Add isClaimed filter based on active tab
+      params.isClaimed = activeTab === 'claimed';
+      
+      const response = await publicApi.getItems(params, {
+        signal: abortControllerRef.current.signal
+      });
+      setItems(response.data.items);
+      setPagination(response.data.pagination);
+    } catch (error) {
+      // Ignore cancellation errors (both AbortError and Axios CanceledError)
+      if (error.name === 'AbortError' || axios.isCancel(error)) {
+        return; // Silently ignore cancelled requests
+      }
+      toast.error('Failed to load items');
+      console.error(error);
+    } finally {
+      setLoading(false);
+      isInitialLoad.current = false;
+      abortControllerRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    fetchItems();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, activeTab]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Cancel any pending requests
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
+  const handleFilterChange = useCallback((key, value) => {
+    if (key === 'search') {
+      setSearchInput(value); // Update local input immediately (debounced via useDebounce)
+    } else {
+      setFilters(prev => ({
+        ...prev,
+        [key]: value,
+        page: 1
+      }));
+    }
+  }, [setFilters]);
+
+  const scrollToItems = () => scrollToItemsSection('smooth');
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setFilters(prev => ({ ...prev, page: 1 })); // Reset to page 1 when tab changes
+    // Ensure we scroll to the items after switching tabs
+    scrollToItems();
+  };
+
+  const handleRefresh = async () => {
+    if (!triggerRefresh()) {
+      toast.warning('Please wait before refreshing again');
+      return;
+    }
+    
+    setRefreshing(true);
+    
+    try {
+      await fetchItems();
+      toast.success('Items refreshed!');
+    } catch {
+      toast.error('Failed to refresh items');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const clearFilters = () => {
+    if (!triggerClearFilters()) {
+      toast.warning('Please wait before clearing filters again');
+      return;
+    }
+    
+    // Clear persisted filters as well
+    if (filtersControls && typeof filtersControls.clear === 'function') filtersControls.clear();
+    else setFilters({
+      category: '',
+      location: '',
+      timePeriod: '',
+      search: '',
+      page: 1,
+      limit: 12
+    });
+    
+    // Clear search input state as well
+    setSearchInput('');
+  };
+
+  const handlePageChange = (newPage) => {
+    const now = Date.now();
+    const PAGE_CHANGE_COOLDOWN = 500; // 500ms
+    
+    // Check if still in cooldown
+    if (now - lastPageChangeTime.current < PAGE_CHANGE_COOLDOWN) {
+      return; // Silently ignore rapid pagination clicks
+    }
+    
+    lastPageChangeTime.current = now;
+    setFilters(prev => ({ ...prev, page: newPage }));
+    scrollToItems();
+  };
+
+  return (
+    <div className="min-h-screen transition-colors duration-300 bg-gray-50">
+      {/* Add to Home Screen prompt - mobile only, shown once */}
+      <AddToHomeScreen />
+
+      {/* Animated How It Works Button - bottom right */}
+      <motion.div
+        initial={{ x: 100, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ 
+          type: "spring",
+          stiffness: 100,
+          damping: 20,
+          delay: 0.5
+        }}
+        className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40"
+      >
+        <motion.button
+          onClick={() => navigate('/how-it-works')}
+          animate={{
+            paddingLeft: isScrolled ? 12 : 16,
+            paddingRight: isScrolled ? 12 : 16,
+          }}
+          transition={{ duration: 0.3 }}
+          className="group rounded-full shadow-lg transition-all duration-300 py-2.5 sm:py-3 bg-gradient-to-r from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 hover:scale-105 flex items-center justify-center gap-1.5 sm:gap-2"
+          title="How It Works"
+        >
+          <svg
+            className="w-4 h-4 sm:w-5 sm:h-5 text-white flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          {!isScrolled && (
+            <motion.span 
+              className="text-white font-semibold text-xs sm:text-sm whitespace-nowrap"
+              initial={{ opacity: 1, width: 'auto' }}
+              exit={{ opacity: 0, width: 0 }}
+            >
+              How It Works
+            </motion.span>
+          )}
+        </motion.button>
+      </motion.div>
+
+      <div className="px-4 sm:px-6 md:px-8 lg:px-16 xl:px-24 py-12">
+        {/* Hero Section */}
+        <div className="text-center mb-16 mt-0">
+          <motion.h1 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-5xl md:text-6xl font-bold mb-8"
+          >
+            <motion.span
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="block bg-gradient-to-r from-red-700 to-red-600 bg-clip-text text-transparent"
+              style={{ WebkitBoxDecorationBreak: 'clone' }}
+            >
+              Lost & Found
+            </motion.span>
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-lg text-gray-900 font-extrabold mt-4"
+          >
+            To collect the lost item → Visit admin office near SBI Bank | To submit found items → handover to Guard or Admin 
+          </motion.p>
+        </div>
+        {/* Tab Switcher with Report Button */}
+        <div id="items-section" className="flex justify-center items-center gap-4 mb-8 flex-wrap">
+          {/* Report Lost Item Button */}
+          <button
+            onClick={() => navigate('/report-lost-item')}
+            className="px-6 py-3 rounded-xl font-semibold transition-all bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-white shadow-lg hover:scale-105 border-2 border-red-400"
+          >
+            Report Lost Item
+          </button>
+          
+          <div className="inline-flex rounded-xl p-1 bg-gray-200">
+            <button
+              onClick={() => handleTabChange('available')}
+              className={`px-8 py-3 rounded-lg font-semibold transition-all ${
+                activeTab === 'available'
+                  ? 'bg-gradient-to-r from-gray-800 to-gray-900 text-white shadow-lg'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Available Items
+            </button>
+            <button
+              onClick={() => handleTabChange('claimed')}
+              className={`px-8 py-3 rounded-lg font-semibold transition-all ${
+                activeTab === 'claimed'
+                  ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Claimed Items
+            </button>
+          </div>
+          
+          {/* View Mode Toggle and Refresh Button */}
+          <div className="flex items-center gap-2">
+            {/* View Mode Toggle */}
+            <div className="flex rounded-lg p-1 bg-gray-200">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-2 rounded-md transition-all ${
+                  viewMode === 'grid'
+                    ? 'bg-gray-900 text-white'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                title="Grid view"
+              >
+                <Grid size={20} />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-2 rounded-md transition-all ${
+                  viewMode === 'list'
+                    ? 'bg-gray-900 text-white'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                title="List view"
+              >
+                <List size={20} />
+              </button>
+            </div>
+            
+            {/* Refresh Button */}
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing || refreshCooldown}
+              className={`p-3 rounded-xl font-semibold transition-all bg-white text-gray-900 hover:bg-gray-50 border border-gray-200 ${
+                refreshing || refreshCooldown ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              title={refreshCooldown ? 'Please wait...' : 'Refresh items'}
+            >
+              <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
+            </button>
+          </div>
+        </div>
+
+        {/* Search and Filters */}
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row gap-4 mb-4">
+            {/* Search Bar */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={20} strokeWidth={2} />
+              <input
+                type="text"
+                placeholder="Search for lost items already handed over to the admin. Click to claim if it’s yours." 
+                value={searchInput}
+                onChange={(e) => handleFilterChange('search', e.target.value)}
+                className="w-full pl-10 pr-4 py-3 rounded-xl border bg-white border-gray-200 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:border-transparent transition-all"
+              />
+            </div>
+            
+            {/* Filter Toggle Button */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="px-6 py-3 rounded-xl font-semibold flex items-center gap-2 bg-white text-gray-900 hover:bg-gray-50 border border-gray-200 transition-all"
+            >
+              <Filter size={20} />
+              Filters
+            </button>
+          </div>
+
+          {/* Filter Panel */}
+          {showFilters && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden p-6 rounded-xl bg-white border-gray-200 border"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Category Filter */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                    Category
+                  </label>
+                  <input
+                    type="text"
+                    list="home-category-options"
+                    value={filters.category}
+                    onChange={(e) => handleFilterChange('category', e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:border-transparent"
+                    placeholder="All Categories"
+                  />
+                  <datalist id="home-category-options">
+                    {CATEGORIES.map(cat => (
+                      <option key={cat} value={cat} />
+                    ))}
+                  </datalist>
+                </div>
+
+                {/* Location Filter */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    list="home-location-options"
+                    value={filters.location}
+                    onChange={(e) => handleFilterChange('location', e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:border-transparent"
+                    placeholder="All Locations"
+                  />
+                  <datalist id="home-location-options">
+                    {LOCATIONS.map(loc => (
+                      <option key={loc} value={loc} />
+                    ))}
+                  </datalist>
+                </div>
+
+                {/* Time Period Filter */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">
+                    Time Period
+                  </label>
+                  <select
+                    value={filters.timePeriod}
+                    onChange={(e) => handleFilterChange('timePeriod', e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg border bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-gray-400 focus:border-transparent"
+                  >
+                    <option value="">All Time</option>
+                    {TIME_PERIODS.map(period => (
+                      <option key={period.value} value={period.value}>
+                        {period.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Clear Filters Button */}
+              <div className="mt-4 flex justify-end">
+                <button
+                  onClick={clearFilters}
+                  disabled={clearCooldown}
+                  className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all ${
+                    clearCooldown 
+                      ? 'opacity-50 cursor-not-allowed text-gray-400'
+                      : 'text-red-600 hover:text-red-700'
+                  }`}
+                >
+                  <X size={16} />
+                  {clearCooldown ? 'Please wait...' : 'Clear Filters'}
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </div>
+
+        {/* Results Count */}
+        <div className="mb-6 text-gray-600">
+          Found <span className="font-semibold">{pagination.total}</span> items
+        </div>
+
+        {/* Loading State */}
+        {loading && (
+          <LoadingSpinner message="Loading items..." />
+        )}
+
+        {/* Items Grid/List */}
+        {!loading && items.length > 0 && (
+          <ItemsView
+            items={items}
+            viewMode={viewMode}
+            onNavigate={(itemId) => navigate(`/item/${itemId}`)}
+            containerRef={itemsContainerRef}
+          />
+        )}
+
+        {/* Empty State */}
+        {!loading && items.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-20 text-gray-500"
+          >
+            <EmptyState
+              title="No items found"
+              subtitle="Try adjusting your filters or search terms"
+              className=""
+            />
+          </motion.div>
+        )}
+
+        {/* Pagination */}
+        {!loading && pagination.totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-8">
+            <button
+              onClick={() => handlePageChange(Math.max(1, filters.page - 1))}
+              disabled={!pagination.hasPrev}
+              className={`px-4 py-2 rounded-lg font-medium ${
+                pagination.hasPrev
+                  ? 'bg-white text-gray-900 hover:bg-gray-50'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              } transition-all`}
+            >
+              Previous
+            </button>
+
+            <span className="px-4 py-2 text-gray-900">
+              Page {filters.page} of {pagination.totalPages}
+            </span>
+
+            <button
+              onClick={() => handlePageChange(filters.page + 1)}
+              disabled={!pagination.hasNext}
+              className={`px-4 py-2 rounded-lg font-medium ${
+                pagination.hasNext
+                  ? 'bg-white text-gray-900 hover:bg-gray-50'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              } transition-all`}
+            >
+              Next
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Home;

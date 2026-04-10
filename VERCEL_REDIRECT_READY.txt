@@ -1,0 +1,32 @@
+// VERCEL REDIRECT CONFIGURATION - ADD WHEN EC2 IS LIVE AND READY
+// 
+// After you've successfully deployed to EC2 and verified everything works at:
+// https://campusconnect.thapar.edu/lostnfound/
+//
+// Then uncomment the "redirects" section below and add it to frontend/vercel.json
+//
+// Replace the frontend/vercel.json file with this content:
+//
+// {
+//   "redirects": [
+//     {
+//       "source": "/(.*)",
+//       "destination": "https://campusconnect.thapar.edu/lostnfound/:1",
+//       "permanent": true
+//     }
+//   ],
+//   "routes": [
+//     {
+//       "handle": "filesystem"
+//     },
+//     {
+//       "src": "/(.*)",
+//       "dest": "/index.html"
+//     }
+//   ]
+// }
+//
+// Then deploy:
+// git add frontend/vercel.json
+// git commit -m "Enable redirect from Vercel to campusconnect domain"
+// git push

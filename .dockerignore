@@ -1,0 +1,63 @@
+# Node modules
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Environment files
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+
+# Git
+.git/
+.gitignore
+.github/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test
+coverage/
+.nyc_output/
+*.test.js
+__tests__/
+tests/
+
+# Documentation
+*.md
+!README.md
+
+# Logs
+logs/
+*.log
+
+# Frontend build
+frontend/dist/
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Misc
+*.tex
+*.txt
+COST_REDUCTION_TIPS.md
+THAPAR_DEPLOYMENT_QUOTATION.md
+fampay_cover_letter.txt
+resume.tex
