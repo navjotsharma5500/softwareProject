@@ -61,10 +61,19 @@ export const googleCallback = async (req, res) => {
         console.error("Failed to parse state:", err);
       }
 
-      // Include the /lostnfound path prefix for relative redirects
-      const fullRedirectUrl = redirectUrl.startsWith("http") 
-        ? redirectUrl 
-        : `${process.env.FRONTEND_URL}/lostnfound${redirectUrl}`;
+      // Build full redirect URL
+      // For local dev: http://localhost:5173/lostnfound/...
+      // For production: https://campusconnect.thapar.edu/lostnfound/...
+      let fullRedirectUrl;
+      if (redirectUrl.startsWith("http")) {
+        fullRedirectUrl = redirectUrl;
+      } else if (redirectUrl.startsWith("/lostnfound")) {
+        // Already has /lostnfound prefix
+        fullRedirectUrl = `${process.env.FRONTEND_URL}${redirectUrl}`;
+      } else {
+        // Add /lostnfound prefix if not present
+        fullRedirectUrl = `${process.env.FRONTEND_URL}/lostnfound${redirectUrl}`;
+      }
 
       console.log("Redirecting to:", fullRedirectUrl);
       return res.redirect(fullRedirectUrl);

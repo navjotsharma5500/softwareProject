@@ -42,8 +42,9 @@ const Login = () => {
     // ✅ COOKIE-BASED AUTH CHECK
     // =========================
     const checkAuth = async () => {
+      const API_URL = import.meta.env.VITE_API_BASE_URL;
       try {
-        const res = await fetch('/lostnfound/api/auth/profile', {
+        const res = await fetch(`${API_URL}/auth/profile`, {
           credentials: 'include',
         });
 
@@ -63,10 +64,11 @@ const Login = () => {
   // GOOGLE LOGIN HANDLER
   // =========================
   const handleGoogleLogin = () => {
+    const API_URL = import.meta.env.VITE_API_BASE_URL;
     const redirect = searchParams.get('redirect') || '/lostnfound';
 
     window.location.href =
-      `/lostnfound/api/auth/google?redirect=${encodeURIComponent(redirect)}`;
+      `${API_URL}/auth/google?redirect=${encodeURIComponent(redirect)}`;
   };
 
   return (

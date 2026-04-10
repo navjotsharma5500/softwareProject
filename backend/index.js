@@ -32,10 +32,11 @@ import {
   adminLimiter,
 } from "./middlewares/rateLimiter.middleware.js";
 import { requestTimeout } from "./middlewares/queryTimeout.middleware.js";
-import securityMiddleware from "./security.js";
 
 // Load .env values into process.env before any other module reads them.
+// Load .env first, then .env.local (if it exists) to override for local development
 dotenv.config();
+dotenv.config({ path: '.env.local', override: true });
 
 const app = express();
 
@@ -57,7 +58,7 @@ app.set("trust proxy", 1);
 // CORS configuration - works with Nginx reverse proxy.
 // In production, Nginx handles CORS headers to avoid duplication.
 const allowedOrigins = [
-  "https://lost-and-found-portal-six.vercel.app",
+  "https://campusconnect.thapar.edu/lostnfound",
   "http://localhost:5173",
   "http://localhost:3000",
   process.env.FRONTEND_URL,
@@ -133,7 +134,6 @@ app.use(cookieParser());
 app.use(requestTimeout(30000));
 
 // Apply Helmet-based security headers (CSP, HSTS, etc.).
-securityMiddleware(app);
 
 /**
  * TCP port the server listens on.

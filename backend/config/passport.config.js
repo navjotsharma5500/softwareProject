@@ -25,6 +25,8 @@ const __dirname = path.dirname(__filename);
 
 // Load .env from backend root directory explicitly
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
+// Load .env.local if it exists (overrides .env for local development)
+dotenv.config({ path: path.resolve(__dirname, "../.env.local"), override: true });
 
 /**
  * Serialises the authenticated user to the session store.
